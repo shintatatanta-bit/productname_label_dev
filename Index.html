@@ -227,9 +227,10 @@
     }
 
     .label-cell.active-editing {
-      outline: 3px solid #1a73e8 !important;
+      outline: 3.5px dashed #1a73e8 !important; /* 青い破線の枠で囲む */
+      background-color: #f0f7ff !important;       /* 選択中であることがわかるように薄い青背景にする */
       z-index: 100;
-      box-shadow: 0 0 12px rgba(26, 115, 232, 0.7);
+      box-shadow: 0 0 15px rgba(26, 115, 232, 0.8);
     }
 
     .slot-num-badge {
