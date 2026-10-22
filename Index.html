@@ -2471,10 +2471,10 @@
       highlightChoiceButton('btnCount', count);
       highlightChoiceButton('btnScale', data.fontScale || 'normal');
       highlightChoiceButton('btnMargin', data.marginPreset || 'normal');
-      .fontWeight === '400' ? '400' : '700');
+      highlightWeightButton(data.fontWeight === '400' ? '400' : '700');
       renderProductInputFields(data.products);
       updateControlsUI();
-      updateMethodUI();highlightWeightButton(data
+      updateMethodUI();
 
       renderAllSlots();
 
