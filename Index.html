@@ -1116,7 +1116,11 @@
       </div>
 
       <div class="panel-bottom-actions">
-        <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 12px;" onclick="deleteCurrentSlot()">🗑️ 削除</button>
+        <div style="display:flex; gap:6px;">
+          <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 10px;" onclick="deleteCurrentSlot()">🗑️ 削除</button>
+          <!-- ★ここを追加：全面コピーボタン -->
+          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 10px;" onclick="copyToAllSlots()">📄 全面にコピー</button>
+        </div>
         <div style="display:flex; gap:6px;">
           <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8;" onclick="duplicateToNextSlot()">次へコピー ➔</button>
           <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:7px 18px;" onclick="closeEditPanel()">完了</button>
@@ -3575,6 +3579,28 @@
       }
       
       renderAllSlots();
+    }
+
+    function copyToAllSlots() {
+      if (editingSlotIndex === null) return;
+      const curData = slotsData[editingSlotIndex];
+      if (!curData) {
+        alert('コピー元のデータがありません。');
+        return;
+      }
+
+      // 確認のポップアップ（Yes/No）
+      const isConfirmed = confirm(`ラベル枠 #${editingSlotIndex + 1} の内容を、シート全体の36枠すべてに反映させますか？\n\n※既存の他の枠に入力されている内容も上書きされます。`);
+      if (!isConfirmed) return;
+
+      // 36枠すべてに現在のデータをディープコピーして代入
+      for (let i = 0; i < 36; i++) {
+        slotsData[i] = JSON.parse(JSON.stringify(curData));
+      }
+
+      updateUsageCount();
+      renderAllSlots();
+      alert('シート全体の36枠すべてにコピーしました！');
     }
   </script>
 </body>
