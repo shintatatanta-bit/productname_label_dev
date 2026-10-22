@@ -2240,13 +2240,14 @@
         const data = slotsData[i];
         const hasData = Boolean(data && data.products && data.products.some(p => p.trim() !== ""));
 
-        let baseClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
+        // ▼ クラス設定をシンプルかつ確実に行う
+        let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
         if (i === editingSlotIndex) {
-          baseClass += ' active-editing';
+          cellClass += ' active-editing';
         }
-        cell.className = baseClass;
+        cell.className = cellClass;
         cell.dataset.slotIndex = i;
-
+        
         cell.draggable = hasData;
 
         // ① ドラッグ開始時（ラベル枠の移動用データ）
