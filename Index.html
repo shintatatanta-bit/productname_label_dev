@@ -2240,12 +2240,12 @@
         const data = slotsData[i];
         const hasData = Boolean(data && data.products && data.products.some(p => p.trim() !== ""));
 
-        cell.className = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
-        cell.dataset.slotIndex = i;
-        
-        if (i === editingSlotIndex && document.getElementById('editSidePanel').classList.contains('open')) {
-          cell.classList.add('active-editing');
+        let baseClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
+        if (i === editingSlotIndex) {
+          baseClass += ' active-editing';
         }
+        cell.className = baseClass;
+        cell.dataset.slotIndex = i;
 
         cell.draggable = hasData;
 
@@ -2470,10 +2470,10 @@
       highlightChoiceButton('btnCount', count);
       highlightChoiceButton('btnScale', data.fontScale || 'normal');
       highlightChoiceButton('btnMargin', data.marginPreset || 'normal');
-      highlightWeightButton(data.fontWeight === '400' ? '400' : '700');
+      .fontWeight === '400' ? '400' : '700');
       renderProductInputFields(data.products);
       updateControlsUI();
-      updateMethodUI();
+      updateMethodUI();highlightWeightButton(data
 
       renderAllSlots();
 
