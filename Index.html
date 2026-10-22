@@ -1116,16 +1116,17 @@
       </div>
 
       <div class="panel-bottom-actions">
-        <div style="display:flex; gap:6px;">
-          <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 10px;" onclick="deleteCurrentSlot()">🗑️ 削除</button>
-          <!-- ★ここを追加：全面コピーボタン -->
-          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 10px;" onclick="copyToAllSlots()">📄 全面にコピー</button>
+        <div style="display:flex; gap:4px; flex-wrap:wrap;">
+          <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="deleteCurrentSlot()">🗑️ 1枠削除</button>
+          <!-- ★ここを追加：パネル内から一発で全クリアできるボタン -->
+          <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="clearAllLabels()">🗑️ 全クリア</button>
+          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 8px;" onclick="copyToAllSlots()">📄 全面コピー</button>
         </div>
         <div style="display:flex; gap:6px;">
-          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8;" onclick="duplicateToNextSlot()">次へコピー ➔</button>
-          <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:7px 18px;" onclick="closeEditPanel()">完了</button>
+          <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:7px 16px;" onclick="closeEditPanel()">完了</button>
         </div>
       </div>
+
     </div>
   </div> <!-- main-workspace の閉じタグ -->
 
