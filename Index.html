@@ -845,7 +845,7 @@
         overflow: visible !important; 
         display: block !important; 
       }
-      .preview-container { padding: 0 !important; margin: 0 !important; transform: none !important; display: block !important; }
+      .preview-container { padding: 0 !important; margin: 0 !important; transform: none !important; zoom: 1 !important; display: block !important; }
       .sheet-a4 { box-shadow: none !important; margin: 0 !important; }
       .label-cell { border: none !important; cursor: default !important; }
       .label-cell.empty-cell { background: transparent !important; }
@@ -2955,11 +2955,18 @@
     }
 
     function applyZoom() {
-      document.getElementById('sheetsContainer').style.transform = `scale(${currentZoom.toFixed(2)})`;
+      const container = document.getElementById('sheetsContainer');
+      // ★ 物理サイズごと拡大する zoom プロパティに変更
+      container.style.zoom = currentZoom;
+      // 干渉を防ぐため transform は解除
+      container.style.transform = 'none'; 
       document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
     }
+
     function changeZoom(delta) { currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta)); applyZoom(); }
+    
     function setZoom(val) { currentZoom = Math.min(2.0, Math.max(0.3, val)); applyZoom(); }
+    
     function fitPage() {
       const headerH = document.getElementById('topControlPanel').offsetHeight || 90;
       const fitScale = Math.min((window.innerWidth - 440) / 794, (window.innerHeight - headerH - 40) / 1123);
