@@ -2956,10 +2956,36 @@
 
     function applyZoom() {
       const container = document.getElementById('sheetsContainer');
-      // ★ 物理サイズごと拡大する zoom プロパティに変更
-      container.style.zoom = currentZoom;
-      // 干渉を防ぐため transform は解除
-      container.style.transform = 'none'; 
+      const outerArea = document.getElementById('previewOuterArea');
+      
+      // 不安定なzoomプロパティを確実にクリアし、安全な scale に戻す
+      container.style.zoom = ''; 
+      container.style.transform = `scale(${currentZoom.toFixed(2)})`;
+      
+      // ★ スクロール領域の動的確保と見切れ防止の制御
+      if (currentZoom > 1.0) {
+        // 拡大時：左側の見切れを防ぐため、基点を左上に変更
+        outerArea.style.justifyContent = 'flex-start';
+        container.style.transformOrigin = 'top left';
+        
+        // 拡大によって画面外へはみ出す「物理的な追加ピクセル数」を算出し、ダミーの余白として追加
+        const baseWidth = 794;  // A4サイズの概算ピクセル幅
+        const baseHeight = 1123; // A4サイズの概算ピクセル高さ
+        const extraWidth = baseWidth * (currentZoom - 1.0);
+        const extraHeight = baseHeight * (currentZoom - 1.0);
+        
+        container.style.marginRight = extraWidth + 'px';
+        container.style.marginBottom = extraHeight + 'px';
+      } else {
+        // 等倍・縮小時：これまで通り画面中央に美しく配置する
+        outerArea.style.justifyContent = 'center';
+        container.style.transformOrigin = 'top center';
+        
+        // 余白をリセット
+        container.style.marginRight = '0px';
+        container.style.marginBottom = '0px';
+      }
+      
       document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
     }
 
