@@ -302,7 +302,7 @@
     /* 修正後 */
     .card-top-box {
       width: 95%;
-      height: 23.2mm; /* 1mm下に伸ばす */
+      height: 21.5mm; 
       background: #3d2314 !important;
       border-radius: 1.5mm;
       border: 1.0px solid #3d2314 !important;
@@ -314,6 +314,7 @@
       text-align: center;
       overflow: hidden;
       box-sizing: border-box;
+      margin-bottom: 0.8mm; /* ← ここで赤帯との物理的な隙間（1mm分）を確実に作ります */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -387,7 +388,7 @@
       letter-spacing: 0.2px;
       border: 0.5px solid #b71c1c !important;
       box-sizing: border-box;
-      transform: translateY(19.0px); /* 1mm下へ追加でシフト（15.2 + 3.8） */
+      transform: none; /* 描画ズレをクリアし、正しいレイアウト位置に配置 */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -2334,7 +2335,7 @@
           </div>
         </div>
       `;
-      
+
       } else {
         // 標準テンプレート（ロゴなし）
         return `
