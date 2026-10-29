@@ -301,7 +301,7 @@
 
     /* 修正後 */
     .card-top-box {
-      width: 95%;
+      width: 100%; /* ← 左右の幅をパディング枠いっぱいに拡大 */
       height: 22.5mm; 
       background: #3d2314 !important;
       border-radius: 1.5mm;
@@ -314,8 +314,6 @@
       text-align: center;
       overflow: hidden;
       box-sizing: border-box;
-      margin-top: 1.0mm;   /* ← 追加：全体を上から1mm下げる */
-      margin-bottom: 0.8mm; 
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -376,7 +374,7 @@
 
     /* 赤帯（ピル）自体の位置は固定し、中の文字のみ微調整 */
     .card-bottom-pill {
-      width: 95%;
+      width: 100%; /* ← 赤帯の幅もパディング枠いっぱいに拡張 */
       height: 5.6mm;
       background: #b71c1c !important;
       border-radius: 2.8mm;
@@ -389,8 +387,6 @@
       letter-spacing: 0.2px;
       border: 0.5px solid #b71c1c !important;
       box-sizing: border-box;
-      margin-top: 1.0mm; /* ← 赤帯全体を1mm下へシフト */
-      transform: none; /* 描画ズレをクリアし、正しいレイアウト位置に配置 */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
