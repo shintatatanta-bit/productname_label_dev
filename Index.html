@@ -292,12 +292,21 @@
     }
 
     /* 茶色の枠（高さ18.2mmに拡張） */
+    /* 修正前 */
     .card-top-box {
       width: 95%;
-      height: 22.2mm; /* さらに1mm下に拡張 */
+      height: 22.2mm;
+      ...
+    }
+
+    /* 修正後 */
+    .card-top-box {
+      width: 95%;
+      height: 23.2mm; /* 1mm下に伸ばす */
       background: #3d2314 !important;
       border-radius: 1.5mm;
       border: 1.0px solid #3d2314 !important;
+      display: flex;
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
@@ -378,10 +387,10 @@
       letter-spacing: 0.2px;
       border: 0.5px solid #b71c1c !important;
       box-sizing: border-box;
-      transform: translateY(15.2px); /* 赤帯と文字ごと、さらに1mm下へ移動 */
+      transform: translateY(19.0px); /* 1mm下へ追加でシフト（15.2 + 3.8） */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
-    } /* ← 🎯 閉じ括弧を追加しました */
+    }
 
     .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
 
@@ -2308,21 +2317,24 @@
           headerBarInner += `<span class="txt-cat">${escapeHtml(categoryText)}</span>`;
         }
 
-        return `
-          <div class="design-card">
-            <div class="card-top-box">
-              <div class="top-header-bar ${hasCatClass}">
-                ${headerBarInner}
-              </div>
-              <div style="flex:1; display:flex; flex-direction:column; justify-content:center; width:100%; align-items:center;">
-                ${linesHtml}
-              </div>
+        // buildLabelDesignHtml 内の該当部分
+      return `
+        <div class="design-card">
+          <div class="card-top-box">
+            <div class="top-header-bar ${hasCatClass}">
+              ${headerBarInner}
             </div>
-            <div class="card-bottom-pill ${pillClass}">
-              <span class="pill-text">${escapeHtml(data.methodText)}</span>
+            <!-- ヘッダー下部の余白を均等にし、文字をボックスの上下真ん中に配置 -->
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; padding-bottom: 1.5mm;">
+              ${linesHtml}
             </div>
           </div>
-        `;
+          <div class="card-bottom-pill ${pillClass}">
+            <span class="pill-text">${escapeHtml(data.methodText)}</span>
+          </div>
+        </div>
+      `;
+      
       } else {
         // 標準テンプレート（ロゴなし）
         return `
