@@ -427,10 +427,10 @@
 
     /* 赤帯（ピル）自体の位置は固定し、中の文字のみ微調整 */
     .card-bottom-pill {
-      width: 95%;
-      height: 5.6mm;
+      width: 100%; /* パディング枠の左右幅に完全に合わせる */
+      height: 4.6mm; /* 高さを1mm小さくする (5.6mm → 4.6mm) */
       background: #b71c1c !important;
-      border-radius: 2.8mm;
+      border-radius: 2.3mm; /* 高さに合わせて角丸の比率も調整 */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -440,10 +440,10 @@
       letter-spacing: 0.2px;
       border: 0.5px solid #b71c1c !important;
       box-sizing: border-box;
-      transform: none;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+    
     .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
 
     /* 赤帯の中の「文字」の微調整 */
