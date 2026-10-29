@@ -275,8 +275,8 @@
 
     /* 2. シールサイズより「一回り小さい（2mm小さい）」デザインカード領域にする */
     .design-card {
-      width: 46.0mm;  /* 50mm - 4mm (左右各2mm) */
-      height: 26.0mm; /* 30mm - 4mm (上下各2mm) */
+      width: 46.0mm;
+      height: 26.0mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -287,8 +287,7 @@
       box-sizing: border-box;
       position: relative;
       background: #ffffff !important;
-      border: 0.5px dashed #b71c1c !important; /* シールより2mm小さい内側の基準枠 */
-      border-radius: 1.5mm;
+      border: none !important; /* 枠線を完全に非表示にする */
     }
 
     /* 茶色の枠（高さ18.2mmに拡張） */
