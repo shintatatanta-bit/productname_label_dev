@@ -302,7 +302,7 @@
     /* 修正後 */
     .card-top-box {
       width: 100%;
-      height: 21.5mm; /* ← 高さを22.5mmから21.5mmに変更（下側から1mm小さくする） */
+      height: 19.5mm; /* ← 高さを2mm小さくする (21.5mm → 19.5mm) */
       background: #3d2314 !important;
       border-radius: 1.5mm;
       border: 1.0px solid #3d2314 !important;
@@ -314,6 +314,7 @@
       text-align: center;
       overflow: hidden;
       box-sizing: border-box;
+      margin-bottom: 2.0mm; /* ← 茶色帯と赤帯の間に正確に2mmの空白（隙間）を設ける */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
