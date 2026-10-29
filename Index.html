@@ -298,7 +298,6 @@
       background: #3d2314 !important;
       border-radius: 1.5mm;
       border: 1.0px solid #3d2314 !important;
-      border: 1.0px solid #3d2314 !important;    display: flex;
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
@@ -382,10 +381,13 @@
       transform: translateY(15.2px); /* 赤帯と文字ごと、さらに1mm下へ移動 */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
+    } /* ← 🎯 閉じ括弧を追加しました */
+
+    .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
 
     .pill-text {
       display: inline-block;
-      transform: none; /* 赤帯と一緒に下がるため個別調整はクリア */
+      transform: none;
     }
 
     .product-group-block {
