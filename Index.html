@@ -294,10 +294,10 @@
     /* 茶色の枠（高さ18.2mmに拡張） */
     .card-top-box {
       width: 95%;
-      height: 19.2mm; /* 1mm下に拡張 */
+      height: 21.2mm; /* さらに2mm下に拡張 */
       background: #3d2314 !important;
       border-radius: 1.5mm;
-      border: 1.0px solid #3d2314 !important;      display: flex;
+      border: 1.0px solid #3d2314 !important;    display: flex;
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
@@ -378,10 +378,11 @@
       letter-spacing: 0.2px;
       border: 0.5px solid #b71c1c !important;
       box-sizing: border-box;
-      transform: translateY(3.8px); /* 赤帯ごと文字と一緒に1mm下へ移動 */
+      transform: translateY(11.4px); /* 赤帯と文字ごと、さらに2mm下へ移動 */
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+    
     .pill-text {
       display: inline-block;
       transform: none; /* 赤帯と一緒に下がるため個別調整はクリア */
