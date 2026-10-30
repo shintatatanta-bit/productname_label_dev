@@ -2547,11 +2547,6 @@
 
 
 
-    /**
-     * 【縦横比を維持したオートフィット機能】
-     * 無理な横幅の圧縮（scaleXによる横長・潰れ）を廃止し、
-     * フォントの自然なアスペクト比（等倍）を完全に保持しながらレイアウトを安定させます。
-     */
     function autoFitLongLines() {
       const cards = document.querySelectorAll('.design-card');
       
@@ -2559,14 +2554,15 @@
         const topBox = card.querySelector('.card-top-box');
         if (!topBox) return;
 
-        // トランスフォームを完全にリセットし、文字の自然な縦横比を死守する
+        // ★ここですべての transform を强制的に 'none' にリセットしているため、
+        //  長体（scaleX）をかけようとしても打ち消されてしまっています。
         topBox.style.transform = 'none';
         
         const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
         subWrappers.forEach(wrap => {
           const span = wrap.querySelector('.card-product-line');
           if (span) {
-            span.style.transform = 'none'; // 無理な変形を一切行わない
+            span.style.transform = 'none'; 
           }
         });
 
