@@ -2379,8 +2379,8 @@
            <div class="top-header-bar ${hasCatClass}">
              ${headerBarInner}
            </div>
-           <!-- ★ 左右のパディングを 3.0mm に調整 -->
-           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 3.0mm; padding-right: 3.0mm; box-sizing: border-box; margin: 0; overflow: hidden;">
+           <!-- ★ ラベル端から5mmの空白を生むための最適値（左右各約2.3mm） -->
+           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 2.3mm; padding-right: 2.3mm; box-sizing: border-box; margin: 0; overflow: hidden;">
              ${linesHtml}
            </div>
          </div>
@@ -2576,7 +2576,7 @@
         const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
         
         const totalWidth = topBox.clientWidth || 174;
-        const paddingPx = 22; // 左右各約3.0mmに相当するピクセルマージン
+        const paddingPx = 16; // 左右各約2.3mmに相当するピクセルマージン
         const containerWidth = Math.max(50, totalWidth - (paddingPx * 2));
 
         subWrappers.forEach(wrap => {
