@@ -398,18 +398,17 @@
     .txt-cat { 
       font-size: 5.2pt; 
       font-weight: 500; 
-      color: #221913;
+      color: #3d2314;
       line-height: 1;
       display: inline-flex;
       align-items: flex-end;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis; /* ★長すぎる場合は「…」で安全に省略して左側への食い込みを防ぐ場合 */
+      overflow: visible; /* 縮小するため隠さずに表示 */
       flex: 1;
       min-width: 0; 
       justify-content: flex-end;
       text-align: right;
-      padding-left: 2mm; /* ロゴとの間に最低限の隙間を確保 */
+      transform-origin: right center; /* 右端を固定して左方向へ向かって長体化 */
       transform: translateY(-0.5px);
     }
 
@@ -2349,7 +2348,15 @@
 
   let headerBarInner = `<span class="header-logo">matoil</span>`;
   if (categoryText) {
-    headerBarInner += `<span class="txt-cat">${escapeHtml(categoryText)}</span>`;
+    // 文字数が17文字以上の場合は、超過文字数に応じて横幅を縮小（長体化）する計算
+    const charLen = categoryText.length;
+    let scaleStyle = "";
+    if (charLen >= 17) {
+      // 17文字を基準に、文字が増えるにつれてスケールを小さくする（最小限界 0.5 などで保護）
+      const calculatedScale = Math.max(0.5, 16 / charLen);
+      scaleStyle = ` transform: translateY(-0.5px) scaleX(${calculatedScale.toFixed(3)});`;
+    }
+    headerBarInner += `<span class="txt-cat" style="${scaleStyle}">${escapeHtml(categoryText)}</span>`;
   }
 
   return `
