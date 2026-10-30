@@ -1090,7 +1090,10 @@
     }
 
     /* Ctrlキー押下時に、データのあるラベルのカーソルをコピー用に強制変更 */
-    body.ctrl-pressed .label-cell.has-data:hover {
+    body.ctrl-pressed .label-cell.has-data,
+    body.ctrl-pressed .label-cell.has-data *,
+    body.ctrl-pressed .label-cell.has-data:hover,
+    body.ctrl-pressed .label-cell.has-data:hover * {
       cursor: copy !important;
     }
   </style>
