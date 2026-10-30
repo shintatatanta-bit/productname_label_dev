@@ -1088,6 +1088,11 @@
     #customDragBadge.is-copy {
       background: #137333; /* コピー時は緑色系で視覚的に区別 */
     }
+
+    /* Ctrlキー押下時に、データのあるラベルのカーソルをコピー用に強制変更 */
+    body.ctrl-pressed .label-cell.has-data:hover {
+      cursor: copy !important;
+    }
   </style>
 
   <!-- PDF.js ライブラリの読み込み -->
@@ -4014,6 +4019,24 @@ function onSubProductInput(idx, el) {
         badge.style.display = 'none';
       }
     };
+
+    // --- Ctrlキーの押下状態を監視してカーソルを動的に切り替えるリスナー ---
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Control' || e.ctrlKey) {
+        document.body.classList.add('ctrl-pressed');
+      }
+    });
+
+    window.addEventListener('keyup', function(e) {
+      if (!e.ctrlKey || e.key === 'Control') {
+        document.body.classList.remove('ctrl-pressed');
+      }
+    });
+
+    // ウィンドウからフォーカスが外れた場合などの安全保障
+    window.addEventListener('blur', function() {
+      document.body.classList.remove('ctrl-pressed');
+    });
   </script>
 </body>
 </html>
