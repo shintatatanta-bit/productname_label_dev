@@ -2434,10 +2434,17 @@
 
         // ③ ドラッグオーバー時（移動・コピーの両方を柔軟に許可）
         cell.ondragover = function(e) {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'copyMove';
-          cell.classList.add('drag-over');
-        };
+         e.preventDefault();
+         
+         // ★ Ctrlキーが押されている場合は 'copy'（コピーアイコン）、それ以外は 'move'（移動アイコン）に切り替える
+         if (e.ctrlKey) {
+           e.dataTransfer.dropEffect = 'copy';
+         } else {
+           e.dataTransfer.dropEffect = 'move';
+         }
+         
+         cell.classList.add('drag-over');
+       };
 
         cell.ondragleave = function(e) {
           cell.classList.remove('drag-over');
