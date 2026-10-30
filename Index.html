@@ -2518,19 +2518,28 @@
             return;
           }
 
-          // --- ルート B: ラベル枠同士の移動・入れ替え処理 ---
+          // --- ルート B: ラベル枠同士の移動・入れ替え、または Ctrl+D&D によるコピー処理 ---
           if (parsedData.type === 'slotMove') {
             const sourceIdx = parsedData.index !== undefined ? parsedData.index : draggedSlotIndex;
 
             if (sourceIdx !== null && !isNaN(sourceIdx) && sourceIdx !== i) {
-              const temp = slotsData[i];
-              slotsData[i] = slotsData[sourceIdx];
-              slotsData[sourceIdx] = temp;
+              
+              // ★ Ctrlキーが押されている場合は「移動」ではなく「コピー（複製）」として処理
+              if (e.ctrlKey) {
+                if (slotsData[sourceIdx]) {
+                  slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
+                }
+              } else {
+                // 通常の移動・入れ替え処理
+                const temp = slotsData[i];
+                slotsData[i] = slotsData[sourceIdx];
+                slotsData[sourceIdx] = temp;
 
-              if (editingSlotIndex === sourceIdx) {
-                editingSlotIndex = i;
-              } else if (editingSlotIndex === i) {
-                editingSlotIndex = sourceIdx;
+                if (editingSlotIndex === sourceIdx) {
+                  editingSlotIndex = i;
+                } else if (editingSlotIndex === i) {
+                  editingSlotIndex = sourceIdx;
+                }
               }
 
               draggedSlotIndex = null;
