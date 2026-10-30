@@ -321,14 +321,19 @@
     /* ヘッダー帯共通パーツ（極淡アイボリー背景） */
     .top-header-bar {
       width: 100%;
-      height: 3.8mm;
+      height: 3.8mm !important;
+      min-height: 3.8mm !important;
+      max-height: 3.8mm !important;
+      flex-shrink: 0 !important; /* フレックスボックス内で潰れたり広がったりするのを防ぐ */
       display: flex;
       align-items: flex-end;
       padding: 0 1.2mm 0.5mm 1.2mm;
       box-sizing: border-box;
       border-bottom: 1.0px solid #3d2314 !important; 
       background: #fbf8f5;
+      overflow: hidden; /* 万が一のはみ出しをカットして高さを死守する */
     }
+    
     .top-header-bar.has-category {
       justify-content: space-between; /* カテゴリ名あり：左右に配置 */
     }
