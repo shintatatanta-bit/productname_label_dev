@@ -1899,8 +1899,10 @@
       const isBoil = s.methodText.includes('湯煎');
 
       slotsData[editingSlotIndex] = {
-        designTemplate: "standard", // ★ここを追加
+        designTemplate: "standard",
+        categoryText: "",
         products: prods,
+        subProducts: prods.map(() => ""), // ★追加: 初期状態は空のサブ配列
         productsAlt: prodsAlt,
         productsTransSource: sources,
         isEnglishMode: isEnModes,
@@ -2596,27 +2598,32 @@
     function closeActualSizeModal() { document.getElementById('actualSizeModal').style.display = 'none'; }
 
     function openEditPanel(slotIdx) {
-  editingSlotIndex = slotIdx;
-  if (!slotsData[slotIdx]) {
-    slotsData[slotIdx] = {
-      categoryText: "",         // セット名初期値
-      products: [""],
-      productsAlt: [""],
-      productsTransSource: [null],
-      isEnglishMode: [false],
-      fontScale: "normal",
-      customFontPt: 10.0,
-      marginPreset: "normal",
-      customMarginY: 0.55,
-      fontWeight: "700",
-      heatingType: "microwave",
-      methodMin: "2",
-      methodSec: "",
-      methodText: "レンジ 600W で 2分温め",
-      methodTextAlt: "Microwave 600W for 2 min",
-      methodType: "warm"
-    };
-  }
+      editingSlotIndex = slotIdx;
+      if (!slotsData[slotIdx]) {
+        slotsData[slotIdx] = {
+          categoryText: "",         // セット名
+          products: [""],           // メイン品名
+          subProducts: [""],        // ★追加: 括弧内（料理名・サブ）用フィールド
+          productsAlt: [""],
+          productsTransSource: [null],
+          isEnglishMode: [false],
+          fontScale: "normal",
+          customFontPt: 10.0,
+          marginPreset: "normal",
+          customMarginY: 0.55,
+          fontWeight: "700",
+          heatingType: "microwave",
+          methodMin: "2",
+          methodSec: "",
+          methodText: "レンジ 600W で 2分温め",
+          methodTextAlt: "Microwave 600W for 2 min",
+          methodType: "warm"
+        };
+      }
+      // 既存データに subProducts がない場合の安全保障（マイグレーション）
+      if (!slotsData[slotIdx].subProducts) {
+        slotsData[slotIdx].subProducts = slotsData[slotIdx].products.map(() => "");
+      }
   const data = slotsData[slotIdx];
   document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
 
@@ -2808,6 +2815,11 @@
       container.innerHTML = '';
       const data = slotsData[editingSlotIndex];
 
+      // サブ配列が未定義の場合の安全保障
+      if (!data.subProducts) {
+        data.subProducts = products.map(() => "");
+      }
+
       const seenNames = new Set();
       let singleOptionsHtml = '<option value="">＋ 単品マスタから選択</option>';
       singleMasterItems.forEach(item => {
@@ -2819,6 +2831,7 @@
       });
 
       products.forEach((val, idx) => {
+        const subVal = data.subProducts[idx] || "";
         const row = document.createElement('div');
         row.className = 'single-product-field';
         row.dataset.rowIndex = idx;
@@ -2852,6 +2865,10 @@
             if (data && data.products) {
               const movedItem = data.products.splice(draggedRowIndex, 1)[0];
               data.products.splice(idx, 0, movedItem);
+              
+              const movedSub = data.subProducts.splice(draggedRowIndex, 1)[0];
+              data.subProducts.splice(idx, 0, movedSub);
+
               if (data.productsAlt) {
                 const movedAlt = data.productsAlt.splice(draggedRowIndex, 1)[0];
                 data.productsAlt.splice(idx, 0, movedAlt);
@@ -2886,23 +2903,35 @@
               ${singleOptionsHtml}
             </select>
           </div>
-          <div class="field-input-row">
-            <div class="input-suggest-wrapper">
-              <textarea class="input-prod-text" id="prodInput_${idx}" rows="1"
-                        placeholder="料理名を入力"
-                        oninput="onSingleProductInput(${idx}, this)"
-                        oncompositionend="onSingleProductInput(${idx}, this)"
-                        onkeydown="onProductInputKeyDown(event, ${idx})"
-                        onblur="onProductInputBlur(${idx}, this)">${escapeHtml(val)}</textarea>
-              <div class="suggest-dropdown" id="suggestBox_${idx}"></div>
+          <div class="field-input-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
+            <!-- メイン品名入力 -->
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
+              <div class="input-suggest-wrapper">
+                <textarea class="input-prod-text" id="prodInput_${idx}" rows="1"
+                          placeholder="メイン品名（例: トマトソース）"
+                          oninput="onSingleProductInput(${idx}, this)"
+                          oncompositionend="onSingleProductInput(${idx}, this)"
+                          onkeydown="onProductInputKeyDown(event, ${idx})"
+                          onblur="onProductInputBlur(${idx}, this)">${escapeHtml(val)}</textarea>
+                <div class="suggest-dropdown" id="suggestBox_${idx}"></div>
+              </div>
+              ${badgeHtml}
+              <button type="button" class="btn-clear-row" onclick="clearSingleProductRow(${idx})">✕</button>
+              <button type="button" class="btn-toggle-lang" onclick="toggleSingleProductLanguage(${idx})">🌐⇄🇯🇵</button>
             </div>
-            ${badgeHtml}
-            <button type="button" class="btn-clear-row" onclick="clearSingleProductRow(${idx})">✕</button>
-            <button type="button" class="btn-toggle-lang" onclick="toggleSingleProductLanguage(${idx})">🌐⇄🇯🇵</button>
+            <!-- サブテキスト（括弧内）入力 -->
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%; padding-left: 0;">
+              <span style="font-size: 10.5px; color: #666; width: 32px; text-align: right; flex-shrink: 0;">(配下):</span>
+              <textarea class="input-prod-text" id="subInput_${idx}" rows="1"
+                        placeholder="カッコ内（例: ハンバーグトマトソース）"
+                        oninput="onSubProductInput(${idx}, this)"
+                        style="font-size: 11.5px; min-height: 28px; background: #fafafa;">${escapeHtml(subVal)}</textarea>
+            </div>
           </div>
         `;
         container.appendChild(row);
-        adjustTextareaHeight(row.querySelector('textarea'));
+        adjustTextareaHeight(row.querySelector(`#prodInput_${idx}`));
+        adjustTextareaHeight(row.querySelector(`#subInput_${idx}`));
       });
     }
 
@@ -3852,6 +3881,17 @@
   data.categoryText = val.trim();
   renderAllSlots(); // プレビューを即時更新
 }
+
+function onSubProductInput(idx, el) {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+      if (!data.subProducts) data.subProducts = [];
+
+      data.subProducts[idx] = el.value;
+      adjustTextareaHeight(el);
+      renderAllSlots(); // プレビューを即時更新
+    }
   </script>
 </body>
 </html>
