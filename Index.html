@@ -1117,13 +1117,22 @@
           <option value="">-- セットを選択 --</option>
         </select>
       </div>
-<div>
+
+      <!-- デザインテンプレート選択 -->
+      <div>
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">デザインテンプレート:</label>
         <div class="choice-group">
-          <button type="button" class="btn-choice active" id="tpl_standard" onclick="setDesignTemplate('standard')">標準 (ロゴなし)</button>
-          <button type="button" class="btn-choice" id="tpl_matoil" onclick="setDesignTemplate('matoil')">matoil (ロゴ入)</button>
+          <button type="button" class="btn-choice" id="tpl_standard" onclick="setDesignTemplate('standard')">標準 (ロゴなし)</button>
+          <button type="button" class="btn-choice active" id="tpl_matoil" onclick="setDesignTemplate('matoil')">matoil (ロゴ入)</button>
         </div>
       </div>
+
+      <!-- ▼ matoilテンプレート選択時のみ表示されるセット名入力枠（ここに1つだけ配置） ▼ -->
+      <div id="categoryInputWrapper" style="display: none; margin-top: 6px;">
+        <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">セット名（カテゴリ名）:</label>
+        <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="min-height:auto; padding:5px 8px; font-size:12px;">
+      </div>
+      <!-- ▲ 配置ここまで ▲ -->
 
       <div>
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">記載商品数:</label>
@@ -2627,7 +2636,8 @@
       editingSlotIndex = slotIdx;
       if (!slotsData[slotIdx]) {
         slotsData[slotIdx] = {
-          designTemplate: "matoil", // デフォルトのテンプレートを matoil（ロゴ入）に変更
+          designTemplate: "matoil", // デフォルトのテンプレートを matoil（ロゴ入）に設定
+          categoryText: "",         // セット名初期値
           products: [""],
           productsAlt: [""],
           productsTransSource: [null],
@@ -2648,16 +2658,24 @@
       const data = slotsData[slotIdx];
       document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
 
-      const currentTpl = data.designTemplate || 'standard';
+      // テンプレートの選択状態とセット名入力枠の表示・値を同期
+      const currentTpl = data.designTemplate || 'matoil';
       const btnStd = document.getElementById('tpl_standard');
       const btnMat = document.getElementById('tpl_matoil');
+      const catWrapper = document.getElementById('categoryInputWrapper');
+      const catInput = document.getElementById('inputCategoryText');
+
       if (btnStd && btnMat) {
         if (currentTpl === 'matoil') {
           btnStd.className = 'btn-choice';
           btnMat.className = 'btn-choice active';
+          if (catWrapper) catWrapper.style.display = 'block';
+          if (catInput) catInput.value = data.categoryText || '';
         } else {
           btnStd.className = 'btn-choice active';
           btnMat.className = 'btn-choice';
+          if (catWrapper) catWrapper.style.display = 'none';
+          if (catInput) catInput.value = '';
         }
       }
 
@@ -3787,27 +3805,38 @@
     }
 
     function setDesignTemplate(tplKey) {
-      if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      
-      data.designTemplate = tplKey;
-      
-      // ボタンの見た目（アクティブ状態）を切り替える
-      const btnStd = document.getElementById('tpl_standard');
-      const btnMat = document.getElementById('tpl_matoil');
-      if (btnStd && btnMat) {
-        if (tplKey === 'matoil') {
-          btnStd.className = 'btn-choice';
-          btnMat.className = 'btn-choice active';
-        } else {
-          btnStd.className = 'btn-choice active';
-          btnMat.className = 'btn-choice';
-        }
-      }
-      
-      renderAllSlots();
+  if (editingSlotIndex === null) return;
+  const data = slotsData[editingSlotIndex];
+  if (!data) return;
+
+  data.designTemplate = tplKey;
+
+  // 入力枠の表示/非表示を切り替え
+  const catWrapper = document.getElementById('categoryInputWrapper');
+  if (catWrapper) {
+    if (tplKey === 'matoil') {
+      catWrapper.style.display = 'block';
+    } else {
+      catWrapper.style.display = 'none';
+      data.categoryText = ""; // 標準に戻した場合はクリア
     }
+  }
+
+  // ボタンの見た目（アクティブ状態）を切り替える
+  const btnStd = document.getElementById('tpl_standard');
+  const btnMat = document.getElementById('tpl_matoil');
+  if (btnStd && btnMat) {
+    if (tplKey === 'matoil') {
+      btnStd.className = 'btn-choice';
+      btnMat.className = 'btn-choice active';
+    } else {
+      btnStd.className = 'btn-choice active';
+      btnMat.className = 'btn-choice';
+    }
+  }
+
+  renderAllSlots();
+}
 
     function copyToAllSlots() {
       if (editingSlotIndex === null) return;
@@ -3867,6 +3896,15 @@
       
       return { fontSizePt: pt.toFixed(1), marginY: margin.toFixed(2) };
     }
+
+    function onCategoryTextInput(val) {
+  if (editingSlotIndex === null) return;
+  const data = slotsData[editingSlotIndex];
+  if (!data) return;
+
+  data.categoryText = val.trim();
+  renderAllSlots(); // プレビューを即時更新
+}
   </script>
 </body>
 </html>
