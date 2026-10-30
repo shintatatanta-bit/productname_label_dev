@@ -1067,6 +1067,27 @@
       line-height: 1.4;
     }
 
+    /* カスタム・ドラッグインジケーター（コピーバッジ） */
+    #customDragBadge {
+      position: fixed;
+      z-index: 99999;
+      pointer-events: none;
+      background: #1a73e8;
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      gap: 4px;
+      transform: translate(12px, 12px); /* マウスカーソルの少し右下に配置 */
+      transition: background 0.1s;
+    }
+    #customDragBadge.is-copy {
+      background: #137333; /* コピー時は緑色系で視覚的に区別 */
+    }
   </style>
 
   <!-- PDF.js ライブラリの読み込み -->
@@ -1515,6 +1536,12 @@
 <div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px dotted #ccc; margin-top:auto;">
       <span id="lblStockCount" style="font-size:11px; font-weight:bold; color:#666;">登録数: 0件</span>
     </div>
+  </div>
+
+<!-- ドラッグ中追従カスタムバッジ -->
+  <div id="customDragBadge">
+    <span id="badgeIcon" style="font-size:15px; font-weight:bold;">+</span>
+    <span id="badgeText">コピー</span>
   </div>
 
   <script>
@@ -2419,6 +2446,10 @@
          const moveData = JSON.stringify({ type: 'slotMove', index: i });
          e.dataTransfer.setData('text/plain', moveData);
          e.dataTransfer.effectAllowed = 'copyMove';
+
+         // ★ ドラッグ開始時にカスタムバッジを表示
+         const badge = document.getElementById('customDragBadge');
+         if (badge) badge.style.display = 'inline-flex';
        };
 
        cell.ondragend = function(e) {
@@ -2426,6 +2457,10 @@
          document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
          draggedSlotIndex = null;
          setTimeout(() => { isDraggingActive = false; }, 100);
+
+         // ★ ドラッグ終了時にカスタムバッジを非表示
+         const badge = document.getElementById('customDragBadge');
+         if (badge) badge.style.display = 'none';
        };
 
        cell.ondragover = function(e) {
@@ -2519,7 +2554,6 @@
            const sourceIdx = parsedData.index !== undefined ? parsedData.index : draggedSlotIndex;
 
            if (sourceIdx !== null && !isNaN(sourceIdx) && sourceIdx !== i) {
-             // Ctrlキー押下時は複製（コピー）、非押下時は入れ替え（移動）
              if (e.ctrlKey) {
                if (slotsData[sourceIdx]) {
                  slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
@@ -3920,6 +3954,66 @@ function onSubProductInput(idx, el) {
       adjustTextareaHeight(el);
       renderAllSlots(); // プレビューを即時更新
     }
+
+    // --- 既存の ondragstart / ondragend / 新規 drag への組み込み例 ---
+    
+    // バッジ要素の参照を取得するヘルパー
+    function getDragBadge() {
+      return document.getElementById('customDragBadge');
+    }
+
+    // 各ラベル枠の ondragstart 内に追加
+    cell.ondragstart = function(e) {
+      draggedSlotIndex = i;
+      isDraggingActive = true;
+      cell.classList.add('is-dragging');
+      
+      const moveData = JSON.stringify({ type: 'slotMove', index: i });
+      e.dataTransfer.setData('text/plain', moveData);
+      e.dataTransfer.effectAllowed = 'copyMove';
+
+      // カスタムバッジを表示状態にする
+      const badge = getDragBadge();
+      if (badge) {
+        badge.style.display = 'inline-flex';
+      }
+    };
+
+    // --- ドラッグ中のカスタムバッジ追従・Ctrl監視リスナー ---
+    document.addEventListener('dragover', function(e) {
+      const badge = document.getElementById('customDragBadge');
+      if (!badge || badge.style.display === 'none') return;
+
+      badge.style.left = e.clientX + 'px';
+      badge.style.top = e.clientY + 'px';
+
+      const icon = document.getElementById('badgeIcon');
+      const text = document.getElementById('badgeText');
+      
+      if (e.ctrlKey) {
+        badge.classList.add('is-copy');
+        if (icon) icon.innerText = '＋';
+        if (text) text.innerText = 'コピー';
+      } else {
+        badge.classList.remove('is-copy');
+        if (icon) icon.innerText = '⇄';
+        if (text) text.innerText = '移動';
+      }
+    });
+
+    // 各ラベル枠の ondragend 内に追加（またはグローバルな dragend）
+    cell.ondragend = function(e) {
+      cell.classList.remove('is-dragging');
+      document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
+      draggedSlotIndex = null;
+      setTimeout(() => { isDraggingActive = false; }, 100);
+
+      // ドラッグ終了時にバッジを非表示にする
+      const badge = getDragBadge();
+      if (badge) {
+        badge.style.display = 'none';
+      }
+    };
   </script>
 </body>
 </html>
