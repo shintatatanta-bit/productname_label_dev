@@ -273,12 +273,53 @@
       display: flex;
     }
 
-   //* 3. 赤帯の高さを 4.0mm に設定 */
+   /* 2. シールサイズより一回り大きいデザインカード領域（高さ 28.5mm） */
+    .design-card {
+      width: 46.0mm;
+      height: 28.5mm; /* 高さを 28.5mm に設定 */
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      box-sizing: border-box;
+      position: relative;
+      background: #ffffff !important;
+      border: none !important;
+      padding-top: 1.5mm;    /* 上部パディング 1.5mm */
+      padding-bottom: 1.5mm; /* 下部パディング 1.5mm */
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    /* 茶色の枠（高さ 20.5mm に拡張） */
+    .card-top-box {
+      width: 100%;
+      height: 20.5mm; /* 高さを正確に 20.5mm に設定 */
+      background: #3d2314 !important;
+      border-radius: 1.5mm;
+      border: 1.0px solid #3d2314 !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 0;
+      text-align: center;
+      overflow: hidden;
+      box-sizing: border-box;
+      margin-bottom: 1.0mm; /* 茶色帯と赤帯の間の隙間 1.0mm */
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* 赤帯の高さを 4.0mm に設定（重複を解消） */
     .card-bottom-pill {
       width: 100%;
-      height: 4.0mm; /* 高さを4.0mmに調整 */
+      height: 4.0mm; /* 高さを 4.0mm に固定 */
       background: #b71c1c !important;
-      border-radius: 2.0mm; /* 高さに合わせて角丸の比率を調整 */
+      border-radius: 2.0mm;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -290,10 +331,11 @@
       box-sizing: border-box;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
+      flex-shrink: 0; /* 潰れを防止 */
     }
 
     .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
-
+    
 //* 3. 赤帯の高さを 4.0mm に設定 */
     .card-bottom-pill {
       width: 100%;
