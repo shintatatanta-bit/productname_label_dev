@@ -2247,6 +2247,7 @@
       renderAllSlots();
     }
 
+    // --- 修正後 ---
     function getEffectiveFontSettings(data) {
       const validProds = (data.products || []).filter(p => p.trim() !== "");
       let totalLines = 0;
@@ -2254,6 +2255,7 @@
         totalLines += p.split('\n').filter(s => s.trim() !== "").length || 1;
       });
       const lines = Math.max(validProds.length, totalLines, 1);
+      
       let basePt = 10.0;
       if (data.customFontPt) basePt = parseFloat(data.customFontPt);
       else {
@@ -2274,7 +2276,11 @@
         if (basePt < 10.0 && lines > 1) marginY += Math.min(0.65, (10.0 - basePt) * 0.12);
       }
       const weight = data.fontWeight === '400' ? '400' : '700';
-      return { fontSizePt: basePt.toFixed(1), marginY: marginY.toFixed(2), fontWeight: weight };
+
+      // ★ 追加ガード: 茶色枠の限界を超える場合は自動的に安全なサイズ・行間にクランプする
+      const clamped = clampFontAndMargin(basePt, marginY, lines);
+
+      return { fontSizePt: clamped.fontSizePt, marginY: clamped.marginY, fontWeight: weight };
     }
 
     function buildLabelDesignHtml(data) {
@@ -3757,6 +3763,43 @@
       updateUsageCount();
       renderAllSlots();
       alert('シート全体の36枠すべてにコピーしました！');
+    }
+
+    /**
+     * 茶色枠の限界（約15.7mm）を超えないようにフォントサイズや行間を安全にクランプする関数
+     */
+    function clampFontAndMargin(desiredPt, desiredMarginY, lineCount) {
+      // 1行あたりの基本高さ（ptをmmに大まかに換算: 1pt ≒ 0.3527mm、行の高さ係数 1.25 を考慮）
+      const ptToMm = 0.3527;
+      
+      // 最大許容高さ（茶色枠 19.5mm - 白帯 3.8mm = 15.7mm から、上下の安全余白を引いた約 14.5mm を限界とする）
+      const maxAllowedHeightMm = 14.5;
+      
+      let pt = parseFloat(desiredPt);
+      let margin = parseFloat(desiredMarginY);
+      
+      // 行数が複数ある場合の総高さをシミュレーション
+      // 総高さ = (文字の高さ * 行数) + (行間 * (行数 - 1))
+      for (let i = 0; i < 3; i++) { // 収まるまで数回微調整
+        const textHeightMm = (pt * ptToMm * 1.25) * lineCount;
+        const totalMarginMm = margin * Math.max(0, lineCount - 1);
+        const totalHeightMm = textHeightMm + totalMarginMm;
+        
+        if (totalHeightMm > maxAllowedHeightMm) {
+          // 超過している場合、まず行間を詰める。行間が最小(0)になっても超える場合はフォントサイズを縮小する
+          if (margin > 0.1) {
+            margin = Math.max(0.0, margin - 0.1);
+          } else if (pt > 5.0) {
+            pt = Math.max(5.0, pt - 0.2);
+          } else {
+            break;
+          }
+        } else {
+          break;
+        }
+      }
+      
+      return { fontSizePt: pt.toFixed(1), marginY: margin.toFixed(2) };
     }
   </script>
 </body>
