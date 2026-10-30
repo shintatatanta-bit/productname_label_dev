@@ -2379,8 +2379,8 @@
            <div class="top-header-bar ${hasCatClass}">
              ${headerBarInner}
            </div>
-           <!-- ★ width: 100% と box-sizing: border-box に加え、明示的な左右 padding 5.0mm を適用 -->
-           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 5.0mm; padding-right: 5.0mm; box-sizing: border-box; margin: 0; overflow: hidden;">
+           <!-- ★ 左右のパディングを 3.0mm に調整 -->
+           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 3.0mm; padding-right: 3.0mm; box-sizing: border-box; margin: 0; overflow: hidden;">
              ${linesHtml}
            </div>
          </div>
@@ -2389,7 +2389,6 @@
          </div>
        </div>
      `;
-   }
 
     function renderAllSlots() {
       const container = document.getElementById('sheetsContainer');
@@ -2576,10 +2575,8 @@
 
         const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
         
-        // 茶色帯全体の幅を取得し、左右5mmずつ（合計10mm分）のピクセル数を引いて有効幅とする
-        // （※ 1mm ≒ 3.78px として換算、またはクライアント幅から 38px 相当を減算）
         const totalWidth = topBox.clientWidth || 174;
-        const paddingPx = 37; // 左右各約5mmに相当するピクセルマージン
+        const paddingPx = 22; // 左右各約3.0mmに相当するピクセルマージン
         const containerWidth = Math.max(50, totalWidth - (paddingPx * 2));
 
         subWrappers.forEach(wrap => {
