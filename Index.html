@@ -2565,7 +2565,7 @@
     }
 
     /**
-     * 【修正版】茶色帯の幅を超過する長文に対して自動的に長体（scaleX）を適用する関数
+     * 【修正版】茶色帯の左右から5mmの空白（合計10mm減）を限界として自動長体を適用する関数
      */
     function autoFitLongLines() {
       const cards = document.querySelectorAll('.design-card');
@@ -2574,24 +2574,22 @@
         const topBox = card.querySelector('.card-top-box');
         if (!topBox) return;
 
-        // 茶色帯の中にあるテキスト行をすべて取得
         const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
         
-        // 茶色帯の実際の描画幅（パディング等を考慮した利用可能幅をピクセル換算で想定、または親幅基準）
-        // 46mmカードの場合、左右の安全マージンを引いた約 40mm 相当を上限基準とする
-        const containerWidth = topBox.clientWidth || 160; // フォールバック値
+        // 茶色帯全体の幅を取得し、左右5mmずつ（合計10mm分）のピクセル数を引いて有効幅とする
+        // （※ 1mm ≒ 3.78px として換算、またはクライアント幅から 38px 相当を減算）
+        const totalWidth = topBox.clientWidth || 174;
+        const paddingPx = 37; // 左右各約5mmに相当するピクセルマージン
+        const containerWidth = Math.max(50, totalWidth - (paddingPx * 2));
 
         subWrappers.forEach(wrap => {
           const span = wrap.querySelector('.card-product-line');
           if (!span) return;
 
-          // 一度変形をリセットして本来の自然な横幅（scrollWidth）を計測
           span.style.transform = 'none';
           const textNaturalWidth = span.scrollWidth;
 
-          // テキストの幅がコンテナの許容幅を超えている場合のみ、超過率に応じた scaleX を算出
           if (textNaturalWidth > containerWidth && containerWidth > 0) {
-            // 収めるための圧縮率（最小限界 0.45 まで許容）
             const scaleFactor = Math.max(0.45, containerWidth / textNaturalWidth);
             span.style.transformOrigin = 'center center';
             span.style.transform = `scaleX(${scaleFactor.toFixed(3)})`;
