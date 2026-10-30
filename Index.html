@@ -2343,12 +2343,13 @@
          `;
        }
        
-       // 2. サブテキスト（カッコ内）が存在する場合、その直下に小さめの括弧付きで描画
+       // 2. サブテキスト（カッコ内）が存在する場合、メインフォントサイズに連動して縮小
        if (subText) {
-         const subFontSize = Math.max(6, typo.fontSizePt - 2.5); // メインより少し小さめのフォント
+         // メインフォントサイズの80%を基本とし、最小5ptを確保して連動させる
+         const subFontSize = Math.max(5.0, typo.fontSizePt * 0.8);
          subLinesHtml += `
            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible; margin-top: 0.5px;">
-             <span class="card-product-line" style="font-size:${subFontSize}pt; font-weight:normal; color:#f1f3f4; white-space: nowrap;">(${escapeHtml(subText)})</span>
+             <span class="card-product-line" style="font-size:${subFontSize.toFixed(1)}pt; font-weight:normal; color:#f1f3f4; white-space: nowrap;">(${escapeHtml(subText)})</span>
            </div>
          `;
        }
