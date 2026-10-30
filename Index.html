@@ -2322,57 +2322,73 @@
       return { fontSizePt: clamped.fontSizePt, marginY: clamped.marginY, fontWeight: weight };
     }
 
-   function buildLabelDesignHtml(data) {
-  const pillClass = data.methodType === 'cold' ? 'pill-cold' : 'pill-warm';
-  const validProds = (data.products || []).filter(p => p.trim() !== "");
-  const typo = getEffectiveFontSettings(data);
-  let linesHtml = '';
+   buildLabelDesignHtml(data) {
+     const pillClass = data.methodType === 'cold' ? 'pill-cold' : 'pill-warm';
+     const validProds = (data.products || []).filter(p => p.trim() !== "");
+     const typo = getEffectiveFontSettings(data);
+     let linesHtml = '';
 
-  validProds.forEach((p, idx) => {
-    const subLines = p.split('\n').map(s => s.trim()).filter(s => s !== "");
-    let subLinesHtml = '';
-    subLines.forEach((lineText, lIdx) => {
-      // ★修正: 2行目以降の括弧付き（txt-sub）を廃止し、すべて通常のテキスト行として扱います
-      subLinesHtml += `
-        <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
-          <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: nowrap;">${escapeHtml(lineText)}</span>
-        </div>
-      `;
-    });
-    linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
-  });
+     validProds.forEach((p, idx) => {
+       const mainText = p.trim();
+       const subText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
+       
+       let subLinesHtml = '';
+       
+       // 1. メイン品名の描画
+       if (mainText) {
+         subLinesHtml += `
+           <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
+             <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: nowrap;">${escapeHtml(mainText)}</span>
+           </div>
+         `;
+       }
+       
+       // 2. サブテキスト（カッコ内）が存在する場合、その直下に小さめの括弧付きで描画
+       if (subText) {
+         const subFontSize = Math.max(6, typo.fontSizePt - 2.5); // メインより少し小さめのフォント
+         subLinesHtml += `
+           <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible; margin-top: 0.5px;">
+             <span class="card-product-line" style="font-size:${subFontSize}pt; font-weight:normal; color:#f1f3f4; white-space: nowrap;">(${escapeHtml(subText)})</span>
+           </div>
+         `;
+       }
 
-  // 常にロゴ入（matoil）デザインとして構築
-  const categoryText = data.categoryText || ""; 
-  const hasCatClass = categoryText ? "has-category" : "no-category";
+       if (subLinesHtml) {
+         linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
+       }
+     });
 
-  let headerBarInner = `<span class="header-logo">matoil</span>`;
-  if (categoryText) {
-    const charLen = categoryText.length;
-    let scaleStyle = "";
-    if (charLen >= 17) {
-      const calculatedScale = Math.max(0.5, 16 / charLen);
-      scaleStyle = ` transform: translateY(-0.5px) scaleX(${calculatedScale.toFixed(3)});`;
-    }
-    headerBarInner += `<span class="txt-cat" style="${scaleStyle}">${escapeHtml(categoryText)}</span>`;
-  }
+     // 常にロゴ入（matoil）デザインとして構築
+     const categoryText = data.categoryText || ""; 
+     const hasCatClass = categoryText ? "has-category" : "no-category";
 
-  return `
-    <div class="design-card">
-      <div class="card-top-box">
-        <div class="top-header-bar ${hasCatClass}">
-          ${headerBarInner}
-        </div>
-        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0; overflow: hidden;">
-          ${linesHtml}
-        </div>
-      </div>
-      <div class="card-bottom-pill ${pillClass}">
-        <span class="pill-text">${escapeHtml(data.methodText)}</span>
-      </div>
-    </div>
-  `;
-}
+     let headerBarInner = `<span class="header-logo">matoil</span>`;
+     if (categoryText) {
+       const charLen = categoryText.length;
+       let scaleStyle = "";
+       if (charLen >= 17) {
+         const calculatedScale = Math.max(0.5, 16 / charLen);
+         scaleStyle = ` transform: translateY(-0.5px) scaleX(${calculatedScale.toFixed(3)});`;
+       }
+       headerBarInner += `<span class="txt-cat" style="${scaleStyle}">${escapeHtml(categoryText)}</span>`;
+     }
+
+     return `
+       <div class="design-card">
+         <div class="card-top-box">
+           <div class="top-header-bar ${hasCatClass}">
+             ${headerBarInner}
+           </div>
+           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0; overflow: hidden;">
+             ${linesHtml}
+           </div>
+         </div>
+         <div class="card-bottom-pill ${pillClass}">
+           <span class="pill-text">${escapeHtml(data.methodText)}</span>
+         </div>
+       </div>
+     `;
+   }
 
     function renderAllSlots() {
       const container = document.getElementById('sheetsContainer');
