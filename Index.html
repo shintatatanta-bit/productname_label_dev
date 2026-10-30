@@ -417,12 +417,25 @@
       color: #ffffff !important; 
       font-weight: bold; 
       line-height: 1.25; 
+      white-space: nowrap; /* ★勝手な自動改行を禁止 */
+      overflow: visible;
     }
     .txt-sub { 
       font-size: 9.5px; 
       color: #f1f3f4 !important; 
       line-height: 1.2; 
       margin-top: 1px; 
+      white-space: nowrap; /* ★勝手な自動改行を禁止 */
+      overflow: visible;
+    }
+    .card-product-line {
+      color: #ffffff;
+      font-family: "Yu Gothic Medium", "YuGothic", "游ゴシック体", "游ゴシック", sans-serif;
+      letter-spacing: -0.2px;
+      white-space: nowrap; /* ★勝手な自動改行を禁止 */
+      text-align: center;
+      display: inline-block;
+      transform-origin: center center;
     }
 
     .pill-text {
@@ -445,16 +458,6 @@
       justify-content: center;
       align-items: center;
       overflow: visible;
-    }
-
-    .card-product-line {
-      color: #ffffff;
-      font-family: "Yu Gothic Medium", "YuGothic", "游ゴシック体", "游ゴシック", sans-serif;
-      letter-spacing: -0.2px;
-      white-space: nowrap;
-      text-align: center;
-      display: inline-block;
-      transform-origin: center center;
     }
 
     /* 赤帯（ピル）自体の位置は固定し、中の文字のみ微調整 */
