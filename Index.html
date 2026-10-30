@@ -398,17 +398,18 @@
     .txt-cat { 
       font-size: 5.2pt; 
       font-weight: 500; 
-      color: #3d2314;
+      color: #221913;
       line-height: 1;
       display: inline-flex;
       align-items: flex-end;
       white-space: nowrap;
       overflow: hidden;
+      text-overflow: ellipsis; /* ★長すぎる場合は「…」で安全に省略して左側への食い込みを防ぐ場合 */
       flex: 1;
       min-width: 0; 
       justify-content: flex-end;
       text-align: right;
-      transform-origin: right bottom; /* 右端を起点にして縮小する */
+      padding-left: 2mm; /* ロゴとの間に最低限の隙間を確保 */
       transform: translateY(-0.5px);
     }
 
