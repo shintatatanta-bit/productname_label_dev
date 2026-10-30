@@ -273,10 +273,10 @@
       display: flex;
     }
 
-    /* 2. シールサイズより「一回り小さい（2mm小さい）」デザインカード領域にする */
+   /* デザインカード全体の高さを 27.0mm に拡張 */
     .design-card {
       width: 46.0mm;
-      height: 26.0mm;
+      height: 27.0mm; /* ★ 26.0mm から 27.0mm に変更 */
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -287,14 +287,17 @@
       box-sizing: border-box;
       position: relative;
       background: #ffffff !important;
-      border: none !important; /* 枠線を完全に非表示にする */
+      border: none !important;
+      padding-top: 1.5mm;    /* 上パディング 1.5mm */
+      padding-bottom: 1.5mm; /* 下パディング 1.5mm */
+      padding-left: 0;
+      padding-right: 0;
     }
 
-    /* 茶色の枠（高さ18.2mmに拡張） */
-    /* 修正後 */
+    /* 茶色の枠の高さを 18.4mm に微調整して縦に拡大 */
     .card-top-box {
       width: 100%;
-      height: 20.5mm;
+      height: 18.4mm; /* ★ 17.4mm から 18.4mm に拡張 */
       background: #3d2314 !important;
       border-radius: 1.5mm;
       border: 1.0px solid #3d2314 !important;
@@ -306,7 +309,7 @@
       text-align: center;
       overflow: hidden;
       box-sizing: border-box;
-      margin-bottom: 1.0mm; /* ← 空白（隙間）の大きさを 1.5mm から 1.0mm に変更します */
+      margin-bottom: 1.0mm;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
