@@ -335,7 +335,7 @@
     }
 
     .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
-    
+
 //* 3. 赤帯の高さを 4.0mm に設定 */
     .card-bottom-pill {
       width: 100%;
@@ -1143,21 +1143,12 @@
         </select>
       </div>
 
-      <!-- デザインテンプレート選択 -->
-      <div>
-        <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">デザインテンプレート:</label>
-        <div class="choice-group">
-          <button type="button" class="btn-choice" id="tpl_standard" onclick="setDesignTemplate('standard')">標準 (ロゴなし)</button>
-          <button type="button" class="btn-choice active" id="tpl_matoil" onclick="setDesignTemplate('matoil')">matoil (ロゴ入)</button>
-        </div>
-      </div>
-
-      <!-- ▼ matoilテンプレート選択時のみ表示されるセット名入力枠（ここに1つだけ配置） ▼ -->
-      <div id="categoryInputWrapper" style="display: none; margin-top: 6px;">
+      <!-- ▼ セット名（カテゴリ名）入力枠（常設） ▼ -->
+      <div id="categoryInputWrapper" style="margin-top: 6px;">
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">セット名（カテゴリ名）:</label>
         <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="min-height:auto; padding:5px 8px; font-size:12px;">
       </div>
-      <!-- ▲ 配置ここまで ▲ -->
+      <!-- ▲ 常設ここまで ▲ -->
 
       <div>
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">記載商品数:</label>
@@ -2317,77 +2308,56 @@
       return { fontSizePt: clamped.fontSizePt, marginY: clamped.marginY, fontWeight: weight };
     }
 
-    function buildLabelDesignHtml(data) {
-      const template = data.designTemplate || 'standard';
-      const pillClass = data.methodType === 'cold' ? 'pill-cold' : 'pill-warm';
-      const validProds = (data.products || []).filter(p => p.trim() !== "");
-      const typo = getEffectiveFontSettings(data);
-      let linesHtml = '';
-      
-      validProds.forEach((p, idx) => {
-        const subLines = p.split('\n').map(s => s.trim()).filter(s => s !== "");
-        let subLinesHtml = '';
-        subLines.forEach((lineText, lIdx) => {
-          if (idx === 0 && lIdx === 0) {
-            subLinesHtml += `<div class="txt-main" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight};">${escapeHtml(lineText)}</div>`;
-          } else if (idx === 0 && lIdx === 1) {
-            subLinesHtml += `<div class="txt-sub" style="font-size:${Math.max(6, typo.fontSizePt - 2.5)}pt;">(${escapeHtml(lineText)})</div>`;
-          } else {
-            subLinesHtml += `
-              <div class="product-subline-wrapper">
-                <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight};">${escapeHtml(lineText)}</span>
-              </div>
-            `;
-          }
-        });
-        linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
-      });
+   function buildLabelDesignHtml(data) {
+  const pillClass = data.methodType === 'cold' ? 'pill-cold' : 'pill-warm';
+  const validProds = (data.products || []).filter(p => p.trim() !== "");
+  const typo = getEffectiveFontSettings(data);
+  let linesHtml = '';
 
-      // デザインテンプレートが 'matoil' の場合の動的切り替え処理
-      if (template === 'matoil') {
-        // カテゴリ名が存在する場合は 'has-category'（左右配置）、ない場合は 'no-category'（ロゴ中央配置）
-        const categoryText = data.categoryText || ""; 
-        const hasCatClass = categoryText ? "has-category" : "no-category";
-
-        let headerBarInner = `<span class="header-logo">matoil</span>`;
-        if (categoryText) {
-          headerBarInner += `<span class="txt-cat">${escapeHtml(categoryText)}</span>`;
-        }
-
-        // buildLabelDesignHtml 内の該当部分
-      return `
-        <div class="design-card">
-          <div class="card-top-box">
-            <div class="top-header-bar ${hasCatClass}">
-              ${headerBarInner}
-            </div>
-            <!-- ヘッダー下部の余白を均等にし、文字をボックスの上下真ん中に配置 -->
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0;">
-  ${linesHtml}
-</div>
-          </div>
-          <div class="card-bottom-pill ${pillClass}">
-            <span class="pill-text">${escapeHtml(data.methodText)}</span>
-          </div>
-        </div>
-      `;
-
+  validProds.forEach((p, idx) => {
+    const subLines = p.split('\n').map(s => s.trim()).filter(s => s !== "");
+    let subLinesHtml = '';
+    subLines.forEach((lineText, lIdx) => {
+      if (idx === 0 && lIdx === 0) {
+        subLinesHtml += `<div class="txt-main" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight};">${escapeHtml(lineText)}</div>`;
+      } else if (idx === 0 && lIdx === 1) {
+        subLinesHtml += `<div class="txt-sub" style="font-size:${Math.max(6, typo.fontSizePt - 2.5)}pt;">(${escapeHtml(lineText)})</div>`;
       } else {
-        // 標準テンプレート（ロゴなし）
-        return `
-          <div class="design-card">
-            <div class="card-top-box" style="justify-content:center;">
-              <div style="display:flex; flex-direction:column; justify-content:center; width:100%; align-items:center; padding: 2mm;">
-                ${linesHtml}
-              </div>
-            </div>
-            <div class="card-bottom-pill ${pillClass}">
-              <span class="pill-text">${escapeHtml(data.methodText)}</span>
-            </div>
+        subLinesHtml += `
+          <div class="product-subline-wrapper">
+            <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight};">${escapeHtml(lineText)}</span>
           </div>
         `;
       }
-    }
+    });
+    linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
+  });
+
+  // 常にロゴ入（matoil）デザインとして構築
+  const categoryText = data.categoryText || ""; 
+  const hasCatClass = categoryText ? "has-category" : "no-category";
+
+  let headerBarInner = `<span class="header-logo">matoil</span>`;
+  if (categoryText) {
+    headerBarInner += `<span class="txt-cat">${escapeHtml(categoryText)}</span>`;
+  }
+
+  return `
+    <div class="design-card">
+      <div class="card-top-box">
+        <div class="top-header-bar ${hasCatClass}">
+          ${headerBarInner}
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0;">
+          ${linesHtml}
+        </div>
+      </div>
+      <div class="card-bottom-pill ${pillClass}">
+        <span class="pill-text">${escapeHtml(data.methodText)}</span>
+      </div>
+    </div>
+  `;
+}
 
     function renderAllSlots() {
       const container = document.getElementById('sheetsContainer');
@@ -2604,70 +2574,53 @@
 
     function closeActualSizeModal() { document.getElementById('actualSizeModal').style.display = 'none'; }
 
-    // --- 修正後 ---
     function openEditPanel(slotIdx) {
-      editingSlotIndex = slotIdx;
-      if (!slotsData[slotIdx]) {
-        slotsData[slotIdx] = {
-          designTemplate: "matoil", // デフォルトのテンプレートを matoil（ロゴ入）に設定
-          categoryText: "",         // セット名初期値
-          products: [""],
-          productsAlt: [""],
-          productsTransSource: [null],
-          isEnglishMode: [false],
-          fontScale: "normal",
-          customFontPt: 10.0,
-          marginPreset: "normal",
-          customMarginY: 0.55,
-          fontWeight: "700",
-          heatingType: "microwave",
-          methodMin: "2",
-          methodSec: "",
-          methodText: "レンジ 600W で 2分温め",
-          methodTextAlt: "Microwave 600W for 2 min",
-          methodType: "warm"
-        };
-      }
-      const data = slotsData[slotIdx];
-      document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
+  editingSlotIndex = slotIdx;
+  if (!slotsData[slotIdx]) {
+    slotsData[slotIdx] = {
+      categoryText: "",         // セット名初期値
+      products: [""],
+      productsAlt: [""],
+      productsTransSource: [null],
+      isEnglishMode: [false],
+      fontScale: "normal",
+      customFontPt: 10.0,
+      marginPreset: "normal",
+      customMarginY: 0.55,
+      fontWeight: "700",
+      heatingType: "microwave",
+      methodMin: "2",
+      methodSec: "",
+      methodText: "レンジ 600W で 2分温め",
+      methodTextAlt: "Microwave 600W for 2 min",
+      methodType: "warm"
+    };
+  }
+  const data = slotsData[slotIdx];
+  document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
 
-      // テンプレートの選択状態とセット名入力枠の表示・値を同期
-      const currentTpl = data.designTemplate || 'matoil';
-      const btnStd = document.getElementById('tpl_standard');
-      const btnMat = document.getElementById('tpl_matoil');
-      const catWrapper = document.getElementById('categoryInputWrapper');
-      const catInput = document.getElementById('inputCategoryText');
+  // セット名入力枠へ現在の値を同期
+  const catInput = document.getElementById('inputCategoryText');
+  if (catInput) {
+    catInput.value = data.categoryText || '';
+  }
 
-      if (btnStd && btnMat) {
-        if (currentTpl === 'matoil') {
-          btnStd.className = 'btn-choice';
-          btnMat.className = 'btn-choice active';
-          if (catWrapper) catWrapper.style.display = 'block';
-          if (catInput) catInput.value = data.categoryText || '';
-        } else {
-          btnStd.className = 'btn-choice active';
-          btnMat.className = 'btn-choice';
-          if (catWrapper) catWrapper.style.display = 'none';
-          if (catInput) catInput.value = '';
-        }
-      }
+  const count = Math.max(1, Math.min(4, data.products.length));
+  highlightChoiceButton('btnCount', count);
+  highlightChoiceButton('btnScale', data.fontScale || 'normal');
+  highlightChoiceButton('btnMargin', data.marginPreset || 'normal');
+  highlightWeightButton(data.fontWeight === '400' ? '400' : '700');
+  renderProductInputFields(data.products);
+  updateControlsUI();
+  updateMethodUI();
 
-      const count = Math.max(1, Math.min(4, data.products.length));
-      highlightChoiceButton('btnCount', count);
-      highlightChoiceButton('btnScale', data.fontScale || 'normal');
-      highlightChoiceButton('btnMargin', data.marginPreset || 'normal');
-      highlightWeightButton(data.fontWeight === '400' ? '400' : '700');
-      renderProductInputFields(data.products);
-      updateControlsUI();
-      updateMethodUI();
+  renderAllSlots();
 
-      renderAllSlots();
-
-      setTimeout(() => {
-        const firstInput = document.getElementById('prodInput_0');
-        if (firstInput) firstInput.focus();
-      }, 50);
-    }
+  setTimeout(() => {
+    const firstInput = document.getElementById('prodInput_0');
+    if (firstInput) firstInput.focus();
+  }, 50);
+}
 
     function closeEditPanel() {
       if (editingSlotIndex !== null) {
