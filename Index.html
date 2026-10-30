@@ -2379,8 +2379,7 @@
            <div class="top-header-bar ${hasCatClass}">
              ${headerBarInner}
            </div>
-           <!-- ★ ラベル端から5mmの空白を生むための最適値（左右各約2.3mm） -->
-           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 2.3mm; padding-right: 2.3mm; box-sizing: border-box; margin: 0; overflow: hidden;">
+           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 3.5mm; padding-right: 3.5mm; box-sizing: border-box; margin: 0; overflow: hidden;">
              ${linesHtml}
            </div>
          </div>
@@ -2389,230 +2388,215 @@
          </div>
        </div>
      `;
-     } // ← ちゃんと関数を閉じます
+   }
 
-    function renderAllSlots() {
-      const container = document.getElementById('sheetsContainer');
-      container.innerHTML = '';
-      const sheet = document.createElement('div');
-      sheet.className = 'sheet-a4';
-      const grid = document.createElement('div');
-      grid.className = 'label-grid';
+   function renderAllSlots() {
+     const container = document.getElementById('sheetsContainer');
+     container.innerHTML = '';
+     const sheet = document.createElement('div');
+     sheet.className = 'sheet-a4';
+     const grid = document.createElement('div');
+     grid.className = 'label-grid';
 
-      for (let i = 0; i < 36; i++) {
-        const cell = document.createElement('div');
-        const data = slotsData[i];
-        const hasData = Boolean(data && data.products && data.products.some(p => p.trim() !== ""));
+     for (let i = 0; i < 36; i++) {
+       const cell = document.createElement('div');
+       const data = slotsData[i];
+       const hasData = Boolean(data && data.products && data.products.some(p => p.trim() !== ""));
 
-        // ▼ クラス設定をシンプルかつ確実に行う
-        let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
-        if (i === editingSlotIndex) {
-          cellClass += ' active-editing';
-        }
-        cell.className = cellClass;
-        cell.dataset.slotIndex = i;
-        
-        cell.draggable = hasData;
+       let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
+       if (i === editingSlotIndex) {
+         cellClass += ' active-editing';
+       }
+       cell.className = cellClass;
+       cell.dataset.slotIndex = i;
+       
+       cell.draggable = hasData;
 
-        // ① ドラッグ開始時（ラベル枠の移動用データ）
-        cell.ondragstart = function(e) {
-          draggedSlotIndex = i;
-          isDraggingActive = true;
-          cell.classList.add('is-dragging');
-          // 移動用であることを示すプレフィックス付きデータを送信
-          const moveData = JSON.stringify({ type: 'slotMove', index: i });
-          e.dataTransfer.setData('text/plain', moveData);
-          e.dataTransfer.effectAllowed = 'move';
-        };
+       cell.ondragstart = function(e) {
+         draggedSlotIndex = i;
+         isDraggingActive = true;
+         cell.classList.add('is-dragging');
+         const moveData = JSON.stringify({ type: 'slotMove', index: i });
+         e.dataTransfer.setData('text/plain', moveData);
+         e.dataTransfer.effectAllowed = 'copyMove';
+       };
 
-        cell.ondragend = function(e) {
-          cell.classList.remove('is-dragging');
-          document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
-          draggedSlotIndex = null;
-          setTimeout(() => { isDraggingActive = false; }, 100);
-        };
+       cell.ondragend = function(e) {
+         cell.classList.remove('is-dragging');
+         document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
+         draggedSlotIndex = null;
+         setTimeout(() => { isDraggingActive = false; }, 100);
+       };
 
-        // ③ ドラッグオーバー時（移動・コピーの両方を柔軟に許可）
-        cell.ondragover = function(e) {
+       cell.ondragover = function(e) {
          e.preventDefault();
-         
-         // ★ Ctrlキーが押されている場合は 'copy'（コピーアイコン）、それ以外は 'move'（移動アイコン）に切り替える
          if (e.ctrlKey) {
            e.dataTransfer.dropEffect = 'copy';
          } else {
            e.dataTransfer.dropEffect = 'move';
          }
-         
          cell.classList.add('drag-over');
        };
 
-        cell.ondragleave = function(e) {
-          cell.classList.remove('drag-over');
-        };
-        
-        // ④ ドロップ時：身分証（type）に基づいた厳密なルーター分岐
-        cell.ondrop = function(e) {
-          e.preventDefault();
-          cell.classList.remove('drag-over');
-          
-          const rawData = e.dataTransfer.getData('text/plain');
-          if (!rawData) return;
+       cell.ondragleave = function(e) {
+         cell.classList.remove('drag-over');
+       };
+       
+       cell.ondrop = function(e) {
+         e.preventDefault();
+         cell.classList.remove('drag-over');
+         
+         const rawData = e.dataTransfer.getData('text/plain');
+         if (!rawData) return;
 
-          let parsedData = null;
-          try {
-            parsedData = JSON.parse(rawData);
-          } catch (err) {
-            parsedData = null;
-          }
+         let parsedData = null;
+         try {
+           parsedData = JSON.parse(rawData);
+         } catch (err) {
+           parsedData = null;
+         }
 
-          if (!parsedData) {
-            parsedData = { type: 'slotMove', index: parseInt(rawData, 10) };
-          }
+         if (!parsedData) {
+           parsedData = { type: 'slotMove', index: parseInt(rawData, 10) };
+         }
 
-          // --- ルート A: 左側ストックパネルからのドロップ ---
-          if (parsedData.type === 'stockItem') {
-            const stockName = parsedData.value;
-            if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
-              slotsData[i] = {
-                products: [stockName],
-                productsAlt: [findMasterEnglishByJa(stockName)],
-                productsTransSource: [null],
-                isEnglishMode: [false],
-                fontScale: "normal",
-                customFontPt: 10.0,
-                marginPreset: "normal",
-                customMarginY: 0.55,
-                fontWeight: "700",
-                heatingType: "microwave",
-                methodMin: "2",
-                methodSec: "",
-                methodText: "レンジ 600W で 2分温め",
-                methodTextAlt: "Microwave 600W for 2 min",
-                methodType: "warm"
-              };
-            } else {
-              pendingDropSlotIdx = i;
-              pendingDropStockName = stockName;
-              const slotObj = slotsData[i];
-              const validProds = (slotObj.products || []).filter(p => p && p.trim() !== '');
+         if (parsedData.type === 'stockItem') {
+           const stockName = parsedData.value;
+           if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
+             slotsData[i] = {
+               products: [stockName],
+               subProducts: [""],
+               productsAlt: [findMasterEnglishByJa(stockName)],
+               productsTransSource: [null],
+               isEnglishMode: [false],
+               fontScale: "normal",
+               customFontPt: 10.0,
+               marginPreset: "normal",
+               customMarginY: 0.55,
+               fontWeight: "700",
+               heatingType: "microwave",
+               methodMin: "2",
+               methodSec: "",
+               methodText: "レンジ 600W で 2分温め",
+               methodTextAlt: "Microwave 600W for 2 min",
+               methodType: "warm"
+             };
+           } else {
+             pendingDropSlotIdx = i;
+             pendingDropStockName = stockName;
+             const slotObj = slotsData[i];
+             const validProds = (slotObj.products || []).filter(p => p && p.trim() !== '');
 
-              document.getElementById('lblDropChoiceTitle').innerText = `ラベル枠 #${i + 1} への追加`;
-              document.getElementById('lblDropChoiceDesc').innerHTML = `「<span style="color:#137333; font-weight:bold;">${escapeHtml(stockName)}</span>」の追加方法を選択してください:`;
+             document.getElementById('lblDropChoiceTitle').innerText = `ラベル枠 #${i + 1} への追加`;
+             document.getElementById('lblDropChoiceDesc').innerHTML = `「<span style="color:#137333; font-weight:bold;">${escapeHtml(stockName)}</span>」の追加方法を選択してください:`;
 
-              let btnHtml = `
-                <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:10px 14px; font-size:12.5px; justify-content:flex-start; align-items:center; gap:10px; margin-bottom:8px; width:100%; text-align:left;" onclick="executeDropChoice({type:'addNew'})">
-                  <div><div style="font-weight:bold;">📋 別の品目（新しい行）として追加</div></div>
-                </button>
-              `;
-              
-              // ★ 結合時のプレビュー表示（例: 鶏のロースト に結合 (鶏のロースト トマトソース)）
-              validProds.forEach((prodName, pIdx) => {
-                const mergedPreview = prodName ? `${prodName} ${stockName}` : stockName;
-                btnHtml += `
-                  <button type="button" class="btn-main" style="background:#455a64; color:white; padding:10px 14px; font-size:12px; justify-content:flex-start; align-items:center; gap:10px; margin-bottom:6px; width:100%; text-align:left;" onclick="executeDropChoice({type:'merge', lineIdx:${pIdx}})">
-                    <div><div style="font-weight:bold;">🔗 ${escapeHtml(prodName)} に結合 <span style="font-size:11px; opacity:0.85; font-weight:normal;">(${escapeHtml(mergedPreview)})</span></div></div>
-                  </button>
-                `;
-              });
-              
-              document.getElementById('dropChoiceButtonsContainer').innerHTML = btnHtml;
-              document.getElementById('dropChoiceModal').style.display = 'flex';
-              return;
-            }
-            updateUsageCount();
-            renderAllSlots();
-            openEditPanel(i);
-            return;
-          }
+             let btnHtml = `
+               <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:10px 14px; font-size:12.5px; justify-content:flex-start; align-items:center; gap:10px; margin-bottom:8px; width:100%; text-align:left;" onclick="executeDropChoice({type:'addNew'})">
+                 <div><div style="font-weight:bold;">📋 別の品目（新しい行）として追加</div></div>
+               </button>
+             `;
+             
+             validProds.forEach((prodName, pIdx) => {
+               const mergedPreview = prodName ? `${prodName} ${stockName}` : stockName;
+               btnHtml += `
+                 <button type="button" class="btn-main" style="background:#455a64; color:white; padding:10px 14px; font-size:12px; justify-content:flex-start; align-items:center; gap:10px; margin-bottom:6px; width:100%; text-align:left;" onclick="executeDropChoice({type:'merge', lineIdx:${pIdx}})">
+                   <div><div style="font-weight:bold;">🔗 ${escapeHtml(prodName)} に結合 <span style="font-size:11px; opacity:0.85; font-weight:normal;">(${escapeHtml(mergedPreview)})</span></div></div>
+                 </button>
+               `;
+             });
+             
+             document.getElementById('dropChoiceButtonsContainer').innerHTML = btnHtml;
+             document.getElementById('dropChoiceModal').style.display = 'flex';
+             return;
+           }
+           updateUsageCount();
+           renderAllSlots();
+           openEditPanel(i);
+           return;
+         }
 
-          // --- ルート B: ラベル枠同士の移動・入れ替え、または Ctrl+D&D によるコピー処理 ---
-          if (parsedData.type === 'slotMove') {
-            const sourceIdx = parsedData.index !== undefined ? parsedData.index : draggedSlotIndex;
+         if (parsedData.type === 'slotMove') {
+           const sourceIdx = parsedData.index !== undefined ? parsedData.index : draggedSlotIndex;
 
-            if (sourceIdx !== null && !isNaN(sourceIdx) && sourceIdx !== i) {
-              
-              // ★ Ctrlキーが押されている場合は「移動」ではなく「コピー（複製）」として処理
-              if (e.ctrlKey) {
-                if (slotsData[sourceIdx]) {
-                  slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
-                }
-              } else {
-                // 通常の移動・入れ替え処理
-                const temp = slotsData[i];
-                slotsData[i] = slotsData[sourceIdx];
-                slotsData[sourceIdx] = temp;
+           if (sourceIdx !== null && !isNaN(sourceIdx) && sourceIdx !== i) {
+             // Ctrlキー押下時は複製（コピー）、非押下時は入れ替え（移動）
+             if (e.ctrlKey) {
+               if (slotsData[sourceIdx]) {
+                 slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
+               }
+             } else {
+               const temp = slotsData[i];
+               slotsData[i] = slotsData[sourceIdx];
+               slotsData[sourceIdx] = temp;
 
-                if (editingSlotIndex === sourceIdx) {
-                  editingSlotIndex = i;
-                } else if (editingSlotIndex === i) {
-                  editingSlotIndex = sourceIdx;
-                }
-              }
+               if (editingSlotIndex === sourceIdx) {
+                 editingSlotIndex = i;
+               } else if (editingSlotIndex === i) {
+                 editingSlotIndex = sourceIdx;
+               }
+             }
 
-              draggedSlotIndex = null;
-              updateUsageCount();
-              renderAllSlots();
+             draggedSlotIndex = null;
+             updateUsageCount();
+             renderAllSlots();
 
-              if (editingSlotIndex !== null) {
-                openEditPanel(editingSlotIndex);
-              }
-            }
-          }
-        };
+             if (editingSlotIndex !== null) {
+               openEditPanel(editingSlotIndex);
+             }
+           }
+         }
+       };
 
-        cell.onclick = (function(slotIdx) {
-          return function(e) {
-            if (isDraggingActive) return;
-            openEditPanel(slotIdx);
-          };
-        })(i);
+       cell.onclick = (function(slotIdx) {
+         return function(e) {
+           if (isDraggingActive) return;
+           openEditPanel(slotIdx);
+         };
+       })(i);
 
-        let cellHtml = `<span class="slot-num-badge">#${i + 1}</span>`;
-        if (hasData) {
-          cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${i})" title="この枠をクリア">✕</button>`;
-          cellHtml += buildLabelDesignHtml(data);
-        }
-        cell.innerHTML = cellHtml;
-        grid.appendChild(cell);
-      }
-      sheet.appendChild(grid);
-      container.appendChild(sheet);
-      setTimeout(autoFitLongLines, 10);
-    }
+       let cellHtml = `<span class="slot-num-badge">#${i + 1}</span>`;
+       if (hasData) {
+         cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${i})" title="この枠をクリア">✕</button>`;
+         cellHtml += buildLabelDesignHtml(data);
+       }
+       cell.innerHTML = cellHtml;
+       grid.appendChild(cell);
+     }
+     sheet.appendChild(grid);
+     container.appendChild(sheet);
+     setTimeout(autoFitLongLines, 10);
+   }
 
-    /**
-     * 【修正版】茶色帯の左右から5mmの空白（合計10mm減）を限界として自動長体を適用する関数
-     */
-    function autoFitLongLines() {
-      const cards = document.querySelectorAll('.design-card');
-      
-      cards.forEach(card => {
-        const topBox = card.querySelector('.card-top-box');
-        if (!topBox) return;
+   function autoFitLongLines() {
+     const cards = document.querySelectorAll('.design-card');
+     
+     cards.forEach(card => {
+       const topBox = card.querySelector('.card-top-box');
+       if (!topBox) return;
 
-        const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
-        
-        const totalWidth = topBox.clientWidth || 174;
-        const paddingPx = 16; // 左右各約2.3mmに相当するピクセルマージン
-        const containerWidth = Math.max(50, totalWidth - (paddingPx * 2));
+       const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
+       
+       const totalWidth = topBox.clientWidth || 174;
+       const paddingPx = 26;
+       const containerWidth = Math.max(50, totalWidth - (paddingPx * 2));
 
-        subWrappers.forEach(wrap => {
-          const span = wrap.querySelector('.card-product-line');
-          if (!span) return;
+       subWrappers.forEach(wrap => {
+         const span = wrap.querySelector('.card-product-line');
+         if (!span) return;
 
-          span.style.transform = 'none';
-          const textNaturalWidth = span.scrollWidth;
+         span.style.transform = 'none';
+         const textNaturalWidth = span.scrollWidth;
 
-          if (textNaturalWidth > containerWidth && containerWidth > 0) {
-            const scaleFactor = Math.max(0.45, containerWidth / textNaturalWidth);
-            span.style.transformOrigin = 'center center';
-            span.style.transform = `scaleX(${scaleFactor.toFixed(3)})`;
-          } else {
-            span.style.transform = 'none';
-          }
-        });
-      });
-    }
+         if (textNaturalWidth > containerWidth && containerWidth > 0) {
+           const scaleFactor = Math.max(0.45, containerWidth / textNaturalWidth);
+           span.style.transformOrigin = 'center center';
+           span.style.transform = `scaleX(${scaleFactor.toFixed(3)})`;
+         } else {
+           span.style.transform = 'none';
+         }
+       });
+     });
+   }
 
     function openActualSizeModal() {
       if (editingSlotIndex === null) return;
