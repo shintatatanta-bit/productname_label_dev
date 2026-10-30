@@ -291,13 +291,6 @@
     }
 
     /* 茶色の枠（高さ18.2mmに拡張） */
-    /* 修正前 */
-    .card-top-box {
-      width: 95%;
-      height: 22.2mm;
-      ...
-    }
-
     /* 修正後 */
     .card-top-box {
       width: 100%;
@@ -333,7 +326,7 @@
       background: #fbf8f5;
       overflow: hidden; /* 万が一のはみ出しをカットして高さを死守する */
     }
-    
+
     .top-header-bar.has-category {
       justify-content: space-between; /* カテゴリ名あり：左右に配置 */
     }
@@ -2329,9 +2322,9 @@
               ${headerBarInner}
             </div>
             <!-- ヘッダー下部の余白を均等にし、文字をボックスの上下真ん中に配置 -->
-            <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; width:100%; padding-bottom: 1.5mm;">
-              ${linesHtml}
-            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0;">
+  ${linesHtml}
+</div>
           </div>
           <div class="card-bottom-pill ${pillClass}">
             <span class="pill-text">${escapeHtml(data.methodText)}</span>
