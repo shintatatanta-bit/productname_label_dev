@@ -2330,17 +2330,12 @@
     const subLines = p.split('\n').map(s => s.trim()).filter(s => s !== "");
     let subLinesHtml = '';
     subLines.forEach((lineText, lIdx) => {
-      if (idx === 0 && lIdx === 0) {
-        subLinesHtml += `<div class="txt-main" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight};">${escapeHtml(lineText)}</div>`;
-      } else if (idx === 0 && lIdx === 1) {
-        subLinesHtml += `<div class="txt-sub" style="font-size:${Math.max(6, typo.fontSizePt - 2.5)}pt;">(${escapeHtml(lineText)})</div>`;
-      } else {
-        subLinesHtml += `
-          <div class="product-subline-wrapper">
-            <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight};">${escapeHtml(lineText)}</span>
-          </div>
-        `;
-      }
+      // ★修正: 2行目以降の括弧付き（txt-sub）を廃止し、すべて通常のテキスト行として扱います
+      subLinesHtml += `
+        <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
+          <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: nowrap;">${escapeHtml(lineText)}</span>
+        </div>
+      `;
     });
     linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
   });
@@ -2351,11 +2346,9 @@
 
   let headerBarInner = `<span class="header-logo">matoil</span>`;
   if (categoryText) {
-    // 文字数が17文字以上の場合は、超過文字数に応じて横幅を縮小（長体化）する計算
     const charLen = categoryText.length;
     let scaleStyle = "";
     if (charLen >= 17) {
-      // 17文字を基準に、文字が増えるにつれてスケールを小さくする（最小限界 0.5 などで保護）
       const calculatedScale = Math.max(0.5, 16 / charLen);
       scaleStyle = ` transform: translateY(-0.5px) scaleX(${calculatedScale.toFixed(3)});`;
     }
@@ -2368,7 +2361,7 @@
         <div class="top-header-bar ${hasCatClass}">
           ${headerBarInner}
         </div>
-        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0;">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0; overflow: hidden;">
           ${linesHtml}
         </div>
       </div>
