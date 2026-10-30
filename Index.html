@@ -2622,11 +2622,12 @@
 
     function closeActualSizeModal() { document.getElementById('actualSizeModal').style.display = 'none'; }
 
+    // --- 修正後 ---
     function openEditPanel(slotIdx) {
       editingSlotIndex = slotIdx;
       if (!slotsData[slotIdx]) {
         slotsData[slotIdx] = {
-          designTemplate: "standard", // ★ここを追加（初期値は標準）
+          designTemplate: "matoil", // デフォルトのテンプレートを matoil（ロゴ入）に変更
           products: [""],
           productsAlt: [""],
           productsTransSource: [null],
