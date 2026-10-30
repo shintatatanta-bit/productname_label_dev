@@ -2322,7 +2322,7 @@
       return { fontSizePt: clamped.fontSizePt, marginY: clamped.marginY, fontWeight: weight };
     }
 
-   buildLabelDesignHtml(data) {
+   function buildLabelDesignHtml(data) {
      const pillClass = data.methodType === 'cold' ? 'pill-cold' : 'pill-warm';
      const validProds = (data.products || []).filter(p => p.trim() !== "");
      const typo = getEffectiveFontSettings(data);
