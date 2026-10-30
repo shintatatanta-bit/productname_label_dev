@@ -305,7 +305,7 @@
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
-      padding: 0 2.0mm; /* ★左右に2mmの安全余白を確保 */
+      padding: 0; /* ★ 元の 0 に戻します */
       text-align: center;
       overflow: hidden;
       box-sizing: border-box;
@@ -2337,7 +2337,6 @@
        
        let subLinesHtml = '';
        
-       // 1. メイン品名の描画
        if (mainText) {
          subLinesHtml += `
            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
@@ -2346,9 +2345,7 @@
          `;
        }
        
-       // 2. サブテキスト（カッコ内）が存在する場合、メインフォントサイズに連動して縮小
        if (subText) {
-         // メインフォントサイズの80%を基本とし、最小5ptを確保して連動させる
          const subFontSize = Math.max(5.0, typo.fontSizePt * 0.8);
          subLinesHtml += `
            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible; margin-top: 0.5px;">
@@ -2362,7 +2359,6 @@
        }
      });
 
-     // 常にロゴ入（matoil）デザインとして構築
      const categoryText = data.categoryText || ""; 
      const hasCatClass = categoryText ? "has-category" : "no-category";
 
@@ -2383,7 +2379,8 @@
            <div class="top-header-bar ${hasCatClass}">
              ${headerBarInner}
            </div>
-           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0; margin: 0; overflow: hidden;">
+           <!-- ★ テキスト全体のコンテナに左右 2mm のパディング（box-sizing付）を適用して安全に内側に収める -->
+           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding: 0 2.0mm; box-sizing: border-box; margin: 0; overflow: hidden;">
              ${linesHtml}
            </div>
          </div>
