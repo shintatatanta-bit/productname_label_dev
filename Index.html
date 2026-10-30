@@ -2530,17 +2530,82 @@
 
 
 
+    /**
+     * 【縦横自動フィット機能】
+     * プレビューおよび実寸モーダル内の各ラベルについて、
+     * 横幅だけでなく「縦の高さ」も茶色枠（実効領域）を超えないようにリアルタイムに測定し、
+     * 溢れる場合は自動的に縮小スケール（scale）を適用して綺麗に収めます。
+     */
     function autoFitLongLines() {
-      const subWrappers = document.querySelectorAll('.product-subline-wrapper');
-      subWrappers.forEach(wrap => {
-        const span = wrap.querySelector('.card-product-line');
-        if (!span) return;
-        span.style.transform = 'none';
-        const availableWidth = wrap.clientWidth;
-        const textWidth = span.offsetWidth;
-        if (textWidth > availableWidth && availableWidth > 0) {
-          const ratio = (availableWidth / textWidth) * 0.96;
-          span.style.transform = `scaleX(${ratio.toFixed(3)})`;
+      // プレビュー上のすべてのデザインカード、または実寸ステージを対象にする
+      const cards = document.querySelectorAll('.design-card');
+      
+      cards.forEach(card => {
+        const topBox = card.querySelector('.card-top-box');
+        if (!topBox) return;
+
+        // 一度スケールをリセットして正しい自然サイズ（scrollHeight）を計測する
+        topBox.style.transform = 'none';
+        
+        const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
+        subWrappers.forEach(wrap => {
+          const span = wrap.querySelector('.card-product-line');
+          if (span) span.style.transform = 'none';
+        });
+
+        // 1. 茶色帯の中にある「テキスト群を配置するコンテナ」の高さを取得
+        // （上部の白帯 3.8mm を引いた残りの許容高さを超えていないかチェック）
+        const textContainer = topBox.querySelector('div[style*="flex: 1"]');
+        if (!textContainer) return;
+
+        // 茶色枠（.card-top-box）自体の高さ（ピクセル）
+        const boxHeight = topBox.clientHeight;
+        // 白帯（.top-header-bar）の高さ（ピクセル）
+        const headerBar = topBox.querySelector('.top-header-bar');
+        const headerHeight = headerBar ? headerBar.clientHeight : 0;
+        
+        // テキストが使用できる最大許容高さ（ピクセル）
+        const maxAllowedTextHeight = boxHeight - headerHeight - 4; // 若干の安全マージンを確保
+
+        // 現在のテキスト全体の描画高さ
+        const currentTextHeight = textContainer.scrollHeight;
+
+        // 2. 縦方向の超過率を計算
+        let verticalScale = 1.0;
+        if (currentTextHeight > maxAllowedTextHeight && maxAllowedTextHeight > 0) {
+          verticalScale = (maxAllowedTextHeight / currentTextHeight) * 0.96;
+        }
+
+        // 3. 横幅の超過チェックとあわせて、統合的なスケールを適用
+        subWrappers.forEach(wrap => {
+          const span = wrap.querySelector('.card-product-line');
+          if (!span) return;
+          
+          const availableWidth = wrap.clientWidth;
+          const textWidth = span.offsetWidth;
+          
+          let horizontalScale = 1.0;
+          if (textWidth > availableWidth && availableWidth > 0) {
+            horizontalScale = (availableWidth / textWidth) * 0.96;
+          }
+
+          // 縦と横のスケールのうち、より厳しい（小さい）方を採用して全体を自然に縮小
+          const finalScale = Math.min(verticalScale, horizontalScale);
+          
+          if (finalScale < 1.0) {
+            span.style.transform = `scale(${finalScale.toFixed(3)})`;
+            span.style.transformOrigin = 'center center';
+          } else {
+            span.style.transform = 'none';
+          }
+        });
+
+        // 万が一、複数行のブロック全体としても縦に溢れている場合のセーフティガード
+        if (verticalScale < 0.98 && subWrappers.length === 0) {
+          textContainer.style.transform = `scaleY(${verticalScale.toFixed(3)})`;
+          textContainer.style.transformOrigin = 'top center';
+        } else {
+          textContainer.style.transform = 'none';
         }
       });
     }
