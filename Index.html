@@ -2209,7 +2209,13 @@
     }
 
     function updateUsageCount() {
-      const used = slotsData.filter(Boolean).length;
+      // ★ 修正: 品名またはセット名が存在する枠を作成中枚数として正確にカウント
+      const used = slotsData.filter(d => 
+        d && (
+          (d.products && d.products.some(p => p.trim() !== "")) || 
+          (d.categoryText && d.categoryText.trim() !== "")
+        )
+      ).length;
       document.getElementById('lblTotalUsage').innerText = `作成中: ${used} / 36枚`;
     }
 
@@ -2437,7 +2443,14 @@
      for (let i = 0; i < 36; i++) {
        const cell = document.createElement('div');
        const data = slotsData[i];
-       const hasData = Boolean(data && data.products && data.products.some(p => p.trim() !== ""));
+       
+       // ★ 修正: 品名が入っている、またはセット名（カテゴリ名）が入っていれば「データあり」と判定する
+       const hasData = Boolean(
+         data && (
+           (data.products && data.products.some(p => p.trim() !== "")) || 
+           (data.categoryText && data.categoryText.trim() !== "")
+         )
+       );
 
        let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
        if (i === editingSlotIndex) {
@@ -2709,7 +2722,11 @@
     function closeEditPanel() {
       if (editingSlotIndex !== null) {
         const d = slotsData[editingSlotIndex];
-        if (d && (!d.products || d.products.every(p => p.trim() === "")) && !d.methodText) {
+        const hasProd = d && d.products && d.products.some(p => p.trim() !== "");
+        const hasCat = d && d.categoryText && d.categoryText.trim() !== "";
+        
+        // ★ 修正: 品名もセット名も両方空の場合のみ枠データをクリアする
+        if (d && !hasProd && !hasCat && !d.methodText) {
           slotsData[editingSlotIndex] = null;
         }
       }
