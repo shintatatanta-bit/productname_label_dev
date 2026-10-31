@@ -2974,12 +2974,13 @@
               <button type="button" class="btn-clear-row" onclick="clearSingleProductRow(${idx})">✕</button>
               <button type="button" class="btn-toggle-lang" onclick="toggleSingleProductLanguage(${idx})">🌐⇄🇯🇵</button>
             </div>
-            <!-- サブテキスト（括弧内）入力 -->
+            <!-- サブテキスト（親料理名）入力 -->
             <div style="display: flex; align-items: center; gap: 4px; width: 100%; padding-left: 0;">
               <span style="font-size: 10.5px; color: #666; width: 32px; text-align: right; flex-shrink: 0;">(親料理名):</span>
               <textarea class="input-prod-text" id="subInput_${idx}" rows="1"
                         placeholder="カッコ内（例: ハンバーグトマトソース）"
                         oninput="onSubProductInput(${idx}, this)"
+                        oncompositionend="onSubProductInput(${idx}, this)"
                         style="font-size: 11.5px; min-height: 28px; background: #fafafa;">${escapeHtml(subVal)}</textarea>
             </div>
           </div>
@@ -3962,34 +3963,28 @@ function onSubProductInput(idx, el) {
       if (!data) return;
       if (!data.subProducts) data.subProducts = [];
 
+      // ★ 親料理名（サブテキスト）入力時も全角スペース・全角括弧の半角化を適用
+      const rawVal = el.value;
+      const sanitized = sanitizeProductInput(rawVal, false);
+      if (rawVal !== sanitized) {
+        const start = el.selectionStart, end = el.selectionEnd;
+        el.value = sanitized;
+        if (start !== null && end !== null) {
+          const diff = rawVal.length - sanitized.length;
+          const newPos = Math.max(0, start - diff);
+          el.setSelectionRange(newPos, newPos);
+        }
+      }
+
       data.subProducts[idx] = el.value;
       adjustTextareaHeight(el);
       renderAllSlots(); // プレビューを即時更新
     }
 
-    // --- 既存の ondragstart / ondragend / 新規 drag への組み込み例 ---
-    
     // バッジ要素の参照を取得するヘルパー
     function getDragBadge() {
       return document.getElementById('customDragBadge');
     }
-
-    // 各ラベル枠の ondragstart 内に追加
-    cell.ondragstart = function(e) {
-      draggedSlotIndex = i;
-      isDraggingActive = true;
-      cell.classList.add('is-dragging');
-      
-      const moveData = JSON.stringify({ type: 'slotMove', index: i });
-      e.dataTransfer.setData('text/plain', moveData);
-      e.dataTransfer.effectAllowed = 'copyMove';
-
-      // カスタムバッジを表示状態にする
-      const badge = getDragBadge();
-      if (badge) {
-        badge.style.display = 'inline-flex';
-      }
-    };
 
     // --- ドラッグ中のカスタムバッジ追従・Ctrl監視リスナー ---
     document.addEventListener('dragover', function(e) {
@@ -4012,20 +4007,6 @@ function onSubProductInput(idx, el) {
         if (text) text.innerText = '移動';
       }
     });
-
-    // 各ラベル枠の ondragend 内に追加（またはグローバルな dragend）
-    cell.ondragend = function(e) {
-      cell.classList.remove('is-dragging');
-      document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
-      draggedSlotIndex = null;
-      setTimeout(() => { isDraggingActive = false; }, 100);
-
-      // ドラッグ終了時にバッジを非表示にする
-      const badge = getDragBadge();
-      if (badge) {
-        badge.style.display = 'none';
-      }
-    };
 
     // --- Ctrlキーの押下状態を監視してカーソルを動的に切り替えるリスナー ---
     window.addEventListener('keydown', function(e) {
