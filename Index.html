@@ -2029,25 +2029,31 @@
 
           const rawData = e.dataTransfer.getData('text/plain');
           if (!rawData) return;
+          console.log('プレビュー枠ドロップ検知 - 生データ:', rawData);
 
           let parsed = null;
-          try { parsed = JSON.parse(rawData); } catch(err) { parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; }
+          try { 
+            parsed = JSON.parse(rawData); 
+          } catch(err) { 
+            parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; 
+          }
 
-          // ▼▼▼ 【追加】ラベルストックからドロップされた場合の処理 ▼▼▼
+          console.log('パース後データタイプ:', parsed.type);
+
+          // ラベルストックからのドロップ処理
           if (parsed.type === 'labelStockItem') {
             const stockIndex = parsed.stockIndex;
             const stockItem = labelStockItems[stockIndex];
+            console.log('取得したストックアイテム:', stockItem);
             if (stockItem) {
-              // データのディープコピーを対象の枠に配置
               slotsData[i] = JSON.parse(JSON.stringify(stockItem));
               updateUsageCount();
               renderAllSlots();
-              openEditPanel(i); // 配置した枠の編集パネルを自動オープン
+              openEditPanel(i);
             }
             return;
           }
-          // ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲
-
+          
           if (parsed.type === 'stockItem') {
             const stockName = parsed.value;
             if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
@@ -2391,7 +2397,7 @@
         const title = (item.products && item.products[0]) ? item.products[0] : (item.categoryText || '無題ラベル');
         html += `
           <div class="label-stock-card" draggable="true"
-               ondragstart="e => { e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} })); }"
+               ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} })); console.log('ラベルストック ドラッグ開始:', ${idx});"
                title="ドラッグして任意のラベル枠へ配置できます">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <span style="font-size:10.5px; font-weight:bold; color:#1a73e8;">#${idx + 1} 保管ラベル</span>
@@ -2402,6 +2408,7 @@
           </div>
         `;
       });
+
       container.innerHTML = html;
     }
 
