@@ -1187,12 +1187,11 @@
         </select>
       </div>
 
-      <!-- ▼ セット名（カテゴリ名）入力枠（常設） ▼ -->
-      <div id="categoryInputWrapper" style="margin-top: 6px;">
+      <!-- ▼ セット名（カテゴリ名）入力枠（横幅を確実にサイドパネルいっぱいに拡張） ▼ -->
+      <div id="categoryInputWrapper" style="margin-top: 6px; width: 100%; display: flex; flex-direction: column;">
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">セット名（カテゴリ名）:</label>
-        <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="min-height:auto; padding:5px 8px; font-size:12px;">
+        <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="width: 100% !important; min-height: 32px; padding: 6px 10px; font-size: 12.5px; box-sizing: border-box;">
       </div>
-      <!-- ▲ 常設ここまで ▲ -->
 
       <div>
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">記載商品数:</label>
