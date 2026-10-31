@@ -2373,15 +2373,17 @@
        let subLinesHtml = '';
        
        if (mainText) {
+         // ★ 品名側は white-space: pre-wrap; に変更してプレビューでの改行を許可
          subLinesHtml += `
            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
-             <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: nowrap;">${escapeHtml(mainText)}</span>
+             <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: pre-wrap; text-align: center; word-break: break-all;">${escapeHtml(mainText)}</span>
            </div>
          `;
        }
        
        if (subText) {
          const subFontSize = Math.max(5.0, typo.fontSizePt * 0.8);
+         // ★ 親料理名（サブテキスト）側はこれまで通り nowrap で改行させない
          subLinesHtml += `
            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible; margin-top: 0.5px;">
              <span class="card-product-line" style="font-size:${subFontSize.toFixed(1)}pt; font-weight:normal; color:#f1f3f4; white-space: nowrap;">(${escapeHtml(subText)})</span>
