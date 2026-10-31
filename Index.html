@@ -1149,7 +1149,7 @@
           💡 使い方: 枠クリックで作成 / 各行の「＋単品」選択 または 上部の「セット呼出」から入力できます
         </span>
 
-        <div class="zoom-controls" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px;">
+        <<div class="zoom-controls" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px;">
           <button type="button" class="btn-zoom" onclick="changeZoom(-0.1)" title="縮小">🔍－</button>
           <input type="range" id="zoomRangeInput" min="0.3" max="2.0" step="0.05" value="1.0" 
                  style="width: 90px; cursor: pointer;" 
@@ -1159,6 +1159,11 @@
           <button type="button" class="btn-zoom" onclick="setZoom(1.0)">100%</button>
           <button type="button" class="btn-zoom" onclick="fitPage()">📄 全体</button>
         </div>
+
+        <!-- ★ 空白部分への操作ヒント追加 -->
+        <span style="font-size: 11px; color: #5f6368; font-weight: bold; background: #f8f9fa; padding: 3px 8px; border-radius: 4px; border: 1px dashed #dadce0;">
+          💡 Ctrl + ドラッグ ＝ コピー
+        </span>
       </div>
     </div>
   </div>
