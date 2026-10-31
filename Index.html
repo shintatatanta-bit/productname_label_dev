@@ -1632,7 +1632,7 @@
       renderAllSlots();
       startAutoSaveTimer();
       setTimeout(() => {
-        fitPage();
+        setZoom(1.0); // ★ 画面オープン時は必ず100%（初期状態）から開始する
       }, 50);
     };
 
