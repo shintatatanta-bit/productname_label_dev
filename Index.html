@@ -145,7 +145,6 @@
     }
 
 /* プレビュー領域：左右にそれぞれ幅400pxの固定パネルがあるため、左右のマージンを各400pxに完全固定します */
-/* プレビュー領域：左右の400pxパネルの間に確実に表示領域を確保する */
 .preview-outer {
       flex: 1;
       overflow: auto;
@@ -192,8 +191,8 @@
     .label-cell {
       width: 50.0mm;
       height: 30.0mm;
-      padding: 0; /* 余計なパディングをクリア */
-      border: 0.5px dashed #ccc; /* これが正確なシールの境界（外枠）です */
+      padding: 0;
+      border: 0.5px dashed #ccc;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -226,8 +225,8 @@
     }
 
     .label-cell.active-editing {
-      outline: 3.5px dashed #1a73e8 !important; /* 青い破線の枠で囲む */
-      background-color: #f0f7ff !important;       /* 選択中であることがわかるように薄い青背景にする */
+      outline: 3.5px dashed #1a73e8 !important;
+      background-color: #f0f7ff !important;
       z-index: 100;
       box-shadow: 0 0 15px rgba(26, 115, 232, 0.8);
     }
@@ -242,7 +241,6 @@
       pointer-events: none;
     }
 
-    /* ラベル枠右上のワンクリック消去ボタン */
     .cell-quick-del-btn {
       position: absolute;
       top: 1.0mm;
@@ -273,10 +271,10 @@
       display: flex;
     }
 
-   /* 2. シールサイズより一回り大きいデザインカード領域（高さ 28.5mm） */
+   /* 2. デザインカード領域 */
     .design-card {
       width: 46.0mm;
-      height: 28.5mm; /* 高さを 28.5mm に設定 */
+      height: 28.5mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -288,13 +286,12 @@
       position: relative;
       background: #ffffff !important;
       border: none !important;
-      padding-top: 1.5mm;    /* 上部パディング 1.5mm */
-      padding-bottom: 1.5mm; /* 下部パディング 1.5mm */
+      padding-top: 1.5mm;
+      padding-bottom: 1.5mm;
       padding-left: 0;
       padding-right: 0;
     }
 
-    /* 茶色の枠（高さ 20.5mm に拡張） */
     .card-top-box {
       width: 100%;
       height: 20.5mm;
@@ -305,7 +302,7 @@
       flex-direction: column;
       justify-content: flex-start;
       align-items: center;
-      padding: 0; /* ★ 元の 0 に戻します */
+      padding: 0;
       text-align: center;
       overflow: hidden;
       box-sizing: border-box;
@@ -314,10 +311,9 @@
       print-color-adjust: exact !important;
     }
 
-    /* 赤帯の高さを 4.0mm に設定（重複を解消） */
     .card-bottom-pill {
       width: 100%;
-      height: 4.0mm; /* 高さを 4.0mm に固定 */
+      height: 4.0mm;
       background: #b71c1c !important;
       border-radius: 2.0mm;
       display: flex;
@@ -331,28 +327,7 @@
       box-sizing: border-box;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
-      flex-shrink: 0; /* 潰れを防止 */
-    }
-
-    .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
-
-//* 3. 赤帯の高さを 4.0mm に設定 */
-    .card-bottom-pill {
-      width: 100%;
-      height: 4.0mm; /* 高さを4.0mmに調整 */
-      background: #b71c1c !important;
-      border-radius: 2.0mm; /* 高さに合わせて角丸の比率を調整 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #ffffff !important;
-      font-size: 6.8pt;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      border: 0.5px solid #b71c1c !important;
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
+      flex-shrink: 0;
     }
 
     .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
@@ -369,7 +344,7 @@
       box-sizing: border-box;
       border-bottom: 1.0px solid #3d2314 !important; 
       background: #fbf8f5;
-      overflow: hidden; /* ★枠外への完全なはみ出しをブロック */
+      overflow: hidden;
     }
 
     .top-header-bar.has-category {
@@ -379,7 +354,7 @@
     }
 
     .top-header-bar.no-category {
-      justify-content: center;      /* カテゴリ名なし：ロゴを中央に配置 */
+      justify-content: center;
     }
 
     .header-logo {
@@ -391,7 +366,7 @@
       line-height: 1;
       display: inline-flex;
       align-items: flex-end;
-      flex-shrink: 0; /* ロゴのサイズは維持する */
+      flex-shrink: 0;
       transform: translateY(-0.5px); 
     }
 
@@ -403,36 +378,19 @@
       display: inline-flex;
       align-items: flex-end;
       white-space: nowrap;
-      overflow: visible; /* 縮小するため隠さずに表示 */
+      overflow: visible;
       flex: 1;
       min-width: 0; 
       justify-content: flex-end;
       text-align: right;
-      transform-origin: right center; /* 右端を固定して左方向へ向かって長体化 */
+      transform-origin: right center;
       transform: translateY(-0.5px);
     }
 
-    .txt-main { 
-      font-size: 12px; 
-      color: #ffffff !important; 
-      font-weight: bold; 
-      line-height: 1.25; 
-      white-space: nowrap; /* ★勝手な自動改行を禁止 */
-      overflow: visible;
-    }
-    .txt-sub { 
-      font-size: 9.5px; 
-      color: #f1f3f4 !important; 
-      line-height: 1.2; 
-      margin-top: 1px; 
-      white-space: nowrap; /* ★勝手な自動改行を禁止 */
-      overflow: visible;
-    }
     .card-product-line {
       color: #ffffff;
       font-family: "Yu Gothic Medium", "YuGothic", "游ゴシック体", "游ゴシック", sans-serif;
       letter-spacing: -0.2px;
-      white-space: nowrap; /* ★勝手な自動改行を禁止 */
       text-align: center;
       display: inline-block;
       transform-origin: center center;
@@ -440,7 +398,7 @@
 
     .pill-text {
       display: inline-block;
-      transform: none;
+      transform: translateY(0.4px);
     }
 
     .product-group-block {
@@ -460,38 +418,11 @@
       overflow: visible;
     }
 
-    /* 赤帯（ピル）自体の位置は固定し、中の文字のみ微調整 */
-    .card-bottom-pill {
-      width: 100%; /* パディング枠の左右幅に完全に合わせる */
-      height: 4.6mm; /* 高さを1mm小さくする (5.6mm → 4.6mm) */
-      background: #b71c1c !important;
-      border-radius: 2.3mm; /* 高さに合わせて角丸の比率も調整 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #ffffff !important;
-      font-size: 6.8pt;
-      font-weight: 700;
-      letter-spacing: 0.2px;
-      border: 0.5px solid #b71c1c !important;
-      box-sizing: border-box;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-
-    .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
-
-    /* 赤帯の中の「文字」の微調整 */
-    .pill-text {
-      display: inline-block;
-      transform: translateY(0.4px);
-    }
-
     /* 右端固定型・編集サイドパネル */
     .edit-side-panel {
       position: fixed;
       top: 90px;
-      right: 0; /* ← 「-420px」から「0」に変更し、常に表示させます */
+      right: 0;
       width: 400px;
       height: calc(100vh - 105px);
       background: #ffffff;
@@ -504,7 +435,6 @@
       flex-direction: column;
       gap: 12px;
       overflow-y: auto;
-      /* transition: right 0.25s ... は常時表示のため削除しても構いません */
     }
 
     .panel-header {
@@ -552,7 +482,6 @@
       border-color: #1a73e8;
     }
 
-    /* セットマスタ一括呼び出しバー */
     .master-call-bar {
       display: flex;
       gap: 6px;
@@ -630,7 +559,6 @@
       border: 2px dashed #1a73e8;
       background: #e8f0fe;
     }
-    /* ストックリストのドラッグオーバー時のハイライト表示 */
     .stock-item-dragover {
       background: #e8f0fe !important;
       border: 2.0px dashed #1a73e8 !important;
@@ -977,7 +905,7 @@
       .main-workspace { display: block !important; margin: 0 !important; padding: 0 !important; }
       .preview-outer { 
         padding: 0 !important; 
-        margin: 0 !important; /* ★ここが最重要：margin-left: 400px を強制リセット */
+        margin: 0 !important;
         min-width: auto !important;
         overflow: visible !important; 
         display: block !important; 
@@ -1082,19 +1010,81 @@
       display: none;
       align-items: center;
       gap: 4px;
-      transform: translate(12px, 12px); /* マウスカーソルの少し右下に配置 */
+      transform: translate(12px, 12px);
       transition: background 0.1s;
     }
     #customDragBadge.is-copy {
-      background: #137333; /* コピー時は緑色系で視覚的に区別 */
+      background: #137333;
     }
 
-    /* Ctrlキー押下時に、データのあるラベルのカーソルをコピー用に強制変更 */
     body.ctrl-pressed .label-cell.has-data,
     body.ctrl-pressed .label-cell.has-data *,
     body.ctrl-pressed .label-cell.has-data:hover,
     body.ctrl-pressed .label-cell.has-data:hover * {
       cursor: copy !important;
+    }
+
+    /* 左側パネルのタブ切り替え用スタイル */
+    .stock-tab-container {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .btn-stock-tab {
+      flex: 1;
+      padding: 6px 0;
+      font-size: 11.5px;
+      font-weight: bold;
+      background: #f1f3f4;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #5f6368;
+      transition: all 0.15s;
+    }
+    .btn-stock-tab:hover {
+      background: #e8eaed;
+    }
+    .btn-stock-tab.active {
+      background: #1a73e8;
+      color: #ffffff;
+      border-color: #1a73e8;
+    }
+
+    .stock-tab-pane {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      gap: 6px;
+      overflow-y: auto;
+    }
+    .stock-tab-pane.active {
+      display: flex;
+    }
+
+    /* ラベルストックのカードスタイル */
+    .label-stock-card {
+      background: #ffffff;
+      border: 1.5px solid #dadce0;
+      border-radius: 6px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: grab;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .label-stock-card:hover {
+      border-color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label-stock-card:active {
+      cursor: grabbing;
+    }
+    .label-stock-card.drag-over {
+      background: #e8f0fe !important;
+      border-color: #1a73e8 !important;
     }
   </style>
 
@@ -1105,7 +1095,6 @@
       pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
   </script>
-  
 </head>
 <body>
 
@@ -1149,7 +1138,7 @@
           💡 使い方: 枠クリックで作成 / 各行の「＋単品」選択 または 上部の「セット呼出」から入力できます
         </span>
 
-        <<div class="zoom-controls" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px;">
+        <div class="zoom-controls" style="display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px;">
           <button type="button" class="btn-zoom" onclick="changeZoom(-0.1)" title="縮小">🔍－</button>
           <input type="range" id="zoomRangeInput" min="0.3" max="2.0" step="0.05" value="1.0" 
                  style="width: 90px; cursor: pointer;" 
@@ -1160,7 +1149,6 @@
           <button type="button" class="btn-zoom" onclick="fitPage()">📄 全体</button>
         </div>
 
-        <!-- ★ 空白部分への操作ヒント追加 -->
         <span style="font-size: 11px; color: #5f6368; font-weight: bold; background: #f8f9fa; padding: 3px 8px; border-radius: 4px; border: 1px dashed #dadce0;">
           💡 Ctrl + ドラッグ ＝ コピー
         </span>
@@ -1172,6 +1160,73 @@
   <div class="main-workspace">
     <div class="preview-outer" id="previewOuterArea">
       <div class="preview-container" id="sheetsContainer"></div>
+    </div>
+
+    <!-- 左側ストック・一時保管管理パネル（タブ切り替え対応版） -->
+    <div class="edit-side-panel" id="stockSidePanel" style="left:0px; right:auto; top:90px; height:calc(100vh - 105px); border-left:none; border-right:2px solid #455a64; border-radius:0 8px 8px 0; z-index: 1500;">
+      <div class="panel-header" style="border-bottom:2px solid #455a64; justify-content:center;">
+        <span class="panel-title" style="color:#455a64;">📦 ストック・一時保管管理</span>
+      </div>
+
+      <!-- ▼ タブ切り替えヘッダー ▼ -->
+      <div class="stock-tab-container" style="margin-top: 4px;">
+        <button type="button" class="btn-stock-tab active" id="btnTabMaster" onclick="switchStockTab('master')">📝 料理名ストック</button>
+        <button type="button" class="btn-stock-tab" id="btnTabLabel" onclick="switchStockTab('label')">🏷️ ラベルストック</button>
+      </div>
+
+      <!-- 1. 料理名ストックタブのペイン -->
+      <div class="stock-tab-pane active" id="paneMasterStock">
+        <div style="font-size:11.5px; color:#555; line-height:1.4;">
+          登録したストックをマウスで掴んで、右側のラベル枠へ直接ドラッグ＆ドロップして配置できます。
+        </div>
+
+        <div style="background:#eef5fc; border:1.5px dashed #1a73e8; border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:6px; text-align:center; transition: background 0.15s;"
+             ondragover="event.preventDefault(); this.style.background='#d2e3fc';"
+             ondragleave="event.preventDefault(); this.style.background='#eef5fc';"
+             ondrop="handlePdfFileDrop(event)">
+          <span style="font-size:11.5px; font-weight:bold; color:#1a73e8;">📄 回収シートPDFをここにD&D</span>
+          <div style="font-size:10px; color:#5f6368;">または下のボタンから選択</div>
+          <input type="file" id="pdfFileInput" accept="application/pdf" style="font-size:11px; margin:0 auto;" onchange="handlePdfFileSelect(event)">
+          <div id="pdfExtractResult" style="font-size:11px; color:#333; max-height:80px; overflow-y:auto; background:white; padding:4px; border:1px solid #ccc; border-radius:4px; display:none; text-align:left;"></div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <div style="display:flex; gap:6px; align-items:flex-start;">
+            <textarea id="inputNewStockName" rows="3"
+                      style="flex:1; padding:8px 10px; font-size:12.5px; font-weight:bold; border:1.5px solid #ccc; border-radius:4px; resize:vertical; min-height:75px; line-height:1.4; font-family:inherit;"
+                      placeholder="料理名を入力（改行で複数入力すると一括登録できます）..."
+                      oninput="this.style.height='auto'; this.style.height=Math.max(75, this.scrollHeight)+'px';"></textarea>
+            <button type="button" class="btn-main" style="background:#137333; color:white; padding:8px 14px; height:36px;" onclick="addStockItem()">＋ 追加</button>
+          </div>
+        </div>
+
+        <div id="stockListContainer" style="flex:1; overflow-y:auto; border:1.5px solid #e0e0e0; border-radius:6px; background:#f9f9f9; padding:6px; display:flex; flex-direction:column; gap:4px;">
+          <div style="text-align:center; color:#888; font-size:12px; padding:20px;">ストックはまだありません</div>
+        </div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px dotted #ccc; margin-top:auto;">
+          <span id="lblStockCount" style="font-size:11px; font-weight:bold; color:#666;">登録数: 0件</span>
+        </div>
+      </div>
+
+      <!-- 2. ラベルストックタブのペイン（D&Dでの一時保管・再配置対応） -->
+      <div class="stock-tab-pane" id="paneLabelStock">
+        <div style="font-size:11.5px; color:#555; line-height:1.4;">
+          完成したラベル枠をここにドラッグ＆ドロップすると、設定ごと一時保管できます。
+        </div>
+        
+        <div id="labelStockListContainer" 
+             style="flex:1; overflow-y:auto; border:1.5px solid #e0e0e0; border-radius:6px; background:#f9f9f9; padding:6px; display:flex; flex-direction:column; gap:6px;"
+             ondragover="event.preventDefault(); event.dataTransfer.dropEffect='copy';"
+             ondrop="handleLabelStockDrop(event)">
+          <div style="text-align:center; color:#888; font-size:12px; padding:20px;">一時保管ラベルはまだありません<br>(ここに枠をD&D)</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-top:6px; border-top:1px dotted #ccc; margin-top:auto;">
+          <span id="lblLabelStockCount" style="font-size:11px; font-weight:bold; color:#666;">保管数: 0件</span>
+          <button type="button" class="btn-clear-row" onclick="clearAllLabelStock()" style="padding:3px 8px; font-size:11px;">すべてクリア</button>
+        </div>
+      </div>
     </div>
 
     <!-- 右端固定型・編集サイドパネル -->
@@ -1192,7 +1247,7 @@
         </select>
       </div>
 
-      <!-- ▼ セット名（カテゴリ名）入力枠（横幅を確実にサイドパネルいっぱいに拡張） ▼ -->
+      <!-- セット名（カテゴリ名）入力枠 -->
       <div id="categoryInputWrapper" style="margin-top: 6px; width: 100%; display: flex; flex-direction: column;">
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">セット名（カテゴリ名）:</label>
         <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="width: 100% !important; min-height: 32px; padding: 6px 10px; font-size: 12.5px; box-sizing: border-box;">
@@ -1292,7 +1347,6 @@
       <div class="panel-bottom-actions">
         <div style="display:flex; gap:4px; flex-wrap:wrap;">
           <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="deleteCurrentSlot()">🗑️ 1枠削除</button>
-          <!-- 💡ここに全クリアボタンが入ります -->
           <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="clearAllLabels()">🗑️ 全クリア</button>
           <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 8px;" onclick="copyToAllSlots()">📄 全面コピー</button>
         </div>
@@ -1300,10 +1354,8 @@
           <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:7px 16px;" onclick="closeEditPanel()">完了</button>
         </div>
       </div>
-
-
     </div>
-  </div> <!-- main-workspace の閉じタグ -->
+  </div>
 
   <!-- 実寸プレビュー専用ポップアップモーダル -->
   <div class="modal-overlay" id="actualSizeModal" onclick="closeActualSizeModal()">
@@ -1373,29 +1425,9 @@
           <li><strong>「セット一括呼出」</strong>または品名ごとの<strong>「単品マスタから選択」</strong>、あるいは直接テキストを入力して商品名を設定できます。</li>
           <li>1枠あたり最大4品まで記載できます。また「🌐⇄🇯🇵 全品 日/英 切替」で英語表記にワンクリック変換が可能です。</li>
         </ul>
-
-        <h3>2. 料理名ストック管理機能（左側パネル）</h3>
+        <h3>2. 料理名ストック＆ラベルストック機能（左側パネル）</h3>
         <ul>
-          <li>よく使う料理名をストックに登録しておくと、マウスで掴んで右側のラベル枠へ<strong>直接ドラッグ＆ドロップ</strong>して素早く配置できます。</li>
-          <li>テキストエリアに<strong>改行区切りで複数行ペースト</strong>することで、複数の料理名を同時に一括登録できます。</li>
-          <li>「回収シートPDFをここにD&D」エリアにPDFをドロップすると、記載されているメニュー名を自動抽出してストック候補に選ぶことができます。</li>
-        </ul>
-
-        <h3>3. ラベル枠の並び替えと削除</h3>
-        <ul>
-          <li>データが入っているラベル枠は、別の枠へドラッグ＆ドロップすることで<strong>位置の入れ替えや移動</strong>が可能です。</li>
-          <li>ラベル枠にマウスを乗せると右上に表示される赤色の<strong>「✕」ボタン</strong>をクリックすると、その枠のデータを即座にクリアできます。</li>
-        </ul>
-
-        <h3>4. 作業データの保存と再開</h3>
-        <ul>
-          <li>画面上部の「💾 途中保存」ボタンから、現在の36枠の配置とストック状況をスプレッドシート（クラウド）に保存できます。</li>
-          <li>次回以降、隣のプルダウン（「📂 保存データから再開...」）から過去の作業データをいつでも呼び出して続きから作業できます（1分ごとの自動保存機能も搭載されています）。</li>
-        </ul>
-
-        <h3>5. 印刷・PDF保存</h3>
-        <ul>
-          <li>画面右上の<strong>「🖨️ 直接印刷 / PDF保存」</strong>ボタンを押すと、余分なコントロールパネルが非表示になり、エーワン 31072 シートに最適化された印刷・PDF出力プレビューが起動します。</li>
+          <li>よく使う料理名をストックに登録したり、完成したラベル枠を「ラベルストック」タブへドラッグ＆ドロップして一時保管できます。</li>
         </ul>
       </div>
       <div style="display:flex; justify-content:flex-end; padding: 12px 20px; background: #f8f9fa; border-top: 1px solid #dadce0;">
@@ -1404,27 +1436,21 @@
     </div>
   </div>
 
-  <!-- 商品マスタ管理モーダル（一覧表示・ソート・表記揺れ検索・新規追加） -->
+  <!-- 商品マスタ管理モーダル -->
   <div class="modal-overlay" id="productMasterModal" onclick="closeProductMasterModal()">
     <div class="master-modal-content" onclick="event.stopPropagation()">
       <div class="panel-header" style="border-bottom: 2px solid #5e35b1; padding: 12px 20px; background: #f8f9fa;">
         <span class="panel-title" style="font-size:15px; color:#5e35b1;">📋 商品マスタ管理・新規追加</span>
         <button type="button" class="panel-close-btn" onclick="closeProductMasterModal()">✕</button>
       </div>
-
       <div class="master-modal-body">
-        
-        <!-- 1. 検索・一覧コントロール（上部に移動） -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-weight:bold; color:#333;">🔍 登録商品一覧:</span>
             <input type="text" id="searchMasterKeyword" placeholder="検索（例: 鶏、鳥、とり、ロースト）..." style="padding:5px 10px; border:1.5px solid #1a73e8; border-radius:4px; width:260px; font-size:12px;" oninput="onMasterSearchInput(this.value)">
             <span id="lblMasterFilterCount" style="font-size:11px; color:#666; font-weight:bold;">0 件表示</span>
           </div>
-          <span style="font-size:11px; color:#888;">💡 見出し（列名）クリックで並べ替えができます</span>
         </div>
-
-        <!-- 2. 一覧テーブル（上部に移動） -->
         <div style="max-height:280px; overflow-y:auto; border:1px solid #dadce0; border-radius:4px;">
           <table class="master-table">
             <thead>
@@ -1435,129 +1461,23 @@
                 <th style="width:30%;" onclick="sortMasterTable('method')">温め方 <span id="sort_method" class="sort-icon"></span></th>
               </tr>
             </thead>
-            <tbody id="masterTableBody">
-              <!-- 動的生成エリア -->
-            </tbody>
+            <tbody id="masterTableBody"></tbody>
           </table>
         </div>
-
-        <!-- 3. 新規登録エリア（下部に移動し、上部に区切り線を追加） -->
-        <div style="display:flex; flex-direction:column; gap:6px; margin-top:12px; border-top:1px dotted #ccc; padding-top:14px;">
-          <span style="font-weight:bold; color:#333;">＋ 新規商品の登録（単品マスタへ即時保存）:</span>
-          <div class="form-grid-add">
-            <!-- 上段: レコード番号と内部用 -->
-            <div class="form-grid-add-row">
-              <div style="width: 120px;">
-                <label style="font-size:10.5px; color:#666; display:block;">レコード番号</label>
-                <input type="text" id="addMasterRecordNo" placeholder="例: 5040" oninput="onMasterRecordNoInput(this.value)">
-              </div>
-              <div style="flex: 1;">
-                <label style="font-size:10.5px; color:#666; display:block;">商品名（内部用）</label>
-                <input type="text" id="addMasterInternalName" placeholder="例: 鶏のロースト80g">
-              </div>
-            </div>
-            <!-- 下段: 印字用と英語（枠を広げて複数行化） -->
-            <div class="form-grid-add-row">
-              <div style="flex: 1;">
-                <label style="font-size:10.5px; color:#666; display:block;">シール商品名（印字用）*</label>
-                <textarea id="addMasterNameJa" placeholder="例: 鶏のロースト&#10;トマトソース" rows="2" oninput="onMasterNameJaInput(this)"></textarea>
-              </div>
-              <div style="flex: 1;">
-                <label style="font-size:10.5px; color:#666; display:block;">シール商品名（英語）</label>
-                <textarea id="addMasterNameEn" placeholder="例: Roast Chicken&#10;Tomato Sauce" rows="2"></textarea>
-              </div>
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <div style="display:flex; align-items:center; gap:6px; flex:1;">
-              <span style="font-size:11px; font-weight:bold; color:#555;">温め方:</span>
-              <input type="text" id="addMasterMethod" style="width:320px; padding:5px 8px; border:1px solid #ccc; border-radius:4px; font-size:12px;" value="レンジ 600W で 2分温め">
-            </div>
-            <button type="button" class="btn-main" id="btnSubmitNewMaster" style="background:#137333; color:white; padding:7px 18px;" onclick="submitNewMasterItem()">＋ マスタに追加</button>
-          </div>
-        </div>
-
       </div>
-
       <div style="display:flex; justify-content:flex-end; padding: 10px 20px; background: #f8f9fa; border-top: 1px solid #dadce0;">
         <button type="button" class="btn-main" style="background:#5f6368; color:white; padding:6px 18px;" onclick="closeProductMasterModal()">閉じる</button>
       </div>
     </div>
   </div>
 
-  <!-- PDFから抽出したメニュー候補を選択してストックに追加するモーダル -->
-  <div class="modal-overlay" id="pdfMenuSelectModal">
-    <div class="modal-content-card" style="width:480px; border-top:4px solid #1a73e8;" onclick="event.stopPropagation()">
-      <div class="panel-header" style="border-bottom:2px solid #1a73e8; margin-bottom:12px;">
-        <span class="panel-title" style="font-size:14px;">📄 PDFから検出されたメニュー候補</span>
-      </div>
-      <div style="font-size:12px; color:#333; margin-bottom:10px; font-weight:bold;">
-        ストックに追加するメニューを選択してください:
-      </div>
-      <div id="pdfMenuCandidateContainer" style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px; max-height:240px; overflow-y:auto; border:1px solid #dadce0; padding:8px; border-radius:6px; background:#f9f9f9;">
-        <!-- チェックボックス動的生成エリア -->
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1px solid #c2e7ff; padding:6px 12px;" onclick="toggleAllPdfCandidates(true)">すべて選択</button>
-        <div style="display:flex; gap:6px;">
-          <button type="button" class="btn-main btn-clear" style="padding:6px 14px;" onclick="closePdfMenuModal()">キャンセル</button>
-          <button type="button" class="btn-main" style="background:#137333; color:white; padding:6px 16px;" onclick="addSelectedPdfMenusToStock()">✓ 選択した項目をストックに追加</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 料理名ストック管理パネル（画面左側固定） -->
-  <div class="edit-side-panel" id="stockSidePanel" style="left:0px; right:auto; top:90px; height:calc(100vh - 105px); border-left:none; border-right:2px solid #455a64; border-radius:0 8px 8px 0; z-index: 1500;">
-    <div class="panel-header" style="border-bottom:2px solid #455a64; justify-content:center;">
-      <span class="panel-title" style="color:#455a64;">📦 料理名ストック（ドラッグ配置）</span>
-    </div>
-    <div style="font-size:11.5px; color:#555; line-height:1.4;">
-      登録したストックをマウスで掴んで、右側のラベル枠（#1〜#36）へ直接ドラッグ＆ドロップして配置できます。
-    </div>
-
-    <!-- ドラッグ＆ドロップ対応のPDF読込エリア -->
-    <div style="background:#eef5fc; border:1.5px dashed #1a73e8; border-radius:6px; padding:10px; display:flex; flex-direction:column; gap:6px; text-align:center; transition: background 0.15s;"
-         ondragover="event.preventDefault(); this.style.background='#d2e3fc';"
-         ondragleave="event.preventDefault(); this.style.background='#eef5fc';"
-         ondrop="handlePdfFileDrop(event)">
-      <span style="font-size:11.5px; font-weight:bold; color:#1a73e8;">📄 回収シートPDFをここにD&D</span>
-      <div style="font-size:10px; color:#5f6368;">または下のボタンから選択</div>
-      <input type="file" id="pdfFileInput" accept="application/pdf" style="font-size:11px; margin:0 auto;" onchange="handlePdfFileSelect(event)">
-      <div id="pdfExtractResult" style="font-size:11px; color:#333; max-height:80px; overflow-y:auto; background:white; padding:4px; border:1px solid #ccc; border-radius:4px; display:none; text-align:left;"></div>
-    </div>
-
-    <!-- 単品追加エリア（複数行ペースト・一括追加対応） -->
-    <div style="display:flex; flex-direction:column; gap:4px;">
-      <div style="display:flex; gap:6px; align-items:flex-start;">
-        <textarea id="inputNewStockName" rows="3"
-                  style="flex:1; padding:8px 10px; font-size:12.5px; font-weight:bold; border:1.5px solid #ccc; border-radius:4px; resize:vertical; min-height:75px; line-height:1.4; font-family:inherit;"
-                  placeholder="料理名を入力（改行で複数入力すると一括登録できます）..."
-                  oninput="this.style.height='auto'; this.style.height=Math.max(75, this.scrollHeight)+'px';"></textarea>
-        <button type="button" class="btn-main" style="background:#137333; color:white; padding:8px 14px; height:36px;" onclick="addStockItem()">＋ 追加</button>
-      </div>
-      <div style="font-size:10.5px; color:#5f6368; padding-left:2px;">
-        💡 改行区切りで複数の料理名を同時に登録できます。
-      </div>
-    </div>
-
-    <div id="stockListContainer" style="flex:1; overflow-y:auto; border:1.5px solid #e0e0e0; border-radius:6px; background:#f9f9f9; padding:6px; display:flex; flex-direction:column; gap:4px;">
-      <div style="text-align:center; color:#888; font-size:12px; padding:20px;">ストックはまだありません</div>
-    </div>
-    
-<div style="display:flex; justify-content:space-between; align-items:center; padding-top:10px; border-top:1px dotted #ccc; margin-top:auto;">
-      <span id="lblStockCount" style="font-size:11px; font-weight:bold; color:#666;">登録数: 0件</span>
-    </div>
-  </div>
-
-<!-- ドラッグ中追従カスタムバッジ -->
+  <!-- ドラッグ中追従カスタムバッジ -->
   <div id="customDragBadge">
     <span id="badgeIcon" style="font-size:15px; font-weight:bold;">+</span>
     <span id="badgeText">コピー</span>
   </div>
 
   <script>
-    // ▼▼▼ 消失していたシステム変数を復元 ▼▼▼
     let currentZoom = 1.0;
     let editingSlotIndex = null;
     let draggedSlotIndex = null;
@@ -1568,6 +1488,7 @@
 
     let slotsData = Array(36).fill(null);
     let stockItems = [];
+    let labelStockItems = []; // ★ 一時保管ラベル用の配列
     let singleMasterItems = [];
     let setMasterPresets = [];
     let savedDraftList = [];
@@ -1580,17 +1501,13 @@
       ['芋', 'いも', 'イモ', 'ポテト']
     ];
     
-// ▲▲▲ ここまで復元 ▲▲▲
-
     let currentDraftTitle = "";
     let currentWorkerName = "未設定作業者";
     let lastSavedJsonStr = "";
     let autoSaveIntervalId = null;
 
-    // ▼▼▼ ここから追加（抜け落ちていた機能の復活） ▼▼▼
     function findMasterEnglishByJa(jaText) {
       if (!jaText) return '';
-
       const cleanJa = jaText.trim();
       const matchedWithEn = singleMasterItems.find(
         item => (item.nameJa === cleanJa || item.internalName === cleanJa) && item.nameEn
@@ -1599,12 +1516,8 @@
     }
 
     function printLabels() {
-      // ★ 追加：印刷プレビュー前の最終確認ポップアップ
       const confirmMsg = "【重要：印刷設定の確認】\n\n印刷ズレを防ぐため、次の印刷プレビュー画面で以下の2点を必ず確認してください。\n\n① 「余白」を【なし】にする\n② 「倍率」を【規定値】または【100%】にする\n\n確認して印刷プレビューに進みますか？";
-      
-      if (!confirm(confirmMsg)) {
-        return; // キャンセルされた場合は印刷処理をここで中断する
-      }
+      if (!confirm(confirmMsg)) return;
 
       const activeEl = document.querySelector('.label-cell.active-editing');
       if (activeEl) activeEl.classList.remove('active-editing');
@@ -1624,7 +1537,6 @@
         if (activeEl && editingSlotIndex !== null) activeEl.classList.add('active-editing');
       }, 1000);
     }
-    // ▲▲▲ ここまで追加 ▲▲▲
 
     window.onload = function() {
       loadSpreadsheetMasters();
@@ -1632,10 +1544,9 @@
       renderAllSlots();
       startAutoSaveTimer();
       setTimeout(() => {
-        setZoom(1.0); // ★ 画面オープン時は必ず100%（初期状態）から開始する
+        setZoom(1.0);
       }, 50);
     };
-
 
     function loadSpreadsheetMasters() {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -1644,13 +1555,11 @@
             singleMasterItems = (res && res.singleItems) ? res.singleItems : [];
             setMasterPresets = (res && res.setPresets) ? res.setPresets : [];
             savedDraftList = (res && res.savedDrafts) ? res.savedDrafts : [];
-            // ★ 追加: スプレッドシートから届いたシノニム辞書で更新
             if (res && res.synonymGroups && res.synonymGroups.length > 0) {
               synonymMasterGroups = res.synonymGroups;
             }
             populateSetDropdown();
             populateDraftDropdown();
-
             currentDraftTitle = "";
             currentWorkerName = "未設定作業者";
             updateWorkInfoBadge();
@@ -1699,9 +1608,7 @@
         opt.value = idx;
         const workerStr = d.worker ? `👤${d.worker} | ` : '';
         opt.textContent = `${d.title} (${workerStr}${d.count}枚 | ${d.updatedAt})`;
-        if (d.title === currentDraftTitle) {
-          opt.selected = true;
-        }
+        if (d.title === currentDraftTitle) opt.selected = true;
         sel.appendChild(opt);
       });
       updateWorkInfoBadge();
@@ -1723,7 +1630,6 @@
         alert('保存するラベルが1枚も作成されていません。');
         return;
       }
-
       const defaultTitle = currentDraftTitle || (() => {
         const now = new Date();
         const yyyy = now.getFullYear();
@@ -1732,22 +1638,12 @@
         return `ラベル作業_${yyyy}${mm}${dd}`;
       })();
 
-      const inputTitle = prompt('【1/2】保存名（お客様名や案件名など）を確認・入力してください。\n※すでに存在する名前を入力した場合は上書き確認が行われます。', defaultTitle);
+      const inputTitle = prompt('【1/2】保存名を確認・入力してください。', defaultTitle);
       if (inputTitle === null) return;
       const cleanTitle = inputTitle.trim();
-      if (!cleanTitle) {
-        alert('保存名を入力してください。');
-        return;
-      }
+      if (!cleanTitle) return;
 
-      const isAlreadyExists = savedDraftList.some(d => d.title === cleanTitle);
-      if (isAlreadyExists && cleanTitle !== currentDraftTitle) {
-        const isConfirmed = confirm(`保存名「${cleanTitle}」はすでに存在します。\n\n既存のデータを上書きしてよろしいですか？`);
-        if (!isConfirmed) return;
-      }
-
-      const defaultWorker = (currentWorkerName && currentWorkerName !== "未設定作業者") ? currentWorkerName : '';
-      const inputWorker = prompt('【2/2】作業者名を確認・入力してください。', defaultWorker);
+      const inputWorker = prompt('【2/2】作業者名を確認・入力してください。', currentWorkerName !== "未設定作業者" ? currentWorkerName : '');
       if (inputWorker === null) return;
       const cleanWorker = inputWorker.trim() || '未設定';
 
@@ -1755,25 +1651,13 @@
     }
 
     function executeSaveDraft(cleanTitle, cleanWorker, isAutoSave = false) {
-      const usedCount = slotsData.filter(Boolean).length;
-      if (usedCount === 0 && stockItems.length === 0) return;
-
       const saveDataObj = {
         slots: slotsData,
-        stocks: stockItems
+        stocks: stockItems,
+        labelStocks: labelStockItems
       };
       const jsonStr = JSON.stringify(saveDataObj);
-
-      if (isAutoSave && jsonStr === lastSavedJsonStr && cleanTitle === currentDraftTitle && cleanWorker === currentWorkerName) {
-        return;
-      }
-
-      const btn = document.getElementById('btnSaveDraft');
-      if (btn && !isAutoSave) {
-        btn.disabled = true;
-        btn.innerText = '⏳ 保存中...';
-      }
-      updateSaveStatusText('⏳ 保存中...', '#e37400');
+      if (isAutoSave && jsonStr === lastSavedJsonStr) return;
 
       google.script.run
         .withSuccessHandler(function(updatedList) {
@@ -1782,25 +1666,11 @@
           currentWorkerName = cleanWorker;
           lastSavedJsonStr = jsonStr;
           populateDraftDropdown();
-
-          const nowTime = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-          updateSaveStatusText(`✓ 保存済 (${nowTime})`, '#137333');
-
-          if (btn && !isAutoSave) {
-            btn.disabled = false;
-            btn.innerText = '💾 途中保存';
-            alert(`保存しました。\n・保存名: ${cleanTitle}\n・作業者: ${cleanWorker}`);
-          }
+          updateSaveStatusText('✓ 保存済', '#137333');
+          if (!isAutoSave) alert('保存しました。');
         })
-        .withFailureHandler(function(err) {
-          if (btn && !isAutoSave) {
-            btn.disabled = false;
-            btn.innerText = '💾 途中保存';
-            alert('保存エラー: ' + (err.message || err));
-          }
-          updateSaveStatusText('⚠️ 保存失敗', '#c5221f');
-        })
-        .saveDraftToSpreadsheet(cleanTitle, cleanWorker, jsonStr, usedCount);
+        .withFailureHandler(err => alert('保存エラー: ' + err))
+        .saveDraftToSpreadsheet(cleanTitle, cleanWorker, jsonStr, slotsData.filter(Boolean).length);
     }
 
     function loadSelectedWorkDraft(idxStr) {
@@ -1808,157 +1678,89 @@
       const draft = savedDraftList[Number(idxStr)];
       if (!draft) return;
 
-      const currentUsed = slotsData.filter(Boolean).length;
-      if (currentUsed > 0) {
-        if (!confirm(`現在画面にある作業内容を破棄して、保存データ「${draft.title} (作業者: ${draft.worker || '未設定'} / ${draft.count}枚)」を読み込みますか？`)) {
-          populateDraftDropdown();
-          return;
-        }
-      }
-
-      const defaultWorker = (draft.worker && draft.worker !== '未設定') ? draft.worker : '';
-      const inputWorker = prompt(`保存データ「${draft.title}」を引き継ぎます。\n現在の作業者名を確認・入力してください:`, defaultWorker);
-      if (inputWorker === null) {
-        populateDraftDropdown();
-        return;
-      }
-      const cleanWorker = inputWorker.trim() || draft.worker || '未設定';
-
       try {
         const parsed = JSON.parse(draft.jsonStr);
-        let rawSlots = [];
-        let parsedStocks = [];
+        let rawSlots = Array.isArray(parsed) ? parsed : (parsed.slots || []);
+        let parsedStocks = Array.isArray(parsed.stocks) ? parsed.stocks : [];
+        let parsedLabelStocks = Array.isArray(parsed.labelStocks) ? parsed.labelStocks : [];
 
-        if (Array.isArray(parsed)) {
-          rawSlots = parsed;
-          parsedStocks = [];
-        } else if (parsed && typeof parsed === 'object') {
-          rawSlots = Array.isArray(parsed.slots) ? parsed.slots : [];
-          parsedStocks = Array.isArray(parsed.stocks) ? parsed.stocks : [];
-        }
-
-        // 36枠分の配列を確実に生成し、安全に正規化する
         let parsedSlots = Array(36).fill(null);
         rawSlots.forEach((item, idx) => {
           if (idx < 36 && item && typeof item === 'object') {
             let prods = Array.isArray(item.products) ? item.products : [item.product || ""];
-            prods = prods.map(p => String(p || ""));
-
-            const hasValidProd = prods.some(p => p.trim() !== "");
-            if (hasValidProd) {
-              parsedSlots[idx] = {
-                products: prods,
-                productsAlt: Array.isArray(item.productsAlt) ? item.productsAlt : prods.map(() => ""),
-                productsTransSource: Array.isArray(item.productsTransSource) ? item.productsTransSource : prods.map(() => null),
-                isEnglishMode: Array.isArray(item.isEnglishMode) ? item.isEnglishMode : prods.map(() => false),
-                fontScale: item.fontScale || "normal",
-                customFontPt: item.customFontPt !== undefined ? item.customFontPt : 10.0,
-                marginPreset: item.marginPreset || "normal",
-                customMarginY: item.customMarginY !== undefined ? item.customMarginY : 0.55,
-                fontWeight: item.fontWeight || "700",
-                heatingType: item.heatingType || "microwave",
-                methodMin: item.methodMin !== undefined ? item.methodMin : "2",
-                methodSec: item.methodSec !== undefined ? item.methodSec : "",
-                methodText: item.methodText || "レンジ 600W で 2分温め",
-                methodTextAlt: item.methodTextAlt || "Microwave 600W for 2 min",
-                methodType: item.methodType || "warm"
-              };
-            }
+            parsedSlots[idx] = {
+              categoryText: item.categoryText || "",
+              products: prods.map(p => String(p || "")),
+              subProducts: Array.isArray(item.subProducts) ? item.subProducts : prods.map(() => ""),
+              productsAlt: Array.isArray(item.productsAlt) ? item.productsAlt : prods.map(() => ""),
+              fontScale: item.fontScale || "normal",
+              customFontPt: item.customFontPt !== undefined ? item.customFontPt : 10.0,
+              marginPreset: item.marginPreset || "normal",
+              customMarginY: item.customMarginY !== undefined ? item.customMarginY : 0.55,
+              fontWeight: item.fontWeight || "700",
+              heatingType: item.heatingType || "microwave",
+              methodMin: item.methodMin !== undefined ? item.methodMin : "2",
+              methodSec: item.methodSec !== undefined ? item.methodSec : "",
+              methodText: item.methodText || "レンジ 600W で 2分温め",
+              methodType: item.methodType || "warm"
+            };
           }
         });
 
         slotsData = parsedSlots;
         stockItems = parsedStocks;
+        labelStockItems = parsedLabelStocks;
         currentDraftTitle = draft.title;
-        currentWorkerName = cleanWorker;
+        currentWorkerName = draft.worker || '未設定';
         lastSavedJsonStr = draft.jsonStr;
 
         closeEditPanel();
         updateUsageCount();
-        populateDraftDropdown();
-        updateSaveStatusText(`✓ 読込済 (${draft.updatedAt})`, '#1a73e8');
-        
-        // ストックリストとラベルプレビューを確実に描画
-        if (typeof renderStockList === 'function') {
-          renderStockList();
-        }
+        renderStockList();
+        renderLabelStockList();
         renderAllSlots();
-
       } catch (e) {
-        console.error('データ読込エラー詳細:', e);
-        alert('データの読み込みに失敗しました: ' + (e.message || e));
+        alert('読込エラー: ' + e.message);
       }
     }
 
     function deleteSelectedWorkDraft() {
       const sel = document.getElementById('selSavedDrafts');
-      if (!sel || sel.value === "") {
-        alert('削除したい保存データをプルダウンから選択してください。');
-        return;
-      }
+      if (!sel || sel.value === "") return;
       const draft = savedDraftList[Number(sel.value)];
-      if (!draft) return;
-
-      if (!confirm(`保存データ「${draft.title}」をスプレッドシートから削除しますか？`)) {
-        return;
-      }
+      if (!draft || !confirm(`「${draft.title}」を削除しますか？`)) return;
 
       google.script.run
-        .withSuccessHandler(function(updatedList) {
+        .withSuccessHandler(updatedList => {
           savedDraftList = updatedList || [];
-          if (currentDraftTitle === draft.title) {
-            currentDraftTitle = "";
-          }
           populateDraftDropdown();
-        })
-        .withFailureHandler(function(err) {
-          alert('削除エラー: ' + (err.message || err));
         })
         .deleteDraftFromSpreadsheet(draft.title);
     }
 
     function applySetPresetToCurrentSlot(idxStr) {
       if (idxStr === "") return;
-      
-      // ★ 修正: 枠が選択されていない状態でセットが選ばれた場合は、自動的にラベル #1（インデックス0）を選択状態にする
-      if (editingSlotIndex === null) {
-        editingSlotIndex = 0;
-      }
+      if (editingSlotIndex === null) editingSlotIndex = 0;
 
       const s = setMasterPresets[Number(idxStr)];
       if (!s) return;
 
       const prods = [...s.prodsJa];
-      const prodsAlt = prods.map((ja, i) => {
-        if (s.prodsEn && s.prodsEn[i]) return s.prodsEn[i];
-        return findMasterEnglishByJa(ja);
-      });
-      const sources = prodsAlt.map(en => en ? 'master' : null);
-      const isEnModes = prods.map(() => false);
-
-      const parsed = parseDurationParts(s.methodText);
-      const isCold = s.methodType === 'cold' || s.methodText.includes('冷');
-      const isBoil = s.methodText.includes('湯煎');
-
       slotsData[editingSlotIndex] = {
-        designTemplate: "standard",
         categoryText: "",
         products: prods,
-        subProducts: prods.map(() => ""), // ★追加: 初期状態は空のサブ配列
-        productsAlt: prodsAlt,
-        productsTransSource: sources,
-        isEnglishMode: isEnModes,
+        subProducts: prods.map(() => ""),
+        productsAlt: prods.map(() => ""),
         fontScale: "normal",
         customFontPt: 10.0,
         marginPreset: "normal",
         customMarginY: 0.55,
         fontWeight: "700",
-        heatingType: isCold ? 'cold' : (isBoil ? 'boil' : 'microwave'),
-        methodMin: parsed.min,
-        methodSec: parsed.sec,
+        heatingType: "microwave",
+        methodMin: "2",
+        methodSec: "",
         methodText: s.methodText,
-        methodTextAlt: "Microwave before serving",
-        methodType: isCold ? 'cold' : 'warm'
+        methodType: "warm"
       };
 
       openEditPanel(editingSlotIndex);
@@ -1971,39 +1773,10 @@
       const data = slotsData[editingSlotIndex];
       if (!data) return;
 
-      let matched = singleMasterItems.find(
-        item => (item.nameJa === selectedVal || item.internalName === selectedVal) && item.nameEn
-      );
-      if (!matched) {
-        matched = singleMasterItems.find(
-          item => item.nameJa === selectedVal || item.internalName === selectedVal
-        );
-      }
+      const matched = singleMasterItems.find(item => item.nameJa === selectedVal || item.internalName === selectedVal);
       if (!matched) return;
 
       data.products[rowIdx] = matched.nameJa;
-      if (!data.productsAlt) data.productsAlt = [];
-      data.productsAlt[rowIdx] = matched.nameEn || '';
-
-      if (!data.productsTransSource) data.productsTransSource = [];
-      data.productsTransSource[rowIdx] = matched.nameEn ? 'master' : null;
-      if (!data.isEnglishMode) data.isEnglishMode = [];
-      data.isEnglishMode[rowIdx] = false;
-
-      if (rowIdx === 0 && (!data.methodText || data.methodText === 'レンジ 600W で 2分温め')) {
-        const parsed = parseDurationParts(matched.method);
-        const isCold = matched.type === 'cold' || matched.method.includes('冷');
-        const isBoil = matched.method.includes('湯煎');
-
-        data.heatingType = isCold ? 'cold' : (isBoil ? 'boil' : 'microwave');
-        data.methodMin = parsed.min;
-        data.methodSec = parsed.sec;
-        data.methodText = matched.method;
-        data.methodType = matched.type;
-
-        updateMethodUI();
-      }
-
       renderProductInputFields(data.products);
       renderAllSlots();
     }
@@ -2014,31 +1787,20 @@
       if (!data) return;
 
       data.heatingType = methodKey;
-
       if (methodKey === 'cold') {
         data.methodType = 'cold';
-        data.methodMin = '';
-        data.methodSec = '';
         data.methodText = '冷たいまま';
-        data.methodTextAlt = 'Keep Refrigerated / Serve Cold';
       } else {
         data.methodType = 'warm';
-        if (!data.methodMin && !data.methodSec) {
-          data.methodMin = methodKey === 'boil' ? '3' : '2';
-          data.methodSec = '';
-        }
         rebuildMethodTextFromState(data);
       }
-
       updateMethodUI();
       renderAllSlots();
     }
 
     function sanitizeHalfWidthDigits(str) {
       if (!str) return '';
-      return String(str)
-        .replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
-        .replace(/[^0-9]/g, '');
+      return String(str).replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/[^0-9]/g, '');
     }
 
     function onSplitTimeInput() {
@@ -2046,137 +1808,59 @@
       const data = slotsData[editingSlotIndex];
       if (!data || data.heatingType === 'cold') return;
 
-      const minEl = document.getElementById('inputMethodMin');
-      const secEl = document.getElementById('inputMethodSec');
-
-      const minVal = sanitizeHalfWidthDigits(minEl.value);
-      const secVal = sanitizeHalfWidthDigits(secEl.value);
-
-      if (minEl.value !== minVal) minEl.value = minVal;
-      if (secEl.value !== secVal) secEl.value = secVal;
-
-      data.methodMin = minVal;
-      data.methodSec = secVal;
+      data.methodMin = sanitizeHalfWidthDigits(document.getElementById('inputMethodMin').value);
+      data.methodSec = sanitizeHalfWidthDigits(document.getElementById('inputMethodSec').value);
 
       rebuildMethodTextFromState(data);
-      updateMethodUI(false);
       renderAllSlots();
     }
 
     function buildDurationString(minStr, secStr) {
       const m = parseInt(minStr, 10) || 0;
       const s = parseInt(secStr, 10) || 0;
-      let ja = '', en = '';
-
-      if (m > 0 && s > 0) {
-        ja = `${m}分${s}秒`;
-        en = `${m} min ${s} sec`;
-      } else if (m > 0) {
-        ja = `${m}分`;
-        en = `${m} min`;
-      } else if (s > 0) {
-        ja = `${s}秒`;
-        en = `${s} sec`;
-      }
-      return { ja, en };
-    }
-
-    function parseDurationParts(text) {
-      if (!text) return { min: '', sec: '' };
-      let min = '', sec = '';
-      if (text.includes('分半')) {
-        const m = text.match(/(\d+)分半/);
-        min = m ? m[1] : '1';
-        sec = '30';
-      } else {
-        const m = text.match(/(\d+)분/); // fallback
-        const m2 = text.match(/(\d+)分/);
-        const s = text.match(/(\d+)秒/);
-        if (m2) min = m2[1];
-        if (s) sec = s[1];
-      }
-      return { min, sec };
+      let ja = '';
+      if (m > 0 && s > 0) ja = `${m}分${s}秒`;
+      else if (m > 0) ja = `${m}分`;
+      else if (s > 0) ja = `${s}秒`;
+      return ja;
     }
 
     function rebuildMethodTextFromState(data) {
       const dur = buildDurationString(data.methodMin, data.methodSec);
       if (data.heatingType === 'boil') {
-        data.methodText = dur.ja ? `湯煎で ${dur.ja}温め` : '湯煎で温め';
-        data.methodTextAlt = dur.en ? `Boil in bag for ${dur.en}` : 'Boil in bag before serving';
-      } else if (data.heatingType === 'microwave') {
-        data.methodText = dur.ja ? `レンジ 600W で ${dur.ja}温め` : 'レンジ 600W で温め';
-        data.methodTextAlt = dur.en ? `Microwave 600W for ${dur.en}` : 'Microwave before serving';
+        data.methodText = dur ? `湯煎で ${dur}温め` : '湯煎で温め';
+      } else {
+        data.methodText = dur ? `レンジ 600W で ${dur}温め` : 'レンジ 600W で温め';
       }
     }
 
     function onCustomMethodInput(val) {
       if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      data.methodText = val;
+      slotsData[editingSlotIndex].methodText = val;
       renderAllSlots();
     }
 
-    function updateMethodUI(updateInputBoxes = true) {
+    function updateMethodUI() {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       if (!data) return;
 
-      const methodKey = data.heatingType || (data.methodType === 'cold' ? 'cold' : 'microwave');
+      const methodKey = data.heatingType || 'microwave';
       ['microwave', 'boil', 'cold'].forEach(k => {
         const btn = document.getElementById(`mBtn_${k}`);
-        if (btn) {
-          if (k === methodKey) btn.classList.add('active');
-          else btn.classList.remove('active');
-        }
+        if (btn) btn.className = (k === methodKey) ? 'btn-method-choice active' : 'btn-method-choice';
       });
 
-      const timeWrap = document.getElementById('methodTimeInputWrap');
-      const minInput = document.getElementById('inputMethodMin');
-      const secInput = document.getElementById('inputMethodSec');
-
-      if (timeWrap && minInput && secInput) {
-        if (methodKey === 'cold') {
-          timeWrap.style.opacity = '0.35';
-          timeWrap.style.pointerEvents = 'none';
-          minInput.value = '';
-          secInput.value = '';
-        } else {
-          timeWrap.style.opacity = '1.0';
-          timeWrap.style.pointerEvents = 'auto';
-          if (updateInputBoxes) {
-            minInput.value = data.methodMin !== undefined ? data.methodMin : '';
-            secInput.value = data.methodSec !== undefined ? data.methodSec : '';
-          }
-        }
-      }
-
-      const customInput = document.getElementById('inputCustomMethod');
-      if (customInput) customInput.value = data.methodText || '';
+      document.getElementById('inputMethodMin').value = data.methodMin || '';
+      document.getElementById('inputMethodSec').value = data.methodSec || '';
+      document.getElementById('inputCustomMethod').value = data.methodText || '';
     }
 
     function toggleMethodLanguage() {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       if (!data) return;
-
-      const cur = data.methodText || '';
-      const alt = data.methodTextAlt || '';
-      if (alt) {
-        data.methodText = alt;
-        data.methodTextAlt = cur;
-      } else {
-        data.methodTextAlt = cur;
-        const dur = buildDurationString(data.methodMin, data.methodSec);
-        if (data.heatingType === 'cold') {
-          data.methodText = 'Keep Refrigerated / Serve Cold';
-        } else if (data.heatingType === 'boil') {
-          data.methodText = dur.en ? `Boil in bag for ${dur.en}` : 'Boil in bag before serving';
-        } else {
-          data.methodText = dur.en ? `Microwave 600W for ${dur.en}` : 'Microwave before serving';
-        }
-      }
-      updateMethodUI();
+      data.methodText = data.methodText.includes('Microwave') ? 'レンジ 600W で 2分温め' : 'Microwave 600W for 2 min';
       renderAllSlots();
     }
 
@@ -2197,91 +1881,15 @@
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       if (!data || !data.products) return;
-
       data.products[idx] = '';
-      if (data.productsAlt) data.productsAlt[idx] = '';
-      if (data.productsTransSource) data.productsTransSource[idx] = null;
-      if (data.isEnglishMode) data.isEnglishMode[idx] = false;
-
+      if (data.subProducts) data.subProducts[idx] = '';
       renderProductInputFields(data.products);
-      updateControlsUI();
       renderAllSlots();
-
-      setTimeout(() => {
-        const inputEl = document.getElementById(`prodInput_${idx}`);
-        if (inputEl) inputEl.focus();
-      }, 20);
     }
 
     function updateUsageCount() {
-      // ★ 修正: 品名またはセット名が存在する枠を作成中枚数として正確にカウント
-      const used = slotsData.filter(d => 
-        d && (
-          (d.products && d.products.some(p => p.trim() !== "")) || 
-          (d.categoryText && d.categoryText.trim() !== "")
-        )
-      ).length;
+      const used = slotsData.filter(d => d && ((d.products && d.products.some(p => p.trim() !== "")) || (d.categoryText && d.categoryText.trim() !== ""))).length;
       document.getElementById('lblTotalUsage').innerText = `作成中: ${used} / 36枚`;
-    }
-
-    async function translateTextToEnglish(text) {
-      if (!text || !text.trim()) return '';
-      try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=${encodeURIComponent(text.trim())}`;
-        const res = await fetch(url);
-        const json = await res.json();
-        if (json && json[0]) {
-          return json[0].map(item => item[0]).join('');
-        }
-      } catch(e) {
-        console.warn('翻訳失敗:', e);
-      }
-      return text;
-    }
-
-    async function toggleSingleProductLanguage(idx) {
-      if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data || !data.products) return;
-
-      if (!data.productsAlt) data.productsAlt = [];
-      if (!data.productsTransSource) data.productsTransSource = [];
-      if (!data.isEnglishMode) data.isEnglishMode = [];
-
-      const current = data.products[idx] || '';
-      let alt = data.productsAlt[idx] || '';
-      const inputEl = document.getElementById(`prodInput_${idx}`);
-      const willBeEnglish = !data.isEnglishMode[idx];
-
-      if (willBeEnglish && !alt) {
-        const masterEn = findMasterEnglishByJa(current);
-        if (masterEn) {
-          alt = masterEn;
-          data.productsAlt[idx] = masterEn;
-          data.productsTransSource[idx] = 'master';
-        }
-      }
-
-      if (alt) {
-        data.products[idx] = alt;
-        data.productsAlt[idx] = current;
-        data.isEnglishMode[idx] = willBeEnglish;
-        if (willBeEnglish && !data.productsTransSource[idx]) data.productsTransSource[idx] = 'master';
-        if (inputEl) inputEl.value = alt;
-      } else {
-        if (inputEl) inputEl.style.opacity = '0.5';
-        const translated = await translateTextToEnglish(current);
-        data.productsAlt[idx] = current;
-        data.products[idx] = translated;
-        data.productsTransSource[idx] = 'google';
-        data.isEnglishMode[idx] = true;
-        if (inputEl) {
-          inputEl.value = translated;
-          inputEl.style.opacity = '1.0';
-        }
-      }
-      renderProductInputFields(data.products);
-      renderAllSlots();
     }
 
     async function toggleAllProductsLanguage() {
@@ -2289,382 +1897,241 @@
       const data = slotsData[editingSlotIndex];
       if (!data || !data.products) return;
 
-      if (!data.productsAlt) data.productsAlt = [];
-      if (!data.productsTransSource) data.productsTransSource = [];
-      if (!data.isEnglishMode) data.isEnglishMode = [];
-
-      const hasJapanese = data.isEnglishMode.some(mode => !mode) || data.isEnglishMode.length < data.products.length;
-
       for (let i = 0; i < data.products.length; i++) {
-        const cur = data.products[i] || '';
-        let alt = data.productsAlt[i] || '';
-
-        if (hasJapanese) {
-          if (!data.isEnglishMode[i]) {
-            if (!alt && cur) {
-              const masterEn = findMasterEnglishByJa(cur);
-              if (masterEn) {
-                alt = masterEn;
-                data.productsAlt[i] = masterEn;
-                data.productsTransSource[i] = 'master';
-              }
-            }
-            if (alt) {
-              data.products[i] = alt;
-              data.productsAlt[i] = cur;
-              data.isEnglishMode[i] = true;
-              if (!data.productsTransSource[i]) data.productsTransSource[i] = 'master';
-            } else if (cur) {
-              const trans = await translateTextToEnglish(cur);
-              data.productsAlt[i] = cur;
-              data.products[i] = trans;
-              data.productsTransSource[i] = 'google';
-              data.isEnglishMode[i] = true;
-            }
-          }
-        } else {
-          if (data.isEnglishMode[i]) {
-            data.products[i] = alt;
-            data.productsAlt[i] = cur;
-            data.isEnglishMode[i] = false;
-          }
+        const cur = data.products[i];
+        if (cur && !data.productsAlt[i]) {
+          data.productsAlt[i] = await translateTextToEnglish(cur);
+        }
+        if (data.productsAlt[i]) {
+          data.products[i] = data.productsAlt[i];
+          data.productsAlt[i] = cur;
         }
       }
       renderProductInputFields(data.products);
       renderAllSlots();
     }
 
-    // --- 修正後 ---
-    function getEffectiveFontSettings(data) {
-      const validProds = (data.products || []).filter(p => p.trim() !== "");
-      let totalLines = 0;
-      validProds.forEach(p => {
-        totalLines += p.split('\n').filter(s => s.trim() !== "").length || 1;
-      });
-      const lines = Math.max(validProds.length, totalLines, 1);
-      
-      let basePt = 10.0;
-      if (data.customFontPt) basePt = parseFloat(data.customFontPt);
-      else {
-        if (data.fontScale === 'small') basePt = 8.0;
-        else if (data.fontScale === 'xsmall') basePt = 6.0;
-        else basePt = 10.0;
+    async function translateTextToEnglish(text) {
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        return json[0].map(item => item[0]).join('');
+      } catch (e) {
+        return text;
       }
-
-      let marginY = 0.55;
-      if (data.customMarginY !== null && data.customMarginY !== undefined) {
-        marginY = parseFloat(data.customMarginY);
-      } else {
-        if (lines <= 1) marginY = 0.0;
-        else if (lines === 2) marginY = 1.1;
-        else if (lines === 3) marginY = 0.55;
-        else if (lines === 4) marginY = 0.32;
-        else marginY = 0.18;
-        if (basePt < 10.0 && lines > 1) marginY += Math.min(0.65, (10.0 - basePt) * 0.12);
-      }
-      const weight = data.fontWeight === '400' ? '400' : '700';
-
-      // ★ 追加ガード: 茶色枠の限界を超える場合は自動的に安全なサイズ・行間にクランプする
-      const clamped = clampFontAndMargin(basePt, marginY, lines);
-
-      return { fontSizePt: clamped.fontSizePt, marginY: clamped.marginY, fontWeight: weight };
     }
 
-   function buildLabelDesignHtml(data) {
-     const pillClass = data.methodType === 'cold' ? 'pill-cold' : 'pill-warm';
-     const validProds = (data.products || []).filter(p => p.trim() !== "");
-     const typo = getEffectiveFontSettings(data);
-     let linesHtml = '';
+    function getEffectiveFontSettings(data) {
+      return { fontSizePt: data.customFontPt || 10.0, marginY: data.customMarginY || 0.55, fontWeight: data.fontWeight || '700' };
+    }
 
-     validProds.forEach((p, idx) => {
-       const mainText = p.trim();
-       const subText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
-       
-       let subLinesHtml = '';
-       
-       if (mainText) {
-         // ★ 品名側は white-space: pre-wrap; に変更してプレビューでの改行を許可
-         subLinesHtml += `
-           <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
-             <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: pre-wrap; text-align: center; word-break: break-all;">${escapeHtml(mainText)}</span>
-           </div>
-         `;
-       }
-       
-       if (subText) {
-         const subFontSize = Math.max(5.0, typo.fontSizePt * 0.8);
-         // ★ 親料理名（サブテキスト）側はこれまで通り nowrap で改行させない
-         subLinesHtml += `
-           <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible; margin-top: 0.5px;">
-             <span class="card-product-line" style="font-size:${subFontSize.toFixed(1)}pt; font-weight:normal; color:#f1f3f4; white-space: nowrap;">(${escapeHtml(subText)})</span>
-           </div>
-         `;
-       }
+    function buildLabelDesignHtml(data) {
+      const pillClass = data.methodType === 'cold' ? 'pill-cold' : '';
+      const validProds = (data.products || []).filter(p => p.trim() !== "");
+      const typo = getEffectiveFontSettings(data);
+      let linesHtml = '';
 
-       if (subLinesHtml) {
-         linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
-       }
-     });
+      validProds.forEach((p, idx) => {
+        const mainText = p.trim();
+        const subText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
+        let subLinesHtml = '';
 
-     const categoryText = data.categoryText || ""; 
-     const hasCatClass = categoryText ? "has-category" : "no-category";
+        if (mainText) {
+          subLinesHtml += `
+            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
+              <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: pre-wrap; text-align: center; word-break: break-all;">${escapeHtml(mainText)}</span>
+            </div>
+          `;
+        }
+        if (subText) {
+          const subFontSize = Math.max(5.0, typo.fontSizePt * 0.8);
+          subLinesHtml += `
+            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible; margin-top: 0.5px;">
+              <span class="card-product-line" style="font-size:${subFontSize.toFixed(1)}pt; font-weight:normal; color:#f1f3f4; white-space: nowrap;">(${escapeHtml(subText)})</span>
+            </div>
+          `;
+        }
+        if (subLinesHtml) {
+          linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
+        }
+      });
 
-     let headerBarInner = `<span class="header-logo">matoil</span>`;
-     if (categoryText) {
-       const charLen = categoryText.length;
-       let scaleStyle = "";
-       if (charLen >= 17) {
-         const calculatedScale = Math.max(0.5, 16 / charLen);
-         scaleStyle = ` transform: translateY(-0.5px) scaleX(${calculatedScale.toFixed(3)});`;
-       }
-       headerBarInner += `<span class="txt-cat" style="${scaleStyle}">${escapeHtml(categoryText)}</span>`;
-     }
+      const categoryText = data.categoryText || ""; 
+      const hasCatClass = categoryText ? "has-category" : "no-category";
+      let headerBarInner = `<span class="header-logo">matoil</span>`;
+      if (categoryText) {
+        headerBarInner += `<span class="txt-cat">${escapeHtml(categoryText)}</span>`;
+      }
 
-     return `
-       <div class="design-card">
-         <div class="card-top-box">
-           <div class="top-header-bar ${hasCatClass}">
-             ${headerBarInner}
-           </div>
-           <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 3.5mm; padding-right: 3.5mm; box-sizing: border-box; margin: 0; overflow: hidden;">
-             ${linesHtml}
-           </div>
-         </div>
-         <div class="card-bottom-pill ${pillClass}">
-           <span class="pill-text">${escapeHtml(data.methodText)}</span>
-         </div>
-       </div>
-     `;
-   }
+      return `
+        <div class="design-card">
+          <div class="card-top-box">
+            <div class="top-header-bar ${hasCatClass}">${headerBarInner}</div>
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; padding-left: 3.5mm; padding-right: 3.5mm; box-sizing: border-box; margin: 0; overflow: hidden;">
+              ${linesHtml}
+            </div>
+          </div>
+          <div class="card-bottom-pill ${pillClass}">
+            <span class="pill-text">${escapeHtml(data.methodText)}</span>
+          </div>
+        </div>
+      `;
+    }
 
-   function renderAllSlots() {
-     const container = document.getElementById('sheetsContainer');
-     container.innerHTML = '';
-     const sheet = document.createElement('div');
-     sheet.className = 'sheet-a4';
-     const grid = document.createElement('div');
-     grid.className = 'label-grid';
+    function renderAllSlots() {
+      const container = document.getElementById('sheetsContainer');
+      container.innerHTML = '';
+      const sheet = document.createElement('div');
+      sheet.className = 'sheet-a4';
+      const grid = document.createElement('div');
+      grid.className = 'label-grid';
 
-     for (let i = 0; i < 36; i++) {
-       const cell = document.createElement('div');
-       const data = slotsData[i];
-       
-       // ★ 修正: 品名が入っている、またはセット名（カテゴリ名）が入っていれば「データあり」と判定する
-       const hasData = Boolean(
-         data && (
-           (data.products && data.products.some(p => p.trim() !== "")) || 
-           (data.categoryText && data.categoryText.trim() !== "")
-         )
-       );
+      for (let i = 0; i < 36; i++) {
+        const cell = document.createElement('div');
+        const data = slotsData[i];
+        const hasData = Boolean(data && ((data.products && data.products.some(p => p.trim() !== "")) || (data.categoryText && data.categoryText.trim() !== "")));
 
-       let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
-       if (i === editingSlotIndex) {
-         cellClass += ' active-editing';
-       }
-       cell.className = cellClass;
-       cell.dataset.slotIndex = i;
-       
-       cell.draggable = hasData;
+        let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
+        if (i === editingSlotIndex) cellClass += ' active-editing';
+        cell.className = cellClass;
+        cell.dataset.slotIndex = i;
+        cell.draggable = hasData;
 
-       cell.ondragstart = function(e) {
-         draggedSlotIndex = i;
-         isDraggingActive = true;
-         cell.classList.add('is-dragging');
-         const moveData = JSON.stringify({ type: 'slotMove', index: i });
-         e.dataTransfer.setData('text/plain', moveData);
-         e.dataTransfer.effectAllowed = 'copyMove';
+        cell.ondragstart = function(e) {
+          draggedSlotIndex = i;
+          isDraggingActive = true;
+          cell.classList.add('is-dragging');
+          e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'slotMove', index: i }));
+          e.dataTransfer.effectAllowed = 'copyMove';
+          document.getElementById('customDragBadge').style.display = 'inline-flex';
+        };
 
-         // ★ ドラッグ開始時にカスタムバッジを表示
-         const badge = document.getElementById('customDragBadge');
-         if (badge) badge.style.display = 'inline-flex';
-       };
+        cell.ondragend = function(e) {
+          cell.classList.remove('is-dragging');
+          document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
+          draggedSlotIndex = null;
+          setTimeout(() => { isDraggingActive = false; }, 100);
+          document.getElementById('customDragBadge').style.display = 'none';
+        };
 
-       cell.ondragend = function(e) {
-         cell.classList.remove('is-dragging');
-         document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
-         draggedSlotIndex = null;
-         setTimeout(() => { isDraggingActive = false; }, 100);
+        cell.ondragover = function(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = e.ctrlKey ? 'copy' : 'move';
+          cell.classList.add('drag-over');
+        };
 
-         // ★ ドラッグ終了時にカスタムバッジを非表示
-         const badge = document.getElementById('customDragBadge');
-         if (badge) badge.style.display = 'none';
-       };
+        cell.ondragleave = function() { cell.classList.remove('drag-over'); };
 
-       cell.ondragover = function(e) {
-         e.preventDefault();
-         if (e.ctrlKey) {
-           e.dataTransfer.dropEffect = 'copy';
-         } else {
-           e.dataTransfer.dropEffect = 'move';
-         }
-         cell.classList.add('drag-over');
-       };
+        cell.ondrop = function(e) {
+          e.preventDefault();
+          cell.classList.remove('drag-over');
 
-       cell.ondragleave = function(e) {
-         cell.classList.remove('drag-over');
-       };
-       
-       cell.ondrop = function(e) {
-         e.preventDefault();
-         cell.classList.remove('drag-over');
-         
-         const rawData = e.dataTransfer.getData('text/plain');
-         if (!rawData) return;
+          const rawData = e.dataTransfer.getData('text/plain');
+          if (!rawData) return;
 
-         let parsedData = null;
-         try {
-           parsedData = JSON.parse(rawData);
-         } catch (err) {
-           parsedData = null;
-         }
+          let parsed = null;
+          try { parsed = JSON.parse(rawData); } catch(err) { parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; }
 
-         if (!parsedData) {
-           parsedData = { type: 'slotMove', index: parseInt(rawData, 10) };
-         }
+          // ★ ラベルストックからのドラッグ＆ドロップ対応
+          if (parsed.type === 'labelStockItem') {
+            const stockItem = labelStockItems[parsed.stockIndex];
+            if (stockItem) {
+              slotsData[i] = JSON.parse(JSON.stringify(stockItem));
+              updateUsageCount();
+              renderAllSlots();
+              openEditPanel(i);
+            }
+            return;
+          }
 
-         if (parsedData.type === 'stockItem') {
-           const stockName = parsedData.value;
-           if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
-             slotsData[i] = {
-               products: [stockName],
-               subProducts: [""],
-               productsAlt: [findMasterEnglishByJa(stockName)],
-               productsTransSource: [null],
-               isEnglishMode: [false],
-               fontScale: "normal",
-               customFontPt: 10.0,
-               marginPreset: "normal",
-               customMarginY: 0.55,
-               fontWeight: "700",
-               heatingType: "microwave",
-               methodMin: "2",
-               methodSec: "",
-               methodText: "レンジ 600W で 2分温め",
-               methodTextAlt: "Microwave 600W for 2 min",
-               methodType: "warm"
-             };
-           } else {
-             pendingDropSlotIdx = i;
-             pendingDropStockName = stockName;
-             const slotObj = slotsData[i];
-             const validProds = (slotObj.products || []).filter(p => p && p.trim() !== '');
+          if (parsed.type === 'stockItem') {
+            const stockName = parsed.value;
+            if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
+              slotsData[i] = {
+                categoryText: "",
+                products: [stockName],
+                subProducts: [""],
+                productsAlt: [""],
+                fontScale: "normal",
+                customFontPt: 10.0,
+                marginPreset: "normal",
+                customMarginY: 0.55,
+                fontWeight: "700",
+                heatingType: "microwave",
+                methodMin: "2",
+                methodSec: "",
+                methodText: "レンジ 600W で 2分温め",
+                methodType: "warm"
+              };
+            } else {
+              slotsData[i].products.push(stockName);
+              slotsData[i].subProducts.push("");
+            }
+            updateUsageCount();
+            renderAllSlots();
+            openEditPanel(i);
+            return;
+          }
 
-             document.getElementById('lblDropChoiceTitle').innerText = `ラベル枠 #${i + 1} への追加`;
-             document.getElementById('lblDropChoiceDesc').innerHTML = `「<span style="color:#137333; font-weight:bold;">${escapeHtml(stockName)}</span>」の追加方法を選択してください:`;
+          if (parsed.type === 'slotMove') {
+            const sourceIdx = parsed.index;
+            if (sourceIdx !== null && sourceIdx !== i) {
+              if (e.ctrlKey) {
+                if (slotsData[sourceIdx]) slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
+              } else {
+                const temp = slotsData[i];
+                slotsData[i] = slotsData[sourceIdx];
+                slotsData[sourceIdx] = temp;
+                if (editingSlotIndex === sourceIdx) editingSlotIndex = i;
+                else if (editingSlotIndex === i) editingSlotIndex = sourceIdx;
+              }
+              updateUsageCount();
+              renderAllSlots();
+              if (editingSlotIndex !== null) openEditPanel(editingSlotIndex);
+            }
+          }
+        };
 
-             let btnHtml = `
-               <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:10px 14px; font-size:12.5px; justify-content:flex-start; align-items:center; gap:10px; margin-bottom:8px; width:100%; text-align:left;" onclick="executeDropChoice({type:'addNew'})">
-                 <div><div style="font-weight:bold;">📋 別の品目（新しい行）として追加</div></div>
-               </button>
-             `;
-             
-             validProds.forEach((prodName, pIdx) => {
-               const mergedPreview = prodName ? `${prodName} ${stockName}` : stockName;
-               btnHtml += `
-                 <button type="button" class="btn-main" style="background:#455a64; color:white; padding:10px 14px; font-size:12px; justify-content:flex-start; align-items:center; gap:10px; margin-bottom:6px; width:100%; text-align:left;" onclick="executeDropChoice({type:'merge', lineIdx:${pIdx}})">
-                   <div><div style="font-weight:bold;">🔗 ${escapeHtml(prodName)} に結合 <span style="font-size:11px; opacity:0.85; font-weight:normal;">(${escapeHtml(mergedPreview)})</span></div></div>
-                 </button>
-               `;
-             });
-             
-             document.getElementById('dropChoiceButtonsContainer').innerHTML = btnHtml;
-             document.getElementById('dropChoiceModal').style.display = 'flex';
-             return;
-           }
-           updateUsageCount();
-           renderAllSlots();
-           openEditPanel(i);
-           return;
-         }
+        cell.onclick = function() {
+          if (!isDraggingActive) openEditPanel(i);
+        };
 
-         if (parsedData.type === 'slotMove') {
-           const sourceIdx = parsedData.index !== undefined ? parsedData.index : draggedSlotIndex;
+        let cellHtml = `<span class="slot-num-badge">#${i + 1}</span>`;
+        if (hasData) {
+          cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${i})">✕</button>`;
+          cellHtml += buildLabelDesignHtml(data);
+        }
+        cell.innerHTML = cellHtml;
+        grid.appendChild(cell);
+      }
+      sheet.appendChild(grid);
+      container.appendChild(sheet);
+      setTimeout(autoFitLongLines, 10);
+    }
 
-           if (sourceIdx !== null && !isNaN(sourceIdx) && sourceIdx !== i) {
-             if (e.ctrlKey) {
-               if (slotsData[sourceIdx]) {
-                 slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
-               }
-             } else {
-               const temp = slotsData[i];
-               slotsData[i] = slotsData[sourceIdx];
-               slotsData[sourceIdx] = temp;
-
-               if (editingSlotIndex === sourceIdx) {
-                 editingSlotIndex = i;
-               } else if (editingSlotIndex === i) {
-                 editingSlotIndex = sourceIdx;
-               }
-             }
-
-             draggedSlotIndex = null;
-             updateUsageCount();
-             renderAllSlots();
-
-             if (editingSlotIndex !== null) {
-               openEditPanel(editingSlotIndex);
-             }
-           }
-         }
-       };
-
-       cell.onclick = (function(slotIdx) {
-         return function(e) {
-           if (isDraggingActive) return;
-           openEditPanel(slotIdx);
-         };
-       })(i);
-
-       let cellHtml = `<span class="slot-num-badge">#${i + 1}</span>`;
-       if (hasData) {
-         cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${i})" title="この枠をクリア">✕</button>`;
-         cellHtml += buildLabelDesignHtml(data);
-       }
-       cell.innerHTML = cellHtml;
-       grid.appendChild(cell);
-     }
-     sheet.appendChild(grid);
-     container.appendChild(sheet);
-     setTimeout(autoFitLongLines, 10);
-   }
-
-   function autoFitLongLines() {
-     const cards = document.querySelectorAll('.design-card');
-     
-     cards.forEach(card => {
-       const topBox = card.querySelector('.card-top-box');
-       if (!topBox) return;
-
-       const subWrappers = topBox.querySelectorAll('.product-subline-wrapper');
-       
-       const totalWidth = topBox.clientWidth || 174;
-       const paddingPx = 26;
-       const containerWidth = Math.max(50, totalWidth - (paddingPx * 2));
-
-       subWrappers.forEach(wrap => {
-         const span = wrap.querySelector('.card-product-line');
-         if (!span) return;
-
-         span.style.transform = 'none';
-         const textNaturalWidth = span.scrollWidth;
-
-         if (textNaturalWidth > containerWidth && containerWidth > 0) {
-           const scaleFactor = Math.max(0.45, containerWidth / textNaturalWidth);
-           span.style.transformOrigin = 'center center';
-           span.style.transform = `scaleX(${scaleFactor.toFixed(3)})`;
-         } else {
-           span.style.transform = 'none';
-         }
-       });
-     });
-   }
+    function autoFitLongLines() {
+      document.querySelectorAll('.design-card').forEach(card => {
+        const topBox = card.querySelector('.card-top-box');
+        if (!topBox) return;
+        const containerWidth = Math.max(50, topBox.clientWidth - 26);
+        topBox.querySelectorAll('.product-subline-wrapper').forEach(wrap => {
+          const span = wrap.querySelector('.card-product-line');
+          if (!span) return;
+          span.style.transform = 'none';
+          const w = span.scrollWidth;
+          if (w > containerWidth && containerWidth > 0) {
+            span.style.transform = `scaleX(${(containerWidth / w).toFixed(3)})`;
+          }
+        });
+      });
+    }
 
     function openActualSizeModal() {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       if (!data) return;
-      const stage = document.getElementById('actualLabelStage');
-      stage.innerHTML = buildLabelDesignHtml(data);
+      document.getElementById('actualLabelStage').innerHTML = buildLabelDesignHtml(data);
       document.getElementById('actualSizeModal').style.display = 'flex';
       setTimeout(autoFitLongLines, 10);
     }
@@ -2675,12 +2142,10 @@
       editingSlotIndex = slotIdx;
       if (!slotsData[slotIdx]) {
         slotsData[slotIdx] = {
-          categoryText: "",         // セット名
-          products: [""],           // メイン品名
-          subProducts: [""],        // ★追加: 括弧内（料理名・サブ）用フィールド
+          categoryText: "",
+          products: [""],
+          subProducts: [""],
           productsAlt: [""],
-          productsTransSource: [null],
-          isEnglishMode: [false],
           fontScale: "normal",
           customFontPt: 10.0,
           marginPreset: "normal",
@@ -2690,48 +2155,25 @@
           methodMin: "2",
           methodSec: "",
           methodText: "レンジ 600W で 2分温め",
-          methodTextAlt: "Microwave 600W for 2 min",
           methodType: "warm"
         };
       }
-      // 既存データに subProducts がない場合の安全保障（マイグレーション）
-      if (!slotsData[slotIdx].subProducts) {
-        slotsData[slotIdx].subProducts = slotsData[slotIdx].products.map(() => "");
-      }
-  const data = slotsData[slotIdx];
-  document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
+      const data = slotsData[slotIdx];
+      document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
+      document.getElementById('inputCategoryText').value = data.categoryText || '';
 
-  // セット名入力枠へ現在の値を同期
-  const catInput = document.getElementById('inputCategoryText');
-  if (catInput) {
-    catInput.value = data.categoryText || '';
-  }
-
-  const count = Math.max(1, Math.min(4, data.products.length));
-  highlightChoiceButton('btnCount', count);
-  highlightChoiceButton('btnScale', data.fontScale || 'normal');
-  highlightChoiceButton('btnMargin', data.marginPreset || 'normal');
-  highlightWeightButton(data.fontWeight === '400' ? '400' : '700');
-  renderProductInputFields(data.products);
-  updateControlsUI();
-  updateMethodUI();
-
-  renderAllSlots();
-
-  setTimeout(() => {
-    const firstInput = document.getElementById('prodInput_0');
-    if (firstInput) firstInput.focus();
-  }, 50);
-}
+      const count = Math.max(1, Math.min(4, data.products.length));
+      highlightChoiceButton('btnCount', count);
+      renderProductInputFields(data.products);
+      updateControlsUI();
+      updateMethodUI();
+      renderAllSlots();
+    }
 
     function closeEditPanel() {
       if (editingSlotIndex !== null) {
         const d = slotsData[editingSlotIndex];
-        const hasProd = d && d.products && d.products.some(p => p.trim() !== "");
-        const hasCat = d && d.categoryText && d.categoryText.trim() !== "";
-        
-        // ★ 修正: 品名もセット名も両方空の場合のみ枠データをクリアする
-        if (d && !hasProd && !hasCat && !d.methodText) {
+        if (d && !d.products.some(p => p.trim() !== "") && !d.categoryText.trim() && !d.methodText) {
           slotsData[editingSlotIndex] = null;
         }
       }
@@ -2742,9 +2184,7 @@
 
     function toggleFontSettings() {
       isFontSettingsOpen = !isFontSettingsOpen;
-      const section = document.getElementById('fontCustomSection');
-      if (isFontSettingsOpen) section.classList.add('show');
-      else section.classList.remove('show');
+      document.getElementById('fontCustomSection').classList.toggle('show', isFontSettingsOpen);
     }
 
     function setProductCount(count) {
@@ -2752,56 +2192,34 @@
       const data = slotsData[editingSlotIndex];
       if (!data) return;
 
-      const currentProds = data.products || [];
-      const currentAlts = data.productsAlt || [];
-      const currentSources = data.productsTransSource || [];
-      const currentEnModes = data.isEnglishMode || [];
-
-      const newProds = [], newAlts = [], newSources = [], newEnModes = [];
+      const newProds = [], newSubs = [], newAlts = [];
       for (let i = 0; i < count; i++) {
-        newProds.push(currentProds[i] !== undefined ? currentProds[i] : "");
-        newAlts.push(currentAlts[i] !== undefined ? currentAlts[i] : "");
-        newSources.push(currentSources[i] !== undefined ? currentSources[i] : null);
-        newEnModes.push(currentEnModes[i] !== undefined ? currentEnModes[i] : false);
+        newProds.push(data.products[i] || "");
+        newSubs.push(data.subProducts[i] || "");
+        newAlts.push(data.productsAlt[i] || "");
       }
       data.products = newProds;
+      data.subProducts = newSubs;
       data.productsAlt = newAlts;
-      data.productsTransSource = newSources;
-      data.isEnglishMode = newEnModes;
 
       highlightChoiceButton('btnCount', count);
       renderProductInputFields(newProds);
-      updateControlsUI();
       renderAllSlots();
     }
 
-    function setFontWeight(weightValue) {
+    function setFontWeight(w) {
       if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      data.fontWeight = weightValue;
-      highlightWeightButton(weightValue);
-      updateControlsUI();
+      slotsData[editingSlotIndex].fontWeight = w;
+      document.getElementById('btnWeight_bold').className = w === '700' ? 'btn-choice active' : 'btn-choice';
+      document.getElementById('btnWeight_light').className = w === '400' ? 'btn-choice active' : 'btn-choice';
       renderAllSlots();
-    }
-
-    function highlightWeightButton(currentWeight) {
-      const isBold = currentWeight !== '400';
-      const btnBold = document.getElementById('btnWeight_bold');
-      const btnLight = document.getElementById('btnWeight_light');
-      if (btnBold) btnBold.className = isBold ? 'btn-choice active' : 'btn-choice';
-      if (btnLight) btnLight.className = !isBold ? 'btn-choice active' : 'btn-choice';
     }
 
     function setFontScale(scaleKey) {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
-      if (!data) return;
       data.fontScale = scaleKey;
-      if (scaleKey === 'normal') data.customFontPt = 10.0;
-      else if (scaleKey === 'small') data.customFontPt = 8.0;
-      else if (scaleKey === 'xsmall') data.customFontPt = 6.0;
-
+      data.customFontPt = scaleKey === 'small' ? 8.0 : (scaleKey === 'xsmall' ? 6.0 : 10.0);
       highlightChoiceButton('btnScale', scaleKey);
       updateControlsUI();
       renderAllSlots();
@@ -2809,34 +2227,14 @@
 
     function onManualFontSizeSlider(val) {
       if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      data.customFontPt = parseFloat(val).toFixed(1);
-      data.fontScale = null;
-      highlightChoiceButton('btnScale', null);
-      updateControlsUI();
-      renderAllSlots();
-    }
-
-    function stepFontSize(delta) {
-      if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      const current = parseFloat(getEffectiveFontSettings(data).fontSizePt);
-      const nextVal = Math.max(5.0, Math.min(14.0, current + delta)).toFixed(1);
-      data.customFontPt = nextVal;
-      data.fontScale = null;
-      highlightChoiceButton('btnScale', null);
+      slotsData[editingSlotIndex].customFontPt = parseFloat(val);
       updateControlsUI();
       renderAllSlots();
     }
 
     function setMarginPreset(key, val) {
       if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      data.marginPreset = key;
-      data.customMarginY = val;
+      slotsData[editingSlotIndex].customMarginY = val;
       highlightChoiceButton('btnMargin', key);
       updateControlsUI();
       renderAllSlots();
@@ -2844,24 +2242,7 @@
 
     function onManualMarginSlider(val) {
       if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      data.customMarginY = parseFloat(val).toFixed(2);
-      data.marginPreset = null;
-      highlightChoiceButton('btnMargin', null);
-      updateControlsUI();
-      renderAllSlots();
-    }
-
-    function stepMargin(delta) {
-      if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      const current = parseFloat(getEffectiveFontSettings(data).marginY);
-      const nextVal = Math.max(0.0, Math.min(2.5, current + delta)).toFixed(2);
-      data.customMarginY = nextVal;
-      data.marginPreset = null;
-      highlightChoiceButton('btnMargin', null);
+      slotsData[editingSlotIndex].customMarginY = parseFloat(val);
       updateControlsUI();
       renderAllSlots();
     }
@@ -2869,22 +2250,17 @@
     function updateControlsUI() {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
-      if (!data) return;
       const typo = getEffectiveFontSettings(data);
-      const weightLabel = typo.fontWeight === '400' ? '細字' : '太字';
-
       document.getElementById('lblCurrentPt').innerText = `${typo.fontSizePt} pt`;
       document.getElementById('rangeFontPt').value = typo.fontSizePt;
       document.getElementById('lblCurrentMargin').innerText = `${typo.marginY} mm`;
       document.getElementById('rangeMargin').value = typo.marginY;
-      document.getElementById('lblFontSummaryBadge').innerText = `${weightLabel} ${typo.fontSizePt}pt / 余白 ${typo.marginY}mm ▼`;
     }
 
     function highlightChoiceButton(prefix, currentKey) {
-      const keys = (prefix === 'btnCount') ? [1, 2, 3, 4] : (prefix === 'btnScale') ? ['normal', 'small', 'xsmall'] : ['normal', 'narrow', 'wide'];
-      keys.forEach(k => {
+      ['1','2','3','4','normal','small','xsmall','narrow','wide'].forEach(k => {
         const btn = document.getElementById(`${prefix}_${k}`) || document.getElementById(`${prefix}${k}`);
-        if (btn) btn.className = (k === currentKey) ? 'btn-choice active' : 'btn-choice';
+        if (btn) btn.className = (k == currentKey) ? 'btn-choice active' : 'btn-choice';
       });
     }
 
@@ -2892,1162 +2268,198 @@
       const container = document.getElementById('productInputsContainer');
       container.innerHTML = '';
       const data = slotsData[editingSlotIndex];
+      if (!data.subProducts) data.subProducts = products.map(() => "");
 
-      // サブ配列が未定義の場合の安全保障
-      if (!data.subProducts) {
-        data.subProducts = products.map(() => "");
-      }
-
-      const seenNames = new Set();
       let singleOptionsHtml = '<option value="">＋ 単品マスタから選択</option>';
       singleMasterItems.forEach(item => {
-        const displayName = item.nameJa;
-        if (displayName && !seenNames.has(displayName)) {
-          seenNames.add(displayName);
-          singleOptionsHtml += `<option value="${escapeHtml(displayName)}">${escapeHtml(displayName)}</option>`;
-        }
+        if (item.nameJa) singleOptionsHtml += `<option value="${escapeHtml(item.nameJa)}">${escapeHtml(item.nameJa)}</option>`;
       });
 
       products.forEach((val, idx) => {
         const subVal = data.subProducts[idx] || "";
         const row = document.createElement('div');
         row.className = 'single-product-field';
-        row.dataset.rowIndex = idx;
-        row.draggable = true;
-
-        row.ondragstart = function(e) {
-          if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.closest('.suggest-dropdown'))) {
-            e.preventDefault();
-            return;
-          }
-          draggedRowIndex = idx;
-          row.classList.add('row-dragging');
-          e.dataTransfer.setData('text/plain', idx);
-          e.dataTransfer.effectAllowed = 'move';
-        };
-        row.ondragend = function(e) {
-          row.classList.remove('row-dragging');
-          document.querySelectorAll('.single-product-field').forEach(r => r.classList.remove('row-dragover'));
-          draggedRowIndex = null;
-        };
-        row.ondragover = function(e) {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          if (draggedRowIndex !== null && draggedRowIndex !== idx) row.classList.add('row-dragover');
-        };
-        row.ondragleave = function(e) { row.classList.remove('row-dragover'); };
-        row.ondrop = function(e) {
-          e.preventDefault();
-          row.classList.remove('row-dragover');
-          if (draggedRowIndex !== null && draggedRowIndex !== idx) {
-            if (data && data.products) {
-              const movedItem = data.products.splice(draggedRowIndex, 1)[0];
-              data.products.splice(idx, 0, movedItem);
-              
-              const movedSub = data.subProducts.splice(draggedRowIndex, 1)[0];
-              data.subProducts.splice(idx, 0, movedSub);
-
-              if (data.productsAlt) {
-                const movedAlt = data.productsAlt.splice(draggedRowIndex, 1)[0];
-                data.productsAlt.splice(idx, 0, movedAlt);
-              }
-              if (data.productsTransSource) {
-                const movedSrc = data.productsTransSource.splice(draggedRowIndex, 1)[0];
-                data.productsTransSource.splice(idx, 0, movedSrc);
-              }
-              if (data.isEnglishMode) {
-                const movedMode = data.isEnglishMode.splice(draggedRowIndex, 1)[0];
-                data.isEnglishMode.splice(idx, 0, movedMode);
-              }
-              renderProductInputFields(data.products);
-              renderAllSlots();
-            }
-          }
-        };
-
-        const isEnglishActive = Boolean(data && data.isEnglishMode && data.isEnglishMode[idx]);
-        const transSource = (data && data.productsTransSource) ? data.productsTransSource[idx] : null;
-        let badgeHtml = '';
-        if (isEnglishActive) {
-          if (transSource === 'google') badgeHtml = `<span class="badge-trans-source badge-google">🌐 Google翻訳</span>`;
-          else if (transSource === 'master') badgeHtml = `<span class="badge-trans-source badge-master">マスタ英語</span>`;
-        }
-
         row.innerHTML = `
           <div class="field-top-row">
-            <div class="drag-handle" title="並び替え">≡</div>
             <span class="field-tag">品名 ${idx + 1}:</span>
-            <select class="select-single-item" onchange="onSelectSingleMasterItem(${idx}, this.value)">
-              ${singleOptionsHtml}
-            </select>
+            <select class="select-single-item" onchange="onSelectSingleMasterItem(${idx}, this.value)">${singleOptionsHtml}</select>
           </div>
           <div class="field-input-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
-            <!-- メイン品名入力 -->
             <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
               <div class="input-suggest-wrapper">
-                <textarea class="input-prod-text" id="prodInput_${idx}" rows="1"
-                          placeholder="メイン品名（例: トマトソース）"
-                          oninput="onSingleProductInput(${idx}, this)"
-                          oncompositionend="onSingleProductInput(${idx}, this)"
-                          onkeydown="onProductInputKeyDown(event, ${idx})"
-                          onblur="onProductInputBlur(${idx}, this)">${escapeHtml(val)}</textarea>
-                <div class="suggest-dropdown" id="suggestBox_${idx}"></div>
+                <textarea class="input-prod-text" id="prodInput_${idx}" rows="1" placeholder="メイン品名" oninput="onSingleProductInput(${idx}, this)" oncompositionend="onSingleProductInput(${idx}, this)">${escapeHtml(val)}</textarea>
               </div>
-              ${badgeHtml}
               <button type="button" class="btn-clear-row" onclick="clearSingleProductRow(${idx})">✕</button>
-              <button type="button" class="btn-toggle-lang" onclick="toggleSingleProductLanguage(${idx})">🌐⇄🇯🇵</button>
             </div>
-            <!-- サブテキスト（親料理名）入力 -->
-            <div style="display: flex; align-items: center; gap: 4px; width: 100%; padding-left: 0;">
-              <span style="font-size: 10.5px; color: #666; width: 32px; text-align: right; flex-shrink: 0;">(親料理名):</span>
-              <textarea class="input-prod-text" id="subInput_${idx}" rows="1"
-                        placeholder="カッコ内（例: ハンバーグトマトソース）"
-                        oninput="onSubProductInput(${idx}, this)"
-                        oncompositionend="onSubProductInput(${idx}, this)"
-                        style="font-size: 11.5px; min-height: 28px; background: #fafafa;">${escapeHtml(subVal)}</textarea>
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
+              <span style="font-size: 10.5px; color: #666; width: 55px; text-align: right; flex-shrink: 0;">親料理名:</span>
+              <textarea class="input-prod-text" id="subInput_${idx}" rows="1" placeholder="親料理名" oninput="onSubProductInput(${idx}, this)" oncompositionend="onSubProductInput(${idx}, this)" style="font-size: 11.5px; min-height: 28px; background: #fafafa;">${escapeHtml(subVal)}</textarea>
             </div>
           </div>
         `;
         container.appendChild(row);
-        adjustTextareaHeight(row.querySelector(`#prodInput_${idx}`));
-        adjustTextareaHeight(row.querySelector(`#subInput_${idx}`));
       });
     }
 
-    function adjustTextareaHeight(el) {
-      if (!el) return;
-      el.style.height = 'auto';
-      el.style.height = Math.max(32, el.scrollHeight) + 'px';
-    }
-
-    function sanitizeProductInput(text, isBlur = false) {
+    function sanitizeProductInput(text) {
       if (!text) return '';
-      let s = String(text);
-      // 全角スペース（\u3000）および特殊な空白を半角スペースに置換
-      s = s.replace(/[\u3000\u00A0]/g, ' ');
-      // 全角括弧を半角括弧に置換
-      s = s.replace(/（/g, '(').replace(/）/g, ')');
-      
-      s = s.replace(/ +(?=\n)/g, '');
-      s = s.replace(/(?<=\n) +/g, '');
-      if (isBlur) s = s.split('\n').map(line => line.trim()).join('\n').trim();
-      return s;
+      return String(text).replace(/[\u3000\u00A0]/g, ' ').replace(/（/g, '(').replace(/）/g, ')');
     }
 
-    function onSingleProductInput(idx, el, isBlur = false) {
+    function onSingleProductInput(idx, el) {
       if (editingSlotIndex === null) return;
-      const rawVal = el.value;
-      const sanitized = sanitizeProductInput(rawVal, isBlur);
-      if (rawVal !== sanitized) {
-        const start = el.selectionStart, end = el.selectionEnd;
-        el.value = sanitized;
-        if (start !== null && end !== null) {
-          const diff = rawVal.length - sanitized.length;
-          const newPos = Math.max(0, start - diff);
-          el.setSelectionRange(newPos, newPos);
-        }
-      }
-      adjustTextareaHeight(el);
-      const data = slotsData[editingSlotIndex];
-      if (data && data.products) {
-        const prevText = data.products[idx] || '';
-        const newText = el.value;
-        const isTextChanged = prevText.trim() !== newText.trim();
-        data.products[idx] = newText;
-
-        if (isTextChanged) {
-          if (!data.productsAlt) data.productsAlt = [];
-          if (!data.productsTransSource) data.productsTransSource = [];
-          if (!data.isEnglishMode) data.isEnglishMode = [];
-          const masterEn = findMasterEnglishByJa(newText);
-          if (masterEn) {
-            data.productsAlt[idx] = masterEn;
-            data.productsTransSource[idx] = 'master';
-            data.isEnglishMode[idx] = false;
-          } else {
-            data.productsAlt[idx] = '';
-            data.productsTransSource[idx] = null;
-            data.isEnglishMode[idx] = false;
-          }
-        }
-        updateControlsUI();
-        renderAllSlots();
-
-        if (!isBlur) updateProductSuggestList(idx, newText);
-        else hideProductSuggestList(idx);
-      }
+      const sanitized = sanitizeProductInput(el.value);
+      if (el.value !== sanitized) el.value = sanitized;
+      slotsData[editingSlotIndex].products[idx] = el.value;
+      renderAllSlots();
     }
 
-    let activeSuggestHighlightIdx = -1;
-    let currentSuggestMatchedList = [];
-    let isPickingSuggestLock = false;
-
-
-    function normalizeForSearch(str) {
-      if (!str) return '';
-      return String(str).trim().toLowerCase().replace(/[\u30a1-\u30f6]/g, m => String.fromCharCode(m.charCodeAt(0) - 0x60));
-    }
-
-    /* --- 右側編集パネル：商品名入力サジェスト（シノニム対応版） --- */
-    function updateProductSuggestList(rowIdx, rawInputText) {
-
-      if (isPickingSuggestLock) return;
-      const box = document.getElementById(`suggestBox_${rowIdx}`);
-      if (!box) return;
-      
-      // ★ 修正: 検索クエリをシノニム正規化（例: 「とり」「鳥」→「鶏」へ統一）
-      const query = normalizeWithSynonyms(rawInputText);
-      if (!query) { hideProductSuggestList(rowIdx); return; }
-
-      const matchedList = [];
-      const seenJa = new Set();
-      for (let i = 0; i < singleMasterItems.length; i++) {
-        const item = singleMasterItems[i];
-        const ja = item.nameJa || '';
-        if (!ja || seenJa.has(ja)) continue;
-
-        // ★ 修正: マスタ側の名称もシノニム正規化して突合
-        const normJa = normalizeWithSynonyms(ja);
-        const normInternal = normalizeWithSynonyms(item.internalName || '');
-
-        if (normJa.includes(query) || normInternal.includes(query)) {
-          seenJa.add(ja);
-          matchedList.push(item);
-          if (matchedList.length >= 12) break;
-        }
-      }
-
-      if (matchedList.length === 0 || (matchedList.length === 1 && matchedList[0].nameJa === rawInputText.trim())) {
-        hideProductSuggestList(rowIdx);
-        return;
-      }
-
-      currentSuggestMatchedList = matchedList;
-      activeSuggestHighlightIdx = 0;
-
-      let html = '';
-      matchedList.forEach((item, sIdx) => {
-        const enBadge = item.nameEn ? '🌐英あり' : '';
-        const methodShort = (item.method || '').replace('レンジ 600W で ', 'レンジ');
-        const activeClass = (sIdx === 0) ? ' active-suggest' : '';
-        html += `
-          <div class="suggest-item${activeClass}" data-suggest-idx="${sIdx}"
-               onmousedown="onPickSuggestByIndex(event, ${rowIdx}, ${sIdx})"
-               onclick="onPickSuggestByIndex(event, ${rowIdx}, ${sIdx})">
-            <span>${escapeHtml(item.nameJa)}</span>
-            <span class="suggest-sub-info">${escapeHtml(enBadge)} ${escapeHtml(methodShort)}</span>
-          </div>
-        `;
-      });
-      box.innerHTML = html;
-      box.classList.add('show');
-    }
-
-    function hideProductSuggestList(rowIdx) {
-      const box = document.getElementById(`suggestBox_${rowIdx}`);
-      if (box) { box.classList.remove('show'); box.innerHTML = ''; }
-      activeSuggestHighlightIdx = -1;
-      currentSuggestMatchedList = [];
-    }
-
-    function onPickSuggestByIndex(e, rowIdx, sIdx) {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      const pickedItem = currentSuggestMatchedList[sIdx];
-      if (!pickedItem) return;
-
-      isPickingSuggestLock = true;
-      hideProductSuggestList(rowIdx);
-      onSelectSingleMasterItem(rowIdx, pickedItem.nameJa);
-
-      setTimeout(() => {
-        isPickingSuggestLock = false;
-        const nextInput = document.getElementById(`prodInput_${rowIdx}`);
-        if (nextInput) {
-          nextInput.value = pickedItem.nameJa;
-          adjustTextareaHeight(nextInput);
-        }
-      }, 80);
-    }
-
-    function onProductInputBlur(rowIdx, el) {
-      if (isPickingSuggestLock) return;
-      setTimeout(() => { if (!isPickingSuggestLock) hideProductSuggestList(rowIdx); }, 200);
-      onSingleProductInput(rowIdx, el, true);
-    }
-
-    function onProductInputKeyDown(e, rowIdx) {
-      const box = document.getElementById(`suggestBox_${rowIdx}`);
-      if (!box || !box.classList.contains('show')) return;
-      const items = box.querySelectorAll('.suggest-item');
-      if (items.length === 0) return;
-
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        activeSuggestHighlightIdx = (activeSuggestHighlightIdx + 1) % items.length;
-        highlightSuggestRow(items);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        activeSuggestHighlightIdx = (activeSuggestHighlightIdx - 1 + items.length) % items.length;
-        highlightSuggestRow(items);
-      } else if (e.key === 'Enter' && !e.isComposing) {
-        if (activeSuggestHighlightIdx >= 0 && activeSuggestHighlightIdx < currentSuggestMatchedList.length) {
-          e.preventDefault();
-          onPickSuggestByIndex(e, rowIdx, activeSuggestHighlightIdx);
-        }
-      } else if (e.key === 'Escape') {
-        e.preventDefault();
-        hideProductSuggestList(rowIdx);
-      }
-    }
-
-    function highlightSuggestRow(items) {
-      items.forEach((el, i) => {
-        if (i === activeSuggestHighlightIdx) { el.classList.add('active-suggest'); el.scrollIntoView({ block: 'nearest' }); }
-        else el.classList.remove('active-suggest');
-      });
-    }
-
-    function duplicateToNextSlot() {
+    function onSubProductInput(idx, el) {
       if (editingSlotIndex === null) return;
-      const curData = slotsData[editingSlotIndex];
-      if (!curData) return;
-      const nextSlot = editingSlotIndex + 1;
-      if (nextSlot >= 36) { alert('シートの末尾（36枠目）のため複製できません。'); return; }
-      slotsData[nextSlot] = JSON.parse(JSON.stringify(curData));
-      updateUsageCount();
-      openEditPanel(nextSlot);
+      const sanitized = sanitizeProductInput(el.value);
+      if (el.value !== sanitized) el.value = sanitized;
+      if (!slotsData[editingSlotIndex].subProducts) slotsData[editingSlotIndex].subProducts = [];
+      slotsData[editingSlotIndex].subProducts[idx] = el.value;
+      renderAllSlots();
     }
 
-    function clearAllLabels() {
-      if (confirm('すべてのラベル枠をクリアしますか？')) {
-        slotsData = Array(36).fill(null);
-        closeEditPanel();
-      }
+    function onCategoryTextInput(val) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].categoryText = sanitizeProductInput(val).trim();
+      renderAllSlots();
     }
 
-    /**
-     * スライダー操作によるズーム変更
-     */
-    function onZoomSliderInput(val) {
-      currentZoom = parseFloat(val);
-      applyZoom(false); // スライダー自体の値更新ループを防ぐため false を渡す
-    }
-
-    /**
-     * 【拡張版】ズーム適用関数
-     */
-    function applyZoom(updateSlider = true) {
-      const container = document.getElementById('sheetsContainer');
-      const outerArea = document.getElementById('previewOuterArea');
-      
-      container.style.zoom = ''; 
-      
-      const baseWidth = 794;   
-      const baseHeight = 1123; 
-      const zoomedWidth = baseWidth * currentZoom;
-      const extraWidth = baseWidth * (currentZoom - 1.0);
-      const extraHeight = baseHeight * (currentZoom - 1.0);
-      
-      container.style.transformOrigin = 'top left';
-      container.style.transform = `scale(${currentZoom.toFixed(2)})`;
-      
-      if (outerArea.clientWidth < zoomedWidth) {
-        outerArea.style.justifyContent = 'flex-start';
-      } else {
-        outerArea.style.justifyContent = 'center';
-      }
-      
-      container.style.marginRight = extraWidth + 'px';
-      container.style.marginBottom = extraHeight + 'px';
-      
-      // 画面上の倍率テキストを更新
-      document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
-
-      // ボタン等でズームが変わった場合、スライダーの位置も連動させる
-      if (updateSlider) {
-        const slider = document.getElementById('zoomRangeInput');
-        if (slider) {
-          slider.value = currentZoom;
-        }
-      }
-    }
-
-    function changeZoom(delta) { currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta)); applyZoom(); }
-    
-    function setZoom(val) { currentZoom = Math.min(2.0, Math.max(0.3, val)); applyZoom(); }
-    
-    function fitPage() {
-      const headerH = document.getElementById('topControlPanel').offsetHeight || 90;
-      const fitScale = Math.min((window.innerWidth - 440) / 794, (window.innerHeight - headerH - 40) / 1123);
-      setZoom(Math.max(0.35, fitScale));
-    }
-
-    function openSpecModal() { document.getElementById('specModal').style.display = 'flex'; }
-    function closeSpecModal() { document.getElementById('specModal').style.display = 'none'; }
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function openStockModal() {
-      const input = document.getElementById('inputNewStockName');
-      if (input) input.focus();
-    }
-
-    function closeStockModal() {}
-    function closeStockPanel() {}
-
-    /* 1件または改行区切りによる複数件の一括追加に対応した関数 */
     function addStockItem() {
       const input = document.getElementById('inputNewStockName');
-      if (!input) return;
-      const rawText = input.value;
-      if (!rawText || !rawText.trim()) {
-        alert('料理名を入力してください。');
-        return;
-      }
-
-      // 改行で分割して、それぞれの行をサニタイズ＆空行除去
-      const lines = rawText.split('\n');
-      let addedCount = 0;
-      let duplicateCount = 0;
-
-      lines.forEach(line => {
-        const name = sanitizeProductInput(line, true);
-        if (!name) return;
-
-        if (stockItems.includes(name)) {
-          duplicateCount++;
-        } else {
-          stockItems.push(name);
-          addedCount++;
-        }
+      if (!input || !input.value.trim()) return;
+      input.value.split('\n').forEach(line => {
+        const clean = sanitizeProductInput(line).trim();
+        if (clean && !stockItems.includes(clean)) stockItems.push(clean);
       });
-
       input.value = '';
-      input.style.height = '36px'; // 高さを初期値に戻す
       renderStockList();
-
-      // 結果のフィードバック
-      if (addedCount > 0 && duplicateCount === 0) {
-        // 1件またはすべて正常追加された場合は静かに完了（必要に応じてアラート等）
-      } else if (addedCount > 0 && duplicateCount > 0) {
-        alert(`${addedCount}件を追加しました。（※既存の重複ストック ${duplicateCount}件はスキップされました）`);
-      } else if (addedCount === 0 && duplicateCount > 0) {
-        alert('入力された料理名はすでにすべてストックに存在します。');
-      }
     }
 
-    function deleteStockItem(index) {
-      if (index >= 0 && index < stockItems.length) {
-        stockItems.splice(index, 1);
-        renderStockList();
-      }
-    }
-
-    let draggedStockIndex = null;
-    
-　　function renderStockList() {
+    function renderStockList() {
       const container = document.getElementById('stockListContainer');
-      const countLabel = document.getElementById('lblStockCount');
-      if (!container) return;
-      countLabel.innerText = `登録数: ${stockItems.length}件`;
-
+      document.getElementById('lblStockCount').innerText = `登録数: ${stockItems.length}件`;
       if (stockItems.length === 0) {
         container.innerHTML = '<div style="text-align:center; color:#888; font-size:12px; padding:20px;">ストックはまだありません</div>';
         return;
       }
-
       let html = '';
       stockItems.forEach((item, idx) => {
         html += `
-          <div draggable="true"
-               ondragstart="onStockItemDragStart(event, ${idx}, '${escapeHtml(item).replace(/'/g, "\\'")}')"
-               ondragover="onStockListDragOver(event, this)"
-               ondragleave="onStockListDragLeave(event, this)"
-               ondrop="onStockListDrop(event, ${idx}, this)"
-               style="display:flex; justify-content:space-between; align-items:center; background:white; border:1.5px solid #ccc; padding:7px 10px; border-radius:5px; cursor:grab; transition: all 0.1s;"
-               title="ドラッグで並び替え、または右側のラベル枠へドロップ可能">
-            <div style="display:flex; align-items:center; gap:6px; overflow:hidden; pointer-events:none;">
-              <span style="color:#888; font-weight:bold; font-size:13px;">⠿</span>
-              <span style="font-size:12.5px; font-weight:bold; color:#333; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(item)}</span>
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <button type="button" class="btn-main" onclick="editStockItem(${idx})" style="background:#e8f0fe; color:#1a73e8; border:1px solid #c2e7ff; padding:3px 8px; font-size:11px;">編集</button>
-              <button type="button" class="btn-clear-row" onclick="deleteStockItem(${idx})" style="padding:3px 8px; font-size:11px;">削除</button>
-            </div>
+          <div draggable="true" ondragstart="e => { e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'stockItem', value: '${escapeHtml(item)}' })); }"
+               style="display:flex; justify-content:space-between; align-items:center; background:white; border:1.5px solid #ccc; padding:7px 10px; border-radius:5px; cursor:grab;">
+            <span style="font-size:12.5px; font-weight:bold; color:#333;">${escapeHtml(item)}</span>
+            <button type="button" class="btn-clear-row" onclick="stockItems.splice(${idx}, 1); renderStockList();">✕</button>
           </div>
         `;
       });
       container.innerHTML = html;
     }
 
-    /* ストック項目のドラッグ開始 */
-    function onStockItemDragStart(e, idx, stockName) {
-      draggedStockIndex = idx;
-      const payload = JSON.stringify({ type: 'stockItem', value: stockName, stockIndex: idx });
-      e.dataTransfer.setData('text/plain', payload);
-      e.dataTransfer.effectAllowed = 'copyMove';
+    // --- ラベルストック関連の完全実装 ---
+    function switchStockTab(tabName) {
+      document.getElementById('btnTabMaster').classList.toggle('active', tabName === 'master');
+      document.getElementById('btnTabLabel').classList.toggle('active', tabName === 'label');
+      document.getElementById('paneMasterStock').classList.toggle('active', tabName === 'master');
+      document.getElementById('paneLabelStock').classList.toggle('active', tabName === 'label');
+      if (tabName === 'label') renderLabelStockList();
     }
 
-    function onStockListDragOver(e, el) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      if (el) el.classList.add('stock-item-dragover');
-    }
-
-    function onStockListDragLeave(e, el) {
-      if (el) el.classList.remove('stock-item-dragover');
-    }
-
-    /* ストックリスト内でのD&D並び替え処理 */
-    function onStockListDrop(e, targetIdx, el) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (el) el.classList.remove('stock-item-dragover');
-
-      if (draggedStockIndex !== null && draggedStockIndex !== targetIdx) {
-        const movedItem = stockItems.splice(draggedStockIndex, 1)[0];
-        stockItems.splice(targetIdx, 0, movedItem);
-        draggedStockIndex = null;
-        renderStockList();
+    function clearAllLabelStock() {
+      if (confirm('すべての保管ラベルを削除しますか？')) {
+        labelStockItems = [];
+        renderLabelStockList();
       }
     }
 
-
-    function editStockItem(idx) {
-      const oldName = stockItems[idx];
-      if (!oldName) return;
-      const newName = prompt(`ストック名を変更します:`, oldName);
-      if (newName === null) return;
-      const cleanName = sanitizeProductInput(newName, true);
-      if (!cleanName) return;
-      if (cleanName !== oldName && stockItems.includes(cleanName)) { alert('すでに同じ名前があります。'); return; }
-      stockItems[idx] = cleanName;
-      renderStockList();
-    }
-
-    let pendingDropSlotIdx = null;
-    let pendingDropStockName = "";
-
-    function executeDropChoice(choiceObj) {
-      const i = pendingDropSlotIdx;
-      const stockName = pendingDropStockName;
-      document.getElementById('dropChoiceModal').style.display = 'none';
-      if (i === null || !stockName || !slotsData[i]) return;
-      const slotObj = slotsData[i];
-      if (!slotObj.products) slotObj.products = [""];
-
-      if (choiceObj.type === 'addNew') {
-        if (slotObj.products.length >= 4) { alert('最大4品までです。'); return; }
-        slotObj.products.push(stockName);
-        if (!slotObj.productsAlt) slotObj.productsAlt = [];
-        slotObj.productsAlt.push(findMasterEnglishByJa(stockName));
-      } else if (choiceObj.type === 'merge') {
-        const targetLineIdx = choiceObj.lineIdx;
-        const currentVal = slotObj.products[targetLineIdx] || '';
-        slotObj.products[targetLineIdx] = currentVal ? `${currentVal} ${stockName}` : stockName;
-      }
-      
-      pendingDropSlotIdx = null;
-      pendingDropStockName = "";
-      updateUsageCount();
-      renderAllSlots();
-      
-      if (editingSlotIndex === i) {
-        openEditPanel(i);
-      }
-    }
-
-    function cancelDropChoice() {
-      document.getElementById('dropChoiceModal').style.display = 'none';
-      pendingDropSlotIdx = null;
-      pendingDropStockName = "";
-    }
-    
-    /* 選択されたPDFファイルを読み込んでテキストを抽出する関数（修正版） */
-    async function handlePdfFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const resultBox = document.getElementById('pdfExtractResult');
-      resultBox.style.display = 'block';
-      resultBox.innerText = '⏳ PDFを解析中...';
-
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        
-        // ★ 修正: .promise を使用して正しい非同期処理でPDFドキュメントを取得
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const pdfDoc = await loadingTask.promise;
-        
-        let fullText = '';
-        for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
-          const page = await pdfDoc.getPage(pageNum);
-          const textContent = await page.getTextContent();
-          const pageText = textContent.items.map(item => item.str).join('\n');
-          fullText += `--- ページ ${pageNum} ---\n` + pageText + '\n';
-        }
-
-        console.log('抽出されたPDFテキスト:', fullText);
-        resultBox.innerHTML = `<span style="color:#137333; font-weight:bold;">✓ 抽出成功 (${pdfDoc.numPages}ページ)</span>`;
-        
-        // 抽出したテキストからメニュー候補をパースしてモーダルを表示
-        openPdfMenuCandidateModal(fullText);
-
-      } catch (err) {
-        console.error('PDF解析エラー:', err);
-        resultBox.innerHTML = `<span style="color:#c5221f; font-weight:bold;">⚠️ 解析失敗: ${escapeHtml(err.message)}</span>`;
-      }
-    }
-
-    let extractedPdfMenuCandidates = [];
-
-    /* 抽出されたテキストから不要なメタ情報を除外し、純粋なメニュー候補だけを厳選する関数 */
-    function parseMenuCandidatesFromText(fullText) {
-      const lines = fullText.split('\n');
-      const candidates = new Set();
-
-      // 除外すべきキーワード（ヘッダー、メタ情報、ラベル名など）
-      const ignoreWords = [
-        '氏名', 'お届け先', '発送予定日', '弁当詰め完了目標', '食事日', '時間帯', 
-        '形態', '仮弁当No', 'カテゴリー', 'メニュー', '弁当あり', 'パック', 
-        '全日程袋別合計必要数', '袋の中身', '在庫名称', '大盛あり', 'カテゴリ', 
-        '必要数', '修旅', '東急', '高松様', '福岡県', '朝食', '夕食', '月', '日',
-        'マトイル', 'TEL', '円(税込)', '原材料', 'アレルゲン', '保存方法', '温めのタイミング', '同梱物'
-      ];
-
-      lines.forEach(rawLine => {
-        let line = rawLine.trim();
-        if (!line || line.length < 2) return;
-
-        // 除外ワードが含まれている行はスキップ
-        if (ignoreWords.some(w => line.includes(w)) || line.startsWith('---')) {
-          return;
-        }
-
-        // 先頭の記号や不要なプレフィックスを除去
-        let cleanName = line.replace(/^[0-9A-Zラベル配]+[\s\t:：]/, '').trim();
-        cleanName = cleanName.replace(/^[・「]/, '').replace(/[」]$/, '').trim();
-        cleanName = cleanName.replace(/\[.*?\]/g, '').trim(); // アレルゲン表記削除
-
-        // 短すぎるものや、数字・記号だけのものを除外
-        if (!cleanName || cleanName.length < 2 || /^[\d\-\/\(\)]+$/.test(cleanName)) {
-          return;
-        }
-
-        // パーツ名（「・ハンバーグ」など、中身の原材料単体っぽすぎるもの）を省き、メニュー名としてのインクルードを精査
-        // （「・」で始まる行であっても、メニュー名になり得るものは整形して採用）
-        if (rawLine.trim().startsWith('・') && !cleanName.includes('ソース') && !cleanName.includes('ひじき')) {
-          // 「・ハンバーグ」のような単体パーツは除外（「ハンバーグデミグラスソース」等の親メニューを採用するため）
-          return;
-        }
-
-        candidates.add(cleanName);
-      });
-
-      return Array.from(candidates);
-    }
-
-    /* handlePdfFileSelect の成功部分を拡張してモーダルを呼ぶ */
-    // ※ 既存の handlePdfFileSelect 内の「console.log('抽出されたPDFテキスト:', fullText);」の直下に以下を組み込みます。
-    function openPdfMenuCandidateModal(fullText) {
-      extractedPdfMenuCandidates = parseMenuCandidatesFromText(fullText);
-      const container = document.getElementById('pdfMenuCandidateContainer');
-      
-      if (extractedPdfMenuCandidates.length === 0) {
-        container.innerHTML = '<div style="color:#c5221f; font-size:11px; text-align:center; padding:15px;">有効なメニュー名が検出されませんでした。</div>';
-      } else {
-        let html = '';
-        extractedPdfMenuCandidates.forEach((menu, idx) => {
-          html += `
-            <label style="display:flex; align-items:center; gap:8px; background:white; padding:6px 8px; border:1px solid #e0e0e0; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; color:#333;">
-              <input type="checkbox" class="pdf-menu-checkbox" value="${escapeHtml(menu)}" checked style="cursor:pointer; width:15px; height:15px;">
-              <span>${escapeHtml(menu)}</span>
-            </label>
-          `;
-        });
-        container.innerHTML = html;
-      }
-
-      document.getElementById('pdfMenuSelectModal').style.display = 'flex';
-    }
-
-    function closePdfMenuModal() {
-      document.getElementById('pdfMenuSelectModal').style.display = 'none';
-    }
-
-    function toggleAllPdfCandidates(checkState) {
-      document.querySelectorAll('.pdf-menu-checkbox').forEach(chk => chk.checked = checkState);
-    }
-
-    /* 選択されたメニューをストックに一括追加する関数 */
-    function addSelectedPdfMenusToStock() {
-      const checkedBoxes = document.querySelectorAll('.pdf-menu-checkbox:checked');
-      if (checkedBoxes.length === 0) {
-        alert('追加する項目が選択されていません。');
+    function renderLabelStockList() {
+      const container = document.getElementById('labelStockListContainer');
+      document.getElementById('lblLabelStockCount').innerText = `保管数: ${labelStockItems.length}件`;
+      if (labelStockItems.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#888; font-size:12px; padding:20px;">一時保管ラベルはまだありません<br>(ここに枠をD&D)</div>';
         return;
       }
-
-      let addedCount = 0;
-      checkedBoxes.forEach(chk => {
-        const menuName = sanitizeProductInput(chk.value, true);
-        if (menuName && !stockItems.includes(menuName)) {
-          stockItems.push(menuName);
-          addedCount++;
-        }
-      });
-
-      closePdfMenuModal();
-      renderStockList();
-      
-      // ストックパネルが開いていない場合は開く
-      openStockModal();
-      
-      alert(`${addedCount}件のメニューを料理名ストックに追加しました！`);
-      
-      const resultBox = document.getElementById('pdfExtractResult');
-      if (resultBox) resultBox.style.display = 'none';
-      const fileInput = document.getElementById('pdfFileInput');
-      if (fileInput) fileInput.value = '';
-    }
-
-    /* ドラッグ＆ドロップされたPDFファイルを受け取るハンドラ */
-    function handlePdfFileDrop(e) {
-      e.preventDefault();
-      const dropArea = e.currentTarget;
-      dropArea.style.background = '#eef5fc';
-
-      const files = e.dataTransfer.files;
-      if (!files || files.length === 0) return;
-
-      const file = files[0];
-      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-        alert('PDFファイルを選択してください。');
-        return;
-      }
-
-      // 既存のファイル選択インプットにもファイルを設定しつつ、解析処理へ流す
-      const fileInput = document.getElementById('pdfFileInput');
-      if (fileInput) {
-        // DataTransferを使ってinput[type="file"]にファイルをセット
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
-      }
-
-      // 解析関数を呼び出し
-      handlePdfFileSelect({ target: { files: [file] } });
-    }
-
-    function openManualModal() {
-      const modal = document.getElementById('manualModal');
-      if (modal) modal.style.display = 'flex';
-    }
-
-    function closeManualModal() {
-      const modal = document.getElementById('manualModal');
-      if (modal) modal.style.display = 'none';
-    }
-    
-    /* --- 商品マスタ管理 モーダル制御・ソート・表記揺れ吸収ロジック --- */
-    let currentMasterSortKey = 'nameJa';
-    let currentMasterSortAsc = true;
-    let masterSearchQuery = '';
-
-    /**
-     * 表記揺れを吸収して同一トークンへ正規化する
-     * （スプレッドシート「シノニム設定」から読み込んだ synonymMasterGroups を参照）
-     */
-    function normalizeWithSynonyms(str) {
-      if (!str) return '';
-      let s = normalizeForSearch(str);
-      const groups = (typeof synonymMasterGroups !== 'undefined' && Array.isArray(synonymMasterGroups)) ? synonymMasterGroups : [];
-      groups.forEach(group => {
-        if (!Array.isArray(group) || group.length === 0) return;
-        const canonical = group[0]; // グループの代表語（例: 鶏）
-        group.forEach(word => {
-          const normWord = normalizeForSearch(word);
-          if (normWord && s.includes(normWord)) {
-            s = s.split(normWord).join(canonical);
-          }
-        });
-      });
-      return s;
-    }
-
-    function openProductMasterModal() {
-      const modal = document.getElementById('productMasterModal');
-      if (modal) {
-        modal.style.display = 'flex';
-        masterSearchQuery = '';
-        const searchInput = document.getElementById('searchMasterKeyword');
-        if (searchInput) searchInput.value = '';
-        renderMasterTable();
-      }
-    }
-
-    function closeProductMasterModal() {
-      const modal = document.getElementById('productMasterModal');
-      if (modal) modal.style.display = 'none';
-    }
-
-    function onMasterSearchInput(val) {
-      masterSearchQuery = val;
-      renderMasterTable();
-    }
-
-    function sortMasterTable(key) {
-      if (currentMasterSortKey === key) {
-        currentMasterSortAsc = !currentMasterSortAsc;
-      } else {
-        currentMasterSortKey = key;
-        currentMasterSortAsc = true;
-      }
-      renderMasterTable();
-    }
-
-    function renderMasterTable() {
-      const tbody = document.getElementById('masterTableBody');
-      const countLabel = document.getElementById('lblMasterFilterCount');
-      if (!tbody) return;
-
-      // ソート矢印アイコンの更新
-      ['recordNo', 'internalName', 'nameJa', 'method'].forEach(k => {
-        const el = document.getElementById(`sort_${k}`);
-        if (el) el.innerText = (currentMasterSortKey === k) ? (currentMasterSortAsc ? '▲' : '▼') : '';
-      });
-
-      // 検索フィルタリング（表記揺れ正規化を適用）
-      const normQuery = normalizeWithSynonyms(masterSearchQuery);
-      let list = singleMasterItems.filter(item => {
-        if (!normQuery) return true;
-        const targetText = `${item.recordNo} ${item.internalName} ${item.nameJa} ${item.nameEn} ${item.method}`;
-        const normTarget = normalizeWithSynonyms(targetText);
-        return normTarget.includes(normQuery);
-      });
-
-      // 並べ替え（ソート）
-      list.sort((a, b) => {
-        const valA = String(a[currentMasterSortKey] || '');
-        const valB = String(b[currentMasterSortKey] || '');
-        const comp = valA.localeCompare(valB, 'ja', { numeric: true });
-        return currentMasterSortAsc ? comp : -comp;
-      });
-
-      countLabel.innerText = `${list.length} / ${singleMasterItems.length} 件`;
-
-      if (list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888; padding:20px;">該当する商品がありません</td></tr>';
-        return;
-      }
-
       let html = '';
-      
-　　　　list.forEach(item => {
-        // 英語情報のレイアウトもdivに変更して整理
-        const enInfo = item.nameEn ? `<div style="font-size:10px; color:#5f6368; margin-top:2px;">(英: <span style="white-space: pre-wrap;">${escapeHtml(item.nameEn)}</span>)</div>` : '';
+      labelStockItems.forEach((item, idx) => {
+        const title = (item.products && item.products[0]) ? item.products[0] : (item.categoryText || '無題ラベル');
         html += `
-          <tr>
-            <td style="font-weight:bold; color:#1a73e8;">${escapeHtml(item.recordNo || '-')}</td>
-            <td style="white-space: pre-wrap;">${escapeHtml(item.internalName || '-')}</td>
-            <td>
-              <strong style="white-space: pre-wrap; line-height: 1.3; display: inline-block;">${escapeHtml(item.nameJa)}</strong>
-              ${enInfo}
-            </td>
-            <td style="color:#333;">${escapeHtml(item.method)}</td>
-          </tr>
+          <div class="label-stock-card" draggable="true"
+               ondragstart="e => { e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} })); }"
+               title="ドラッグして任意のラベル枠へ配置できます">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:10.5px; font-weight:bold; color:#1a73e8;">#${idx + 1} 保管ラベル</span>
+              <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" style="padding:1px 5px; font-size:10px;">✕</button>
+            </div>
+            <div style="font-size:12px; font-weight:bold; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(title)}</div>
+            <div style="font-size:10.5px; color:#5f6368;">${escapeHtml(item.methodText || '')}</div>
+          </div>
         `;
       });
-
-      tbody.innerHTML = html;
+      container.innerHTML = html;
     }
 
-
-/**
-     * レコード番号入力時の商品名（内部用）自動補完処理
-     */
-    function onMasterRecordNoInput(val) {
-      const cleanVal = String(val || '').trim();
-      if (!cleanVal) return;
-
-      const internalInput = document.getElementById('addMasterInternalName');
-      if (!internalInput) return;
-
-      // 既存のマスタから完全一致するレコード番号を検索
-      const matched = singleMasterItems.find(item => String(item.recordNo || '').trim() === cleanVal);
-      if (matched && matched.internalName) {
-        // すでに別の商品名が入力されていない、または既存名と同じプレフィックスの場合に自動補完
-        if (!internalInput.value.trim() || internalInput.dataset.autoFilled === "true") {
-          internalInput.value = matched.internalName;
-          internalInput.dataset.autoFilled = "true"; // 自動入力されたフラグを保持
-        }
-      }
-    }
-
-    /**
-     * 商品マスタ登録：シール商品名（印字用）の入力時自動サニタイズ
-     * 全角スペース、全角カッコを自動で半角に変換する
-     */
-    function onMasterNameJaInput(el) {
-      const rawVal = el.value;
-      if (!rawVal) return;
-      
-      // ★ 修正: Unicode指定（\u3000）で全角スペースを確実に捕捉する
-      let s = rawVal.replace(/\u3000/g, ' '); 
-      s = s.replace(/（/g, '(').replace(/）/g, ')'); 
-      
-      if (rawVal !== s) {
-        const start = el.selectionStart;
-        const end = el.selectionEnd;
-        el.value = s;
-        if (start !== null && end !== null) {
-          el.setSelectionRange(start, end);
-        }
-      }
-    }
-    
-    /**
-     * 新規商品の登録処理（GAS通信および即時同期）
-     */
-    function submitNewMasterItem() {
-      const recordNo = document.getElementById('addMasterRecordNo').value.trim();
-      const internalName = document.getElementById('addMasterInternalName').value.trim();
-      let nameJa = document.getElementById('addMasterNameJa').value.trim();
-      const nameEn = document.getElementById('addMasterNameEn').value.trim();
-      const method = document.getElementById('addMasterMethod').value.trim();
-
-      // ★ サニタイズの強化：全角スペースに加え、NBSP等の特殊空白もすべて純粋な半角スペースに強制変換
-      if (nameJa) {
-        // [ \u3000\u00A0] は、全角スペースとNBSPの両方を捕捉します
-        nameJa = nameJa.replace(/[ \u3000\u00A0]/g, ' '); 
-        nameJa = nameJa.replace(/（/g, '(').replace(/）/g, ')'); 
-        
-        document.getElementById('addMasterNameJa').value = nameJa;
-      }
-
-      if (!nameJa && !internalName) {
-        alert('「シール商品名」または「商品名」を入力してください。');
-        return;
-      }
-
-      const btn = document.getElementById('btnSubmitNewMaster');
-      btn.disabled = true;
-      btn.innerText = '⏳ 登録中...';
-
-      const payload = {
-        recordNo: recordNo,
-        internalName: internalName,
-        nameJa: nameJa,
-        nameEn: nameEn,
-        method: method
-      };
-
-      google.script.run
-        .withSuccessHandler(function(res) {
-          btn.disabled = false;
-          btn.innerText = '＋ マスタに追加';
-
-          // 入力フォームのクリア
-          document.getElementById('addMasterRecordNo').value = '';
-          document.getElementById('addMasterInternalName').value = '';
-          document.getElementById('addMasterNameJa').value = '';
-          document.getElementById('addMasterNameEn').value = '';
-
-          // 1. メモリ上のマスタ一覧を即時更新してモーダル一覧を再描画
-          singleMasterItems = (res && res.singleItems) ? res.singleItems : [];
-          setMasterPresets = (res && res.setPresets) ? res.setPresets : [];
-          renderMasterTable();
-
-          // 2. ★追加: セット呼出プルダウンを最新マスタで再構築
-          populateSetDropdown();
-
-          // 3. ★追加: 右側編集パネルが開いている場合、単品選択プルダウン等も即時最新化
-          if (editingSlotIndex !== null && slotsData[editingSlotIndex]) {
-            renderProductInputFields(slotsData[editingSlotIndex].products);
+    function handleLabelStockDrop(e) {
+      e.preventDefault();
+      try {
+        const raw = e.dataTransfer.getData('text/plain');
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        // プレビューのラベル枠（スロット）からドラッグされた場合、ラベルストックにコピー保存する
+        if (parsed.type === 'slotMove') {
+          const slotData = slotsData[parsed.index];
+          if (slotData) {
+            labelStockItems.push(JSON.parse(JSON.stringify(slotData)));
+            renderLabelStockList();
+            // 自動でラベルストックタブに切り替える
+            switchStockTab('label');
           }
-
-          alert(`マスタに「${nameJa || internalName}」を正常に登録しました！`);
-        })
-        .withFailureHandler(function(err) {
-          btn.disabled = false;
-          btn.innerText = '＋ マスタに追加';
-          alert('登録エラー: ' + (err.message || err));
-        })
-        .addNewSingleMasterItem(payload);
+        }
+      } catch (err) {
+        console.error(err);
+      }
     }
 
-    function setDesignTemplate(tplKey) {
-  if (editingSlotIndex === null) return;
-  const data = slotsData[editingSlotIndex];
-  if (!data) return;
-
-  data.designTemplate = tplKey;
-
-  // 入力枠の表示/非表示を切り替え
-  const catWrapper = document.getElementById('categoryInputWrapper');
-  if (catWrapper) {
-    if (tplKey === 'matoil') {
-      catWrapper.style.display = 'block';
-    } else {
-      catWrapper.style.display = 'none';
-      data.categoryText = ""; // 標準に戻した場合はクリア
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
-  }
 
-  // ボタンの見た目（アクティブ状態）を切り替える
-  const btnStd = document.getElementById('tpl_standard');
-  const btnMat = document.getElementById('tpl_matoil');
-  if (btnStd && btnMat) {
-    if (tplKey === 'matoil') {
-      btnStd.className = 'btn-choice';
-      btnMat.className = 'btn-choice active';
-    } else {
-      btnStd.className = 'btn-choice active';
-      btnMat.className = 'btn-choice';
+    function changeZoom(delta) { setZoom(currentZoom + delta); }
+    function setZoom(val) {
+      currentZoom = Math.min(2.0, Math.max(0.3, val));
+      const container = document.getElementById('sheetsContainer');
+      container.style.transformOrigin = 'top left';
+      container.style.transform = `scale(${currentZoom.toFixed(2)})`;
+      document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
+      document.getElementById('zoomRangeInput').value = currentZoom;
     }
-  }
+    function fitPage() {
+      const w = window.innerWidth - 440;
+      setZoom(Math.max(0.35, w / 794));
+    }
 
-  renderAllSlots();
-}
+    window.addEventListener('keydown', e => { if (e.key === 'Control' || e.ctrlKey) document.body.classList.add('ctrl-pressed'); });
+    window.addEventListener('keyup', e => { if (!e.ctrlKey || e.key === 'Control') document.body.classList.remove('ctrl-pressed'); });
+    window.addEventListener('blur', () => document.body.classList.remove('ctrl-pressed'));
 
+    function openManualModal() { document.getElementById('manualModal').style.display = 'flex'; }
+    function closeManualModal() { document.getElementById('manualModal').style.display = 'none'; }
+    function openProductMasterModal() { document.getElementById('productMasterModal').style.display = 'flex'; }
+    function closeProductMasterModal() { document.getElementById('productMasterModal').style.display = 'none'; }
+    function openSpecModal() { document.getElementById('specModal').style.display = 'flex'; }
+    function closeSpecModal() { document.getElementById('specModal').style.display = 'none'; }
     function copyToAllSlots() {
       if (editingSlotIndex === null) return;
-      const curData = slotsData[editingSlotIndex];
-      if (!curData) {
-        alert('コピー元のデータがありません。');
-        return;
-      }
-
-      // 確認のポップアップ（Yes/No）
-      const isConfirmed = confirm(`ラベル枠 #${editingSlotIndex + 1} の内容を、シート全体の36枠すべてに反映させますか？\n\n※既存の他の枠に入力されている内容も上書きされます。`);
-      if (!isConfirmed) return;
-
-      // 36枠すべてに現在のデータをディープコピーして代入
-      for (let i = 0; i < 36; i++) {
-        slotsData[i] = JSON.parse(JSON.stringify(curData));
-      }
-
+      const cur = slotsData[editingSlotIndex];
+      if (!cur || !confirm('シート全体の36枠すべてにコピーしますか？')) return;
+      for (let i = 0; i < 36; i++) slotsData[i] = JSON.parse(JSON.stringify(cur));
       updateUsageCount();
       renderAllSlots();
-      alert('シート全体の36枠すべてにコピーしました！');
     }
-
-    /**
-     * 茶色枠の限界（約15.7mm）を超えないようにフォントサイズや行間を安全にクランプする関数
-     */
-    function clampFontAndMargin(desiredPt, desiredMarginY, lineCount) {
-      // 1行あたりの基本高さ（ptをmmに大まかに換算: 1pt ≒ 0.3527mm、行の高さ係数 1.25 を考慮）
-      const ptToMm = 0.3527;
-      
-      // 最大許容高さ（茶色枠 19.5mm - 白帯 3.8mm = 15.7mm から、上下の安全余白を引いた約 14.5mm を限界とする）
-      const maxAllowedHeightMm = 14.5;
-      
-      let pt = parseFloat(desiredPt);
-      let margin = parseFloat(desiredMarginY);
-      
-      // 行数が複数ある場合の総高さをシミュレーション
-      // 総高さ = (文字の高さ * 行数) + (行間 * (行数 - 1))
-      for (let i = 0; i < 3; i++) { // 収まるまで数回微調整
-        const textHeightMm = (pt * ptToMm * 1.25) * lineCount;
-        const totalMarginMm = margin * Math.max(0, lineCount - 1);
-        const totalHeightMm = textHeightMm + totalMarginMm;
-        
-        if (totalHeightMm > maxAllowedHeightMm) {
-          // 超過している場合、まず行間を詰める。行間が最小(0)になっても超える場合はフォントサイズを縮小する
-          if (margin > 0.1) {
-            margin = Math.max(0.0, margin - 0.1);
-          } else if (pt > 5.0) {
-            pt = Math.max(5.0, pt - 0.2);
-          } else {
-            break;
-          }
-        } else {
-          break;
-        }
-      }
-      
-      return { fontSizePt: pt.toFixed(1), marginY: margin.toFixed(2) };
-    }
-
-    function onCategoryTextInput(val) {
-  if (editingSlotIndex === null) return;
-  const data = slotsData[editingSlotIndex];
-  if (!data) return;
-
-  data.categoryText = val.trim();
-  renderAllSlots(); // プレビューを即時更新
-}
-
-function onSubProductInput(idx, el) {
-      if (editingSlotIndex === null) return;
-      const data = slotsData[editingSlotIndex];
-      if (!data) return;
-      if (!data.subProducts) data.subProducts = [];
-
-      // ★ 親料理名（サブテキスト）入力時も全角スペース・全角括弧の半角化を適用
-      const rawVal = el.value;
-      const sanitized = sanitizeProductInput(rawVal, false);
-      if (rawVal !== sanitized) {
-        const start = el.selectionStart, end = el.selectionEnd;
-        el.value = sanitized;
-        if (start !== null && end !== null) {
-          const diff = rawVal.length - sanitized.length;
-          const newPos = Math.max(0, start - diff);
-          el.setSelectionRange(newPos, newPos);
-        }
-      }
-
-      data.subProducts[idx] = el.value;
-      adjustTextareaHeight(el);
-      renderAllSlots(); // プレビューを即時更新
-    }
-
-    // バッジ要素の参照を取得するヘルパー
-    function getDragBadge() {
-      return document.getElementById('customDragBadge');
-    }
-
-    // --- ドラッグ中のカスタムバッジ追従・Ctrl監視リスナー ---
-    document.addEventListener('dragover', function(e) {
-      const badge = document.getElementById('customDragBadge');
-      if (!badge || badge.style.display === 'none') return;
-
-      badge.style.left = e.clientX + 'px';
-      badge.style.top = e.clientY + 'px';
-
-      const icon = document.getElementById('badgeIcon');
-      const text = document.getElementById('badgeText');
-      
-      if (e.ctrlKey) {
-        badge.classList.add('is-copy');
-        if (icon) icon.innerText = '＋';
-        if (text) text.innerText = 'コピー';
-      } else {
-        badge.classList.remove('is-copy');
-        if (icon) icon.innerText = '⇄';
-        if (text) text.innerText = '移動';
-      }
-    });
-
-    // --- Ctrlキーの押下状態を監視してカーソルを動的に切り替えるリスナー ---
-    window.addEventListener('keydown', function(e) {
-      if (e.key === 'Control' || e.ctrlKey) {
-        document.body.classList.add('ctrl-pressed');
-      }
-    });
-
-    window.addEventListener('keyup', function(e) {
-      if (!e.ctrlKey || e.key === 'Control') {
-        document.body.classList.remove('ctrl-pressed');
-      }
-    });
-
-    // ウィンドウからフォーカスが外れた場合などの安全保障
-    window.addEventListener('blur', function() {
-      document.body.classList.remove('ctrl-pressed');
-    });
   </script>
 </body>
 </html>
