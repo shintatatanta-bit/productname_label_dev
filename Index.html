@@ -2033,17 +2033,20 @@
           let parsed = null;
           try { parsed = JSON.parse(rawData); } catch(err) { parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; }
 
-          // ★ ラベルストックからのドラッグ＆ドロップ対応
+          // ▼▼▼ 【追加】ラベルストックからドロップされた場合の処理 ▼▼▼
           if (parsed.type === 'labelStockItem') {
-            const stockItem = labelStockItems[parsed.stockIndex];
+            const stockIndex = parsed.stockIndex;
+            const stockItem = labelStockItems[stockIndex];
             if (stockItem) {
+              // データのディープコピーを対象の枠に配置
               slotsData[i] = JSON.parse(JSON.stringify(stockItem));
               updateUsageCount();
               renderAllSlots();
-              openEditPanel(i);
+              openEditPanel(i); // 配置した枠の編集パネルを自動オープン
             }
             return;
           }
+          // ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲ ▲▲▲
 
           if (parsed.type === 'stockItem') {
             const stockName = parsed.value;
