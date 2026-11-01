@@ -1239,7 +1239,10 @@
     </div>
 
     <!-- 左側ストック・一時保管管理パネル（タブ切り替え対応版） -->
-    <div class="edit-side-panel" id="stockSidePanel" style="left:0px; right:auto; top:90px; height:calc(100vh - 105px); border-left:none; border-right:2px solid #455a64; border-radius:0 8px 8px 0; z-index: 1500;">
+    <div class="edit-side-panel" id="stockSidePanel" 
+         style="left:0px; right:auto; top:90px; height:calc(100vh - 105px); border-left:none; border-right:2px solid #455a64; border-radius:0 8px 8px 0; z-index: 1500;"
+         ondragover="event.preventDefault(); event.dataTransfer.dropEffect='copy';"
+         ondrop="handleLabelStockDrop(event)">
       <div class="panel-header" style="border-bottom:2px solid #455a64; justify-content:center;">
         <span class="panel-title" style="color:#455a64;">📦 ストック・一時保管管理</span>
       </div>
