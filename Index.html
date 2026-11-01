@@ -144,16 +144,16 @@
       min-height: calc(100vh - 90px);
     }
 
-/* プレビュー領域：左右にそれぞれ幅400pxの固定パネルがあるため、左右のマージンを各400pxに完全固定します */
-.preview-outer {
+/* プレビュー領域：左右の400pxパネルの間に確実に表示領域を確保する */
+    .preview-outer {
       flex: 1;
       overflow: auto;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       padding: 16px 20px 80px 20px;
-      margin-left: 400px;
-      margin-right: 400px;
+      margin-left: 400px;  /* ★左側のストックパネル分の余白を確実に確保 */
+      margin-right: 400px; /* ★右側の編集パネル分の余白を確実に確保 */
       min-width: calc(100vw - 800px);
       box-sizing: border-box;
       z-index: 10;
@@ -2438,18 +2438,60 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    function changeZoom(delta) { setZoom(currentZoom + delta); }
-    function setZoom(val) {
-      currentZoom = Math.min(2.0, Math.max(0.3, val));
+    // ▼ 修正後の完全復元されたズーム関数群
+    function onZoomSliderInput(val) {
+      currentZoom = parseFloat(val);
+      applyZoom(false);
+    }
+
+    function applyZoom(updateSlider = true) {
       const container = document.getElementById('sheetsContainer');
+      const outerArea = document.getElementById('previewOuterArea');
+      if (!container || !outerArea) return;
+      
+      const baseWidth = 794;   
+      const baseHeight = 1123; 
+      const zoomedWidth = baseWidth * currentZoom;
+      const extraWidth = baseWidth * (currentZoom - 1.0);
+      const extraHeight = baseHeight * (currentZoom - 1.0);
+      
       container.style.transformOrigin = 'top left';
       container.style.transform = `scale(${currentZoom.toFixed(2)})`;
+      
+      if (outerArea.clientWidth < zoomedWidth) {
+        outerArea.style.justifyContent = 'flex-start';
+      } else {
+        outerArea.style.justifyContent = 'center';
+      }
+      
+      container.style.marginRight = Math.max(0, extraWidth) + 'px';
+      container.style.marginBottom = Math.max(0, extraHeight) + 'px';
+      
       document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
-      document.getElementById('zoomRangeInput').value = currentZoom;
+
+      if (updateSlider) {
+        const slider = document.getElementById('zoomRangeInput');
+        if (slider) slider.value = currentZoom;
+      }
     }
+
+    function changeZoom(delta) { 
+      currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta)); 
+      applyZoom(); 
+    }
+    
+    function setZoom(val) { 
+      currentZoom = Math.min(2.0, Math.max(0.3, val)); 
+      applyZoom(); 
+    }
+    
     function fitPage() {
-      const w = window.innerWidth - 440;
-      setZoom(Math.max(0.35, w / 794));
+      const outerArea = document.getElementById('previewOuterArea');
+      const headerH = document.getElementById('topControlPanel').offsetHeight || 90;
+      const availableW = (outerArea ? outerArea.clientWidth : (window.innerWidth - 800));
+      const availableH = window.innerHeight - headerH - 40;
+      const fitScale = Math.min(availableW / 794, availableH / 1123);
+      setZoom(Math.max(0.35, fitScale));
     }
 
     window.addEventListener('keydown', e => { if (e.key === 'Control' || e.ctrlKey) document.body.classList.add('ctrl-pressed'); });
