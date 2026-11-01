@@ -2433,7 +2433,7 @@
       let html = '';
       stockItems.forEach((item, idx) => {
         html += `
-          <div draggable="true" ondragstart="e => { e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'stockItem', value: '${escapeHtml(item)}' })); }"
+          <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'stockItem', value: '${escapeHtml(item)}' }))"
                style="display:flex; justify-content:space-between; align-items:center; background:white; border:1.5px solid #ccc; padding:7px 10px; border-radius:5px; cursor:grab;">
             <span style="font-size:12.5px; font-weight:bold; color:#333;">${escapeHtml(item)}</span>
             <button type="button" class="btn-clear-row" onclick="stockItems.splice(${idx}, 1); renderStockList();">✕</button>
