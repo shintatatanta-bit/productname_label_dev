@@ -1903,9 +1903,28 @@
       if (!data) return;
 
       const methodKey = data.heatingType || 'microwave';
+      
+      // 各ボタンに紐付く固有の配色クラス定義
+      const btnColorClasses = {
+        microwave: 'warm-2',
+        boil: 'warm-2',
+        water: 'water',
+        cold: 'cold',
+        doc: 'doc',
+        custom: 'custom'
+      };
+
+      // 各ボタンのクラスを正しく再構築（配色クラスを維持しつつ active を切り替え）
       ['microwave', 'boil', 'water', 'cold', 'doc', 'custom'].forEach(k => {
         const btn = document.getElementById(`mBtn_${k}`);
-        if (btn) btn.className = (k === methodKey) ? 'btn-method-choice active' : 'btn-method-choice';
+        if (btn) {
+          const colorClass = btnColorClasses[k];
+          if (k === methodKey) {
+            btn.className = `btn-method-choice ${colorClass} active`;
+          } else {
+            btn.className = `btn-method-choice ${colorClass}`;
+          }
+        }
       });
 
       // 時間入力欄の表示制御（cold, doc の場合は非表示、それ以外は表示）
