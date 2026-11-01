@@ -2132,27 +2132,31 @@
             
             // 枠が空、または有効な品目がまだ入っていない場合は、そのまま品目1として登録
             if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
-              slotsData[i] = { ... };
+              slotsData[i] = {
+                categoryText: "",
+                products: [stockName],
+                subProducts: [""],
+                productsAlt: [""],
+                fontScale: "normal",
+                customFontPt: 10.0,
+                marginPreset: "normal",
+                customMarginY: 0.55,
+                fontWeight: "700",
+                heatingType: "microwave",
+                methodMin: "2",
+                methodSec: "",
+                methodText: "レンジ 600W で 2分温め",
+                methodType: "warm"
+              };
               updateUsageCount();
               renderAllSlots();
               openEditPanel(i);
             } else {
+              // すでに品目が入っている場合は、結合か新規追加かを選択するモーダルを起動
               openStockDropChoiceModal(i, stockName);
             }
             return;
           }
-
-          // ★ ここに余分な括弧や孤立したコードが混入しており、構文が崩れています
-              slotsData[i].products.push(stockName);
-              slotsData[i].subProducts.push("");
-              slotsData[i].productsAlt.push("");
-            }
-            updateUsageCount();
-            renderAllSlots();
-            openEditPanel(i);
-            return;
-          }
-
           if (parsed.type === 'slotMove') {
             const sourceIdx = parsed.index;
             if (sourceIdx !== null && sourceIdx !== i) {
