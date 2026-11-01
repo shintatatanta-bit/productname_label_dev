@@ -1076,10 +1076,11 @@
       transition: all 0.15s;
       position: relative;
     }
+    /* 外枠サイズは変えず、中のラベルデザインの縮小率を 0.60 に拡大 */
     .label-stock-card .design-card {
-      transform: scale(0.65);
+      transform: scale(0.60);
       transform-origin: top center;
-      margin-bottom: -10mm;
+      margin-bottom: -10mm; /* 拡大に伴い、下の余白の巻き込み具合を微調整 */
       pointer-events: none;
     }
     .label-stock-card:hover {
