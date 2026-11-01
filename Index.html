@@ -331,7 +331,7 @@
     }
 
     .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
-/* 別途資料・自由入力用の緑色ピル（帯）スタイル */
+/* 別紙資料参照・自由入力用の緑色ピル（帯）スタイル */
     .card-bottom-pill.pill-green { background: #2e7d32 !important; border-color: #2e7d32 !important; }
 
     .top-header-bar {
@@ -798,7 +798,7 @@
     .btn-method-choice.warm-2 { background: #b71c1c; } /* レンジ・湯煎（赤） */
     .btn-method-choice.water { background: #0288d1; }  /* 流水解凍（青：冷たいままと同色） */
     .btn-method-choice.cold { background: #0288d1; }   /* 冷たいまま（青） */
-    .btn-method-choice.doc { background: #2e7d32; }    /* 別途資料（緑） */
+    .btn-method-choice.doc { background: #2e7d32; }    /* 別紙資料参照（緑） */
     .btn-method-choice.custom { background: #2e7d32; } /* 自由入力（緑） */
       box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a73e8;
     }
@@ -1410,7 +1410,7 @@
           <button type="button" class="btn-method-choice warm-2" id="mBtn_boil" onclick="selectHeatingMethod('boil')">湯煎</button>
           <button type="button" class="btn-method-choice water" id="mBtn_water" onclick="selectHeatingMethod('water')">流水解凍</button>
           <button type="button" class="btn-method-choice cold" id="mBtn_cold" onclick="selectHeatingMethod('cold')">冷たいまま</button>
-          <button type="button" class="btn-method-choice doc" id="mBtn_doc" onclick="selectHeatingMethod('doc')">別途資料</button>
+          <button type="button" class="btn-method-choice doc" id="mBtn_doc" onclick="selectHeatingMethod('doc')">別紙資料参照</button>
           <button type="button" class="btn-method-choice custom" id="mBtn_custom" onclick="selectHeatingMethod('custom')">自由入力</button>
         </div>
         <div id="methodTimeInputWrap" class="time-split-wrap">
@@ -1872,7 +1872,7 @@
         data.methodText = '冷たいまま';
       } else if (methodKey === 'doc') {
         data.methodType = 'warm';
-        data.methodText = '別途資料';
+        data.methodText = '別紙資料参照';
       } else if (methodKey === 'custom') {
         data.methodType = 'warm';
         // 自由入力の場合は既存の直接編集テキストを維持、または空なら初期化
@@ -1893,7 +1893,7 @@
       } else if (data.heatingType === 'water') {
         data.methodText = dur ? `流水解凍で ${dur}` : '流水解凍';
       } else if (data.heatingType === 'doc') {
-        data.methodText = '別途資料';
+        data.methodText = '別紙参照';
       } else if (data.heatingType === 'microwave') {
         data.methodText = dur ? `レンジ 600W で ${dur}温め` : 'レンジ 600W で温め';
       }
@@ -2055,7 +2055,7 @@
       if (data.heatingType === 'cold' || data.heatingType === 'water') {
         pillClass = 'pill-cold'; // 青色（冷たいまま・流水解凍）
       } else if (data.heatingType === 'doc' || data.heatingType === 'custom') {
-        pillClass = 'pill-green'; // 緑色（別途資料・自由入力）
+        pillClass = 'pill-green'; // 緑色（別紙資料参照・自由入力）
       } else {
         pillClass = ''; // 赤色（レンジ・湯煎などのデフォルト）
       }
