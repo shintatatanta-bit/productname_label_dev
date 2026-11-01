@@ -2469,9 +2469,9 @@
         const labelHtml = buildLabelDesignHtml(item);
         html += `
           <div class="label-stock-card" draggable="true"
+               data-stock-idx="${idx}"
                ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} }));"
-               title="ドラッグして任意のラベル枠へ配置できます。右上の✕で削除できます。">
-            <!-- 削除ボタンのみを右上に控えめに配置、またはカード自体で管理 -->
+               title="ドラッグして任意のラベル枠へ配置できます">
             <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" 
                     style="position: absolute; top: 2px; right: 2px; z-index: 5; padding: 1px 4px; font-size: 8px; background: rgba(255,255,255,0.8); border-radius: 3px;">✕</button>
             <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
@@ -2480,8 +2480,39 @@
           </div>
         `;
       });
-
       container.innerHTML = html;
+
+      // --- ホバー1秒タイマーのバインド処理 ---
+      const popup = document.getElementById('globalHoverPreviewPopup');
+      let hoverTimer = null;
+
+      container.querySelectorAll('.label-stock-card').forEach(card => {
+        card.addEventListener('mouseenter', function(e) {
+          const idx = parseInt(card.getAttribute('data-stock-idx'), 10);
+          const itemData = labelStockItems[idx];
+          if (!itemData) return;
+
+          // 既存のタイマーがあればクリア
+          if (hoverTimer) clearTimeout(hoverTimer);
+
+          // 1秒（1000ms）後にポップアップを表示
+          hoverTimer = setTimeout(() => {
+            popup.innerHTML = buildLabelDesignHtml(itemData);
+            
+            // マウスカーソルの位置、またはカードの近傍にポップアップを表示
+            const rect = card.getBoundingClientRect();
+            popup.style.left = (rect.right + 10) + 'px';
+            popup.style.top = rect.top + 'px';
+            popup.style.display = 'block';
+          }, 1000);
+        });
+
+        card.addEventListener('mouseleave', function() {
+          // マウスが外れたらタイマーを即座にキャンセルし、ポップアップを隠す
+          if (hoverTimer) clearTimeout(hoverTimer);
+          popup.style.display = 'none';
+        });
+      });
     }
 
     function handleLabelStockDrop(e) {
@@ -2575,6 +2606,20 @@
       updateUsageCount();
       renderAllSlots();
     }
+
+    let hoverPreviewTimer = null;
+
+    // --- ラベルストックのホバー拡大プレビュー関連の処理 ---
+    document.addEventListener('mouseover', function(e) {
+      const card = e.target.closest('.label-stock-card');
+      if (!card) return;
+
+      // どのインデックスのラベルか、HTML要素のデータ属性等から特定するか、
+      // あるいは要素自身からインデックスを逆引きできるようにします。
+      // ここでは簡易的に、親コンテナ内の何番目かを特定してデータを取得します。
+    });
+
+    // より確実に紐付けるため、renderLabelStockList 内でカード生成時に mouseenter / mouseleave をバインドします。
   </script>
 </body>
 </html>
