@@ -2188,11 +2188,11 @@
 
           console.log('パース後データタイプ:', parsed.type);
 
-          // ラベルストックからのドロップ処理
+          // 1. ラベルストックからのドロップ処理
           if (parsed.type === 'labelStockItem') {
             const stockIndex = parsed.stockIndex;
             const stockItem = labelStockItems[stockIndex];
-            console.log('取得したストックアイテム:', stockItem);
+            console.log('取得したラベルストックアイテム:', stockItem);
             if (stockItem) {
               slotsData[i] = JSON.parse(JSON.stringify(stockItem));
               updateUsageCount();
@@ -2202,7 +2202,8 @@
             return;
           }
           
-         if (parsed.type === 'stockItem') {
+          // 2. 料理名ストックからのドロップ処理
+          if (parsed.type === 'stockItem') {
             const stockName = parsed.value;
             console.log('料理名ストックからのドロップ検知:', stockName);
             
@@ -2233,6 +2234,8 @@
             }
             return;
           }
+
+          // 3. ラベル枠同士の移動（スロット移動・コピー）処理
           if (parsed.type === 'slotMove') {
             const sourceIdx = parsed.index;
             if (sourceIdx !== null && sourceIdx !== i) {
@@ -2249,6 +2252,7 @@
               renderAllSlots();
               if (editingSlotIndex !== null) openEditPanel(editingSlotIndex);
             }
+            return;
           }
         };
 
