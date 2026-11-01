@@ -793,9 +793,11 @@
       text-align: center;
       transition: all 0.15s;
     }
-    .btn-method-choice.warm-2 { background: #b71c1c; } /* レンジ・湯煎・流水解凍 */
-    .btn-method-choice.cold { background: #0288d1; }  /* 冷たいまま・別途資料・自由入力 */
-    .btn-method-choice.active {
+    .btn-method-choice.warm-2 { background: #b71c1c; } /* レンジ・湯煎（赤） */
+    .btn-method-choice.water { background: #0288d1; }  /* 流水解凍（青：冷たいままと同色） */
+    .btn-method-choice.cold { background: #0288d1; }   /* 冷たいまま（青） */
+    .btn-method-choice.doc { background: #2e7d32; }    /* 別途資料（緑） */
+    .btn-method-choice.custom { background: #2e7d32; } /* 自由入力（緑） */
       box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a73e8;
     }
 
@@ -1404,10 +1406,10 @@
         <div class="method-btn-grid">
           <button type="button" class="btn-method-choice warm-2 active" id="mBtn_microwave" onclick="selectHeatingMethod('microwave')">レンジ</button>
           <button type="button" class="btn-method-choice warm-2" id="mBtn_boil" onclick="selectHeatingMethod('boil')">湯煎</button>
-          <button type="button" class="btn-method-choice warm-2" id="mBtn_water" onclick="selectHeatingMethod('water')">流水解凍</button>
+          <button type="button" class="btn-method-choice water" id="mBtn_water" onclick="selectHeatingMethod('water')">流水解凍</button>
           <button type="button" class="btn-method-choice cold" id="mBtn_cold" onclick="selectHeatingMethod('cold')">冷たいまま</button>
-          <button type="button" class="btn-method-choice cold" id="mBtn_doc" onclick="selectHeatingMethod('doc')">別途資料</button>
-          <button type="button" class="btn-method-choice cold" id="mBtn_custom" onclick="selectHeatingMethod('custom')">自由入力</button>
+          <button type="button" class="btn-method-choice doc" id="mBtn_doc" onclick="selectHeatingMethod('doc')">別途資料</button>
+          <button type="button" class="btn-method-choice custom" id="mBtn_custom" onclick="selectHeatingMethod('custom')">自由入力</button>
         </div>
         <div id="methodTimeInputWrap" class="time-split-wrap">
           <span style="font-size:11px; font-weight:bold; color:#555;">⏱️ 時間:</span>
