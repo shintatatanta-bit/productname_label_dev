@@ -2512,11 +2512,21 @@
       if (tabName === 'label') renderLabelStockList();
     }
 
-    function clearAllLabelStock() {
-      if (confirm('すべての保管ラベルを削除しますか？')) {
-        document.getElementById('globalHoverPreviewPopup').style.display = 'none'; // ★ 追加
-        labelStockItems = [];
-        renderLabelStockList();
+    function clearAllLabels() {
+      console.log('=== clearAllLabels 実行開始 ===');
+      if (!confirm('本当にすべてのラベルをクリアしますか？')) {
+        return;
+      }
+      try {
+        if (editingSlotIndex !== null) {
+          closeEditPanel();
+        }
+        slotsData = Array(36).fill(null);
+        updateUsageCount();
+        renderAllSlots();
+        console.log('すべてのラベル枠をクリアしました。');
+      } catch (err) {
+        console.error('clearAllLabels 実行時エラー:', err);
       }
     }
 
