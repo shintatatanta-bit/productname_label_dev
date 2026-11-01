@@ -1067,20 +1067,28 @@
       background: #ffffff;
       border: 1.5px solid #dadce0;
       border-radius: 6px;
-      padding: 6px;
+      padding: 3px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
       cursor: grab;
       transition: all 0.15s;
       position: relative;
+      overflow: hidden;
+      height: 18mm; /* 高さを固定して安定させる */
     }
-    /* 外枠サイズは変えず、中のラベルデザインの縮小率を 0.60 に拡大 */
+    .label-stock-card:hover {
+      border-color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label-stock-card:active {
+      cursor: grabbing;
+    }
+    /* スケールを 0.76 まで大きくし、上部に美しく収める */
     .label-stock-card .design-card {
-      transform: scale(0.60);
-      transform-origin: top center;
-      margin-bottom: -10mm; /* 拡大に伴い、下の余白の巻き込み具合を微調整 */
+      transform: scale(0.76);
+      transform-origin: center center;
       pointer-events: none;
     }
     .label-stock-card:hover {
@@ -2444,12 +2452,11 @@
         html += `
           <div class="label-stock-card" draggable="true"
                ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} }));"
-               title="ドラッグして任意のラベル枠へ配置できます">
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 2px;">
-              <span style="font-size:9.5px; font-weight:bold; color:#1a73e8;">#${idx + 1}</span>
-              <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" style="padding:1px 4px; font-size:9px; line-height:1;">✕</button>
-            </div>
-            <div style="width: 100%; display: flex; justify-content: center; overflow: hidden; height: 15mm;">
+               title="ドラッグして任意のラベル枠へ配置できます。右上の✕で削除できます。">
+            <!-- 削除ボタンのみを右上に控えめに配置、またはカード自体で管理 -->
+            <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" 
+                    style="position: absolute; top: 2px; right: 2px; z-index: 5; padding: 1px 4px; font-size: 8px; background: rgba(255,255,255,0.8); border-radius: 3px;">✕</button>
+            <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
               ${labelHtml}
             </div>
           </div>
