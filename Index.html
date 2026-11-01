@@ -2128,6 +2128,7 @@
           
           if (parsed.type === 'stockItem') {
             const stockName = parsed.value;
+            console.log('料理名ストックからのドロップ検知:', stockName);
             if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
               slotsData[i] = {
                 categoryText: "",
@@ -2148,6 +2149,7 @@
             } else {
               slotsData[i].products.push(stockName);
               slotsData[i].subProducts.push("");
+              slotsData[i].productsAlt.push("");
             }
             updateUsageCount();
             renderAllSlots();
