@@ -331,6 +331,8 @@
     }
 
     .card-bottom-pill.pill-cold { background: #0288d1 !important; border-color: #0288d1 !important; }
+/* 別途資料・自由入力用の緑色ピル（帯）スタイル */
+    .card-bottom-pill.pill-green { background: #2e7d32 !important; border-color: #2e7d32 !important; }
 
     .top-header-bar {
       width: 100%;
@@ -2048,7 +2050,16 @@
     }
 
     function buildLabelDesignHtml(data) {
-      const pillClass = data.methodType === 'cold' ? 'pill-cold' : '';
+      // ★ 加熱タイプに応じて下部ピル（帯）の色クラスを動的に決定
+      let pillClass = '';
+      if (data.heatingType === 'cold' || data.heatingType === 'water') {
+        pillClass = 'pill-cold'; // 青色（冷たいまま・流水解凍）
+      } else if (data.heatingType === 'doc' || data.heatingType === 'custom') {
+        pillClass = 'pill-green'; // 緑色（別途資料・自由入力）
+      } else {
+        pillClass = ''; // 赤色（レンジ・湯煎などのデフォルト）
+      }
+
       const validProds = (data.products || []).filter(p => p.trim() !== "");
       const typo = getEffectiveFontSettings(data);
       let linesHtml = '';
