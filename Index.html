@@ -1062,32 +1062,7 @@
       display: flex;
     }
 
-    /* ラベルストックのカードスタイル */
-    .label-stock-card {
-      background: #ffffff;
-      border: 1.5px solid #dadce0;
-      border-radius: 6px;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      cursor: grab;
-      transition: all 0.15s;
-      position: relative;
-    }
-    .label-stock-card:hover {
-      border-color: #1a73e8;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .label-stock-card:active {
-      cursor: grabbing;
-    }
-    .label-stock-card.drag-over {
-      background: #e8f0fe !important;
-      border-color: #1a73e8 !important;
-    }
-
-    /* ラベルストック内のミニプレビュー用スタイル */
+   /* ラベルストックのカードスタイル（従来） */
     .label-stock-card {
       background: #ffffff;
       border: 1.5px solid #dadce0;
@@ -1101,6 +1076,12 @@
       transition: all 0.15s;
       position: relative;
     }
+    .label-stock-card .design-card {
+      transform: scale(0.65);
+      transform-origin: top center;
+      margin-bottom: -10mm;
+      pointer-events: none;
+    }
     .label-stock-card:hover {
       border-color: #1a73e8;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -1108,11 +1089,46 @@
     .label-stock-card:active {
       cursor: grabbing;
     }
-    /* ミニプレビューを左側パネルの幅に合わせて 0.65 倍に縮小表示する */
+    .label-stock-card.drag-over {
+      background: #e8f0fe !important;
+      border-color: #1a73e8 !important;
+    }
+
+    /* ラベルストックのコンテナを2列グリッドに変更 */
+    #labelStockListContainer {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+      align-content: start;
+    }
+
+    /* ラベルストックのカードスタイル（2列用） */
+    .label-stock-card {
+      background: #ffffff;
+      border: 1.5px solid #dadce0;
+      border-radius: 6px;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: grab;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .label-stock-card:hover {
+      border-color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label-stock-card:active {
+      cursor: grabbing;
+    }
+    /* 2列の幅に美しく収まるよう、縮小率を 0.52 に調整 */
     .label-stock-card .design-card {
-      transform: scale(0.65);
+      transform: scale(0.52);
       transform-origin: top center;
-      margin-bottom: -10mm; /* 縮小によって生じる余白を調整 */
+      margin-bottom: -13mm;
       pointer-events: none;
     }
   </style>
@@ -2423,18 +2439,16 @@
       }
       let html = '';
       labelStockItems.forEach((item, idx) => {
-        // 実際のデザインカードHTMLを縮小版として生成して埋め込む
         const labelHtml = buildLabelDesignHtml(item);
-        
         html += `
           <div class="label-stock-card" draggable="true"
                ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} }));"
                title="ドラッグして任意のラベル枠へ配置できます">
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 4px;">
-              <span style="font-size:10.5px; font-weight:bold; color:#1a73e8;">#${idx + 1} 保管ラベル</span>
-              <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" style="padding:1px 5px; font-size:10px;">✕</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 2px;">
+              <span style="font-size:9.5px; font-weight:bold; color:#1a73e8;">#${idx + 1}</span>
+              <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" style="padding:1px 4px; font-size:9px; line-height:1;">✕</button>
             </div>
-            <div style="width: 100%; display: flex; justify-content: center; overflow: hidden; height: 19mm;">
+            <div style="width: 100%; display: flex; justify-content: center; overflow: hidden; height: 15mm;">
               ${labelHtml}
             </div>
           </div>
