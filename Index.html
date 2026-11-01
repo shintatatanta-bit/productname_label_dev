@@ -2452,6 +2452,7 @@
 
     function clearAllLabelStock() {
       if (confirm('すべての保管ラベルを削除しますか？')) {
+        document.getElementById('globalHoverPreviewPopup').style.display = 'none'; // ★ 追加
         labelStockItems = [];
         renderLabelStockList();
       }
@@ -2471,7 +2472,7 @@
           <div class="label-stock-card" draggable="true"
                data-stock-idx="${idx}"
                ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} }));">
-            <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" 
+            <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); document.getElementById('globalHoverPreviewPopup').style.display='none'; labelStockItems.splice(${idx}, 1); renderLabelStockList();" 
                     style="position: absolute; top: 2px; right: 2px; z-index: 5; padding: 1px 4px; font-size: 8px; background: rgba(255,255,255,0.8); border-radius: 3px;">✕</button>
             <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
               ${labelHtml}
