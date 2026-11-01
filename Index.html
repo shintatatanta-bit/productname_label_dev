@@ -2126,10 +2126,11 @@
             return;
           }
           
-          if (parsed.type === 'stockItem') {
+         if (parsed.type === 'stockItem') {
             const stockName = parsed.value;
             console.log('料理名ストックからのドロップ検知:', stockName);
             
+            // 枠が空、または有効な品目がまだ入っていない場合は、そのまま品目1として登録
             if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
               slotsData[i] = {
                 categoryText: "",
@@ -2147,12 +2148,16 @@
                 methodText: "レンジ 600W で 2分温め",
                 methodType: "warm"
               };
+              updateUsageCount();
+              renderAllSlots();
+              openEditPanel(i);
             } else {
-              // ★ 記載商品数がすでに最大4品に達している場合は追加をブロック
-              if (slotsData[i].products.length >= 4) {
-                alert('1つのラベルに記載できる商品は最大4品までです。');
-                return;
-              }
+              // すでに品目が入っている場合は、結合か新規追加かを選択するモーダルを起動
+              openStockDropChoiceModal(i, stockName);
+            }
+            return;
+          }
+
               slotsData[i].products.push(stockName);
               slotsData[i].subProducts.push("");
               slotsData[i].productsAlt.push("");
@@ -2671,6 +2676,77 @@
     });
 
     // より確実に紐付けるため、renderLabelStockList 内でカード生成時に mouseenter / mouseleave をバインドします。
+  
+    let pendingDropData = null;
+
+    function openStockDropChoiceModal(slotIndex, stockName) {
+      pendingDropData = { slotIndex: slotIndex, stockName: stockName };
+      const currentProds = slotsData[slotIndex].products.filter(p => p && p.trim() !== "");
+      const firstProd = currentProds[0] || "既存品目";
+
+      const container = document.getElementById('dropChoiceButtonsContainer');
+      let html = '';
+
+      // ① 既存の品目に結合する選択肢（品目が4品未満、かつ1品目が存在する場合など）
+      if (currentProds.length > 0 && currentProds.length < 4) {
+        html += `
+          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:10px; justify-content:flex-start; font-size:12.5px;" onclick="executeStockDropChoice('combine')">
+            🔗 既存の品目（「${escapeHtml(firstProd)}」など）の後ろに結合する
+          </button>
+        `;
+      }
+
+      // ② 新たな品名として登録する選択肢（最大4品まで）
+      if (currentProds.length < 4) {
+        html += `
+          <button type="button" class="btn-main" style="background:#e6f4ea; color:#137333; border:1.5px solid #ceead6; padding:10px; justify-content:flex-start; font-size:12.5px;" onclick="executeStockDropChoice('newRow')">
+            ➕ 新たな品名（品名 ${currentProds.length + 1}）として独立して追加する
+          </button>
+        `;
+      } else {
+        html += `<div style="color:#c5221f; font-weight:bold; font-size:12px; text-align:center; padding:10px;">※このラベルにはすでに最大4品が登録されているため追加できません。</div>`;
+      }
+
+      container.innerHTML = html;
+      document.getElementById('dropChoiceModal').style.display = 'flex';
+    }
+
+    function executeStockDropChoice(mode) {
+      if (!pendingDropData) {
+        cancelDropChoice();
+        return;
+      }
+      const { slotIndex, stockName } = pendingDropData;
+      const data = slotsData[slotIndex];
+
+      if (mode === 'combine') {
+        // 1番目の品目の後ろに半角スペース＋ストック名で結合
+        if (data.products && data.products.length > 0) {
+          const currentBase = data.products[0] || "";
+          data.products[0] = currentBase ? `${currentBase} ${stockName}` : stockName;
+        }
+      } else if (mode === 'newRow') {
+        // 新しい行（品名2〜4）として追加
+        if (!data.products) data.products = [];
+        if (!data.subProducts) data.subProducts = [];
+        if (!data.productsAlt) data.productsAlt = [];
+        
+        data.products.push(stockName);
+        data.subProducts.push("");
+        data.productsAlt.push("");
+      }
+
+      cancelDropChoice();
+      updateUsageCount();
+      renderAllSlots();
+      openEditPanel(slotIndex);
+    }
+
+    function cancelDropChoice() {
+      pendingDropData = null;
+      document.getElementById('dropChoiceModal').style.display = 'none';
+    }
+
   </script>
 </body>
 </html>
