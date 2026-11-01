@@ -2516,22 +2516,61 @@
 
     function handleLabelStockDrop(e) {
       e.preventDefault();
+      console.log('=== handleLabelStockDrop 実行開始 ===');
       try {
         const raw = e.dataTransfer.getData('text/plain');
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        // プレビューのラベル枠（スロット）からドラッグされた場合、ラベルストックにコピー保存する
+        console.log('受信した生データ:', raw);
+        if (!raw) {
+          console.warn('データが空です');
+          return;
+        }
+
+        let parsed = null;
+        try {
+          parsed = JSON.parse(raw);
+        } catch (jsonErr) {
+          console.warn('JSONパース失敗、数値として処理します:', raw);
+          parsed = { type: 'slotMove', index: parseInt(raw, 10) };
+        }
+
+        console.log('パース結果:', parsed);
+
+        // プレビューのラベル枠（スロット）からドラッグされた場合
         if (parsed.type === 'slotMove') {
-          const slotData = slotsData[parsed.index];
-          if (slotData) {
-            labelStockItems.push(JSON.parse(JSON.stringify(slotData)));
-            renderLabelStockList();
-            // 自動でラベルストックタブに切り替える
-            switchStockTab('label');
+          const sourceIndex = parsed.index;
+          console.log('対象のソースインデックス:', sourceIndex);
+          
+          if (sourceIndex !== null && sourceIndex !== undefined) {
+            const slotData = slotsData[sourceIndex];
+            console.log('取得したスロットデータ:', slotData);
+
+            if (slotData) {
+              // 1. ラベルストックに複製を追加
+              labelStockItems.push(JSON.parse(JSON.stringify(slotData)));
+              
+              // 2. 元のプレビュー枠をクリア（削除）
+              slotsData[sourceIndex] = null;
+              
+              // 3. 編集パネルが開いていた枠であれば閉じる
+              if (editingSlotIndex === sourceIndex) {
+                closeEditPanel();
+              }
+              
+              // 4. 画面全体（使用数・プレビュー・ストック一覧）を更新
+              updateUsageCount();
+              renderAllSlots();
+              renderLabelStockList();
+              
+              // 5. 自動でラベルストックタブに切り替える
+              switchStockTab('label');
+              console.log('=== ラベルの移動と元枠のクリアが完了しました ===');
+            } else {
+              console.warn('指定インデックスのデータが空（null）です');
+            }
           }
         }
       } catch (err) {
-        console.error(err);
+        console.error('handleLabelStockDrop 内部エラー:', err);
       }
     }
 
