@@ -2805,7 +2805,7 @@
           data.products[0] = currentBase ? `${currentBase} ${stockName}` : stockName;
         }
       } else if (mode === 'newRow') {
-        // ② 新たな品名として独立して追加
+        // ② 新たな品名として独立して追加（品名2, 3, 4）
         if (!data.products) data.products = [];
         if (!data.subProducts) data.subProducts = [];
         if (!data.productsAlt) data.productsAlt = [];
@@ -2822,10 +2822,19 @@
         data.subProducts.push("");
         data.productsAlt.push("");
 
-        // ★重要：記載商品数のボタンハイライトとUI数を現在の配列長（例: 2品、3品）に同期させる
+        // ★重要：現在の品目数に合わせて「記載商品数」のボタン状態を同期させる
         const newCount = data.products.length;
         highlightChoiceButton('btnCount', newCount);
       }
+
+      // モーダルを閉じる前にデータを確定
+      cancelDropChoice();
+      updateUsageCount();
+      renderAllSlots();
+      
+      // 編集パネルが開いている、または対象スロットを確実に再オープンして入力欄を再描画する
+      openEditPanel(slotIndex);
+    }
 
       cancelDropChoice();
       updateUsageCount();
