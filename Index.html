@@ -2806,6 +2806,36 @@
       document.getElementById('dropChoiceModal').style.display = 'none';
     }
 
+    function clearAllLabelStock() {
+      console.log('=== clearAllLabelStock 実行開始 ===');
+      
+      // 確認ダイアログを表示
+      if (!confirm('すべての保管ラベルを削除しますか？')) {
+        console.log('クリア操作がキャンセルされました。');
+        return;
+      }
+
+      try {
+        // 1. ホバープレビューの強制非表示
+        const popup = document.getElementById('globalHoverPreviewPopup');
+        if (popup) {
+          popup.style.display = 'none';
+        }
+
+        // 2. 配列の初期化
+        labelStockItems = [];
+        console.log('labelStockItems を空にしました:', labelStockItems);
+
+        // 3. リストの再描画
+        renderLabelStockList();
+        console.log('ラベルストックリストの再描画が完了しました。');
+
+      } catch (err) {
+        console.error('clearAllLabelStock 実行時エラー:', err);
+        alert('クリア処理中にエラーが発生しました: ' + err.message);
+      }
+    }
+
   </script>
 </body>
 </html>
