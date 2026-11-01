@@ -2446,26 +2446,17 @@
 
     function applyZoom(updateSlider = true) {
       const container = document.getElementById('sheetsContainer');
-      const outerArea = document.getElementById('previewOuterArea');
-      if (!container || !outerArea) return;
+      if (!container) return;
       
-      const baseWidth = 794;   
-      const baseHeight = 1123; 
-      const zoomedWidth = baseWidth * currentZoom;
-      const extraWidth = baseWidth * (currentZoom - 1.0);
-      const extraHeight = baseHeight * (currentZoom - 1.0);
-      
-      container.style.transformOrigin = 'top left';
+      // ★ プレビューの変形起点を上部中央に固定し、スケールのみで拡大縮小する
+      container.style.transformOrigin = 'top center';
       container.style.transform = `scale(${currentZoom.toFixed(2)})`;
       
-      if (outerArea.clientWidth < zoomedWidth) {
-        outerArea.style.justifyContent = 'flex-start';
-      } else {
-        outerArea.style.justifyContent = 'center';
-      }
-      
-      container.style.marginRight = Math.max(0, extraWidth) + 'px';
-      container.style.marginBottom = Math.max(0, extraHeight) + 'px';
+      // ★ スケール変化に応じてベースサイズを維持し、中央配置の崩れを防ぐ
+      const baseWidth = 794;
+      const baseHeight = 1123;
+      container.style.width = baseWidth + 'px';
+      container.style.height = (baseHeight * currentZoom) + 'px';
       
       document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
 
