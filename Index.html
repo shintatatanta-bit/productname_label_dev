@@ -1777,7 +1777,7 @@
         const parsed = JSON.parse(draft.jsonStr);
         let rawSlots = Array.isArray(parsed) ? parsed : (parsed.slots || []);
         let parsedStocks = Array.isArray(parsed.stocks) ? parsed.stocks : [];
-        let parsedLabelStocks = Array.isArray(parsed.labelStocks) ? parsed.labelStocks : [];
+        let parsedLabelStocks = Array.isArray(parsed.labelStocks) ? parsed.labelStocks : []; // ★ ラベルストックのデータを安全に取得
 
         let parsedSlots = Array(36).fill(null);
         rawSlots.forEach((item, idx) => {
@@ -1804,7 +1804,7 @@
 
         slotsData = parsedSlots;
         stockItems = parsedStocks;
-        labelStockItems = parsedLabelStocks;
+        labelStockItems = parsedLabelStocks; // ★ 復元したラベルストックをグローバル変数へ代入
         currentDraftTitle = draft.title;
         currentWorkerName = draft.worker || '未設定';
         lastSavedJsonStr = draft.jsonStr;
@@ -1812,7 +1812,7 @@
         closeEditPanel();
         updateUsageCount();
         renderStockList();
-        renderLabelStockList();
+        renderLabelStockList(); // ★ ラベルストック一覧の再描画を実行
         renderAllSlots();
       } catch (e) {
         alert('読込エラー: ' + e.message);
