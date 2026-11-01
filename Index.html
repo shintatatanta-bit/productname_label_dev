@@ -1086,6 +1086,35 @@
       background: #e8f0fe !important;
       border-color: #1a73e8 !important;
     }
+
+    /* ラベルストック内のミニプレビュー用スタイル */
+    .label-stock-card {
+      background: #ffffff;
+      border: 1.5px solid #dadce0;
+      border-radius: 6px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: grab;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .label-stock-card:hover {
+      border-color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label-stock-card:active {
+      cursor: grabbing;
+    }
+    /* ミニプレビューを左側パネルの幅に合わせて 0.65 倍に縮小表示する */
+    .label-stock-card .design-card {
+      transform: scale(0.65);
+      transform-origin: top center;
+      margin-bottom: -10mm; /* 縮小によって生じる余白を調整 */
+      pointer-events: none;
+    }
   </style>
 
   <!-- PDF.js ライブラリの読み込み -->
@@ -2394,17 +2423,20 @@
       }
       let html = '';
       labelStockItems.forEach((item, idx) => {
-        const title = (item.products && item.products[0]) ? item.products[0] : (item.categoryText || '無題ラベル');
+        // 実際のデザインカードHTMLを縮小版として生成して埋め込む
+        const labelHtml = buildLabelDesignHtml(item);
+        
         html += `
           <div class="label-stock-card" draggable="true"
-               ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} })); console.log('ラベルストック ドラッグ開始:', ${idx});"
+               ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} }));"
                title="ドラッグして任意のラベル枠へ配置できます">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 4px;">
               <span style="font-size:10.5px; font-weight:bold; color:#1a73e8;">#${idx + 1} 保管ラベル</span>
               <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); labelStockItems.splice(${idx}, 1); renderLabelStockList();" style="padding:1px 5px; font-size:10px;">✕</button>
             </div>
-            <div style="font-size:12px; font-weight:bold; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(title)}</div>
-            <div style="font-size:10.5px; color:#5f6368;">${escapeHtml(item.methodText || '')}</div>
+            <div style="width: 100%; display: flex; justify-content: center; overflow: hidden; height: 19mm;">
+              ${labelHtml}
+            </div>
           </div>
         `;
       });
