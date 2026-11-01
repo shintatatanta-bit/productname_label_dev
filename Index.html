@@ -2819,15 +2819,24 @@
         data.products.push(stockName);
         data.subProducts.push("");
         data.productsAlt.push("");
-
-        const newCount = data.products.length;
-        highlightChoiceButton('btnCount', newCount);
       }
 
+      // モーダルを確実に閉じる
       cancelDropChoice();
+
+      // 編集状態がこのスロットであれば、UIを直接更新して品目数を反映させる
+      editingSlotIndex = slotIndex;
+      document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIndex + 1} を編集`;
+      document.getElementById('inputCategoryText').value = data.categoryText || '';
+
+      const count = Math.max(1, Math.min(4, data.products.length));
+      highlightChoiceButton('btnCount', count);
+      renderProductInputFields(data.products);
+      updateControlsUI();
+      updateMethodUI();
+
       updateUsageCount();
       renderAllSlots();
-      openEditPanel(slotIndex);
     }
 
     function cancelDropChoice() {
