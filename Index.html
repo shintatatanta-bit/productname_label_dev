@@ -2830,18 +2830,6 @@
       openEditPanel(slotIndex);
     }
 
-      cancelDropChoice();
-      updateUsageCount();
-      renderAllSlots();
-      
-      // 編集パネルが開いている場合は、入力欄を新しい品目数に合わせて再描画・同期する
-      if (editingSlotIndex === slotIndex) {
-        renderProductInputFields(data.products);
-        updateControlsUI();
-      } else {
-        openEditPanel(slotIndex);
-      }
-
     function cancelDropChoice() {
       pendingDropData = null;
       document.getElementById('dropChoiceModal').style.display = 'none';
