@@ -2538,35 +2538,39 @@
         // プレビューのラベル枠（スロット）からドラッグされた場合
         if (parsed.type === 'slotMove') {
           const sourceIndex = parsed.index;
-          console.log('対象のソースインデックス:', sourceIndex);
-          
-          if (sourceIndex !== null && sourceIndex !== undefined) {
-            const slotData = slotsData[sourceIndex];
-            console.log('取得したスロットデータ:', slotData);
+          const slotData = slotsData[sourceIndex];
+          if (slotData) {
+            // 複製データを作成
+            const newStockItem = JSON.parse(JSON.stringify(slotData));
 
-            if (slotData) {
-              // 1. ラベルストックに複製を追加
-              labelStockItems.push(JSON.parse(JSON.stringify(slotData)));
-              
-              // 2. 元のプレビュー枠をクリア（削除）
-              slotsData[sourceIndex] = null;
-              
-              // 3. 編集パネルが開いていた枠であれば閉じる
-              if (editingSlotIndex === sourceIndex) {
-                closeEditPanel();
-              }
-              
-              // 4. 画面全体（使用数・プレビュー・ストック一覧）を更新
-              updateUsageCount();
-              renderAllSlots();
-              renderLabelStockList();
-              
-              // 5. 自動でラベルストックタブに切り替える
-              switchStockTab('label');
-              console.log('=== ラベルの移動と元枠のクリアが完了しました ===');
-            } else {
-              console.warn('指定インデックスのデータが空（null）です');
+            // ★ 同一のラベルがすでにラベルストック内に存在するかチェック
+            const isAlreadyExists = labelStockItems.some(item => {
+              return JSON.stringify(item) === JSON.stringify(newStockItem);
+            });
+
+            if (isAlreadyExists) {
+              alert('このラベルはすでにラベルストックに登録されています。');
+              return; // 登録を中断
             }
+
+            // 1. ラベルストックに複製を追加
+            labelStockItems.push(newStockItem);
+            
+            // 2. 元のプレビュー枠をクリア（削除）
+            slotsData[sourceIndex] = null;
+            
+            // 3. 編集パネルが開いていた枠であれば閉じる
+            if (editingSlotIndex === sourceIndex) {
+              closeEditPanel();
+            }
+            
+            // 4. 画面全体（使用数・プレビュー・ストック一覧）を更新
+            updateUsageCount();
+            renderAllSlots();
+            renderLabelStockList();
+            
+            // 5. 自動でラベルストックタブに切り替える
+            switchStockTab('label');
           }
         }
       } catch (err) {
