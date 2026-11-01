@@ -1444,7 +1444,8 @@
         <div style="display:flex; gap:4px; flex-wrap:wrap;">
           <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="deleteCurrentSlot()">🗑️ 1枠削除</button>
           <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="clearAllLabels()">🗑️ 全クリア</button>
-          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 8px;" onclick="copyToAllSlots()">📄 全面コピー</button>
+          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 8px;" onclick="copyToAllSlots()">📄 全面</button>
+          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 8px;" onclick="copyToRemainingEmptySlots()">📄 残り空白</button>
         </div>
         <div style="display:flex; gap:6px;">
           <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:7px 16px;" onclick="closeEditPanel()">完了</button>
@@ -2884,6 +2885,42 @@
         console.error('clearAllLabelStock 実行時エラー:', err);
         alert('クリア処理中にエラーが発生しました: ' + err.message);
       }
+    }
+
+function copyToRemainingEmptySlots() {
+      if (editingSlotIndex === null) {
+        alert('コピー元のラベル枠が選択されていません。');
+        return;
+      }
+      const cur = slotsData[editingSlotIndex];
+      if (!cur || (!cur.products.some(p => p && p.trim() !== "") && !cur.categoryText.trim())) {
+        alert('選択中の枠に有効なデータが入っていません。');
+        return;
+      }
+
+      // 空白枠の数をカウント
+      const emptyCount = slotsData.filter(d => !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim())).length;
+      if (emptyCount === 0) {
+        alert('コピー先の空白枠がありません。');
+        return;
+      }
+
+      if (!confirm(`残りのすべての空白枠（${emptyCount}枠）に、このラベルをコピーして埋めますか？`)) {
+        return;
+      }
+
+      // 36枠を走査し、データが入っていない（空白の）枠にのみ複製を代入
+      for (let i = 0; i < 36; i++) {
+        const d = slotsData[i];
+        const isEmpty = !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim());
+        if (isEmpty) {
+          slotsData[i] = JSON.parse(JSON.stringify(cur));
+        }
+      }
+
+      updateUsageCount();
+      renderAllSlots();
+      alert('残りの空白枠にコピーしました。');
     }
 
   </script>
