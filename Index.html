@@ -1440,15 +1440,21 @@
         <input type="text" id="inputCustomMethod" style="width:100%; padding:5px 8px; border:1px solid #ccc; border-radius:4px; font-size:11.5px; font-weight:bold;" placeholder="印字文言直接編集" oninput="onCustomMethodInput(this.value)">
       </div>
 
-      <div class="panel-bottom-actions">
-        <div style="display:flex; gap:4px; flex-wrap:wrap;">
-          <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="deleteCurrentSlot()">🗑️ 1枠削除</button>
-          <button type="button" class="btn-main" style="background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:7px 8px;" onclick="clearAllLabels()">🗑️ 全クリア</button>
-          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 8px;" onclick="copyToAllSlots()">📄 全面</button>
-          <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:7px 8px;" onclick="copyToRemainingEmptySlots()">📄 残り空白</button>
+      <div class="panel-bottom-actions" style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; margin-right: 8px;">
+          <!-- 上段：コピー系ボタン（全面コピー ＆ 残り空白にコピー） -->
+          <div style="display: flex; gap: 4px;">
+            <button type="button" class="btn-main" style="flex: 1; background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:6px 4px; font-size:11.5px; justify-content:center;" onclick="copyToAllSlots()">📄 全面コピー</button>
+            <button type="button" class="btn-main" style="flex: 1; background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:6px 4px; font-size:11.5px; justify-content:center;" onclick="copyToRemainingEmptySlots()">📄 残り空白にコピー</button>
+          </div>
+          <!-- 下段：全クリアボタン -->
+          <div>
+            <button type="button" class="btn-main" style="width: 100%; background:#fce8e6; color:#c5221f; border:1.5px solid #fad2cf; padding:6px 4px; font-size:11.5px; justify-content:center;" onclick="clearAllLabels()">🗑️ 全クリア</button>
+          </div>
         </div>
-        <div style="display:flex; gap:6px;">
-          <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:7px 16px;" onclick="closeEditPanel()">完了</button>
+        <!-- 完了ボタン -->
+        <div>
+          <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:10px 16px;" onclick="closeEditPanel()">完了</button>
         </div>
       </div>
     </div>
