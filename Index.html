@@ -2694,15 +2694,27 @@
       const container = document.getElementById('sheetsContainer');
       if (!container) return;
       
-      // ★ プレビューの変形起点を上部中央に固定し、スケールのみで拡大縮小する
+      const baseWidth = 794;
+      const baseHeight = 1123;
+      
+      // プレビューの変形起点を上部中央に固定
       container.style.transformOrigin = 'top center';
       container.style.transform = `scale(${currentZoom.toFixed(2)})`;
       
-      // ★ スケール変化に応じてベースサイズを維持し、中央配置の崩れを防ぐ
-      const baseWidth = 794;
-      const baseHeight = 1123;
+      // ベースのサイズを維持
       container.style.width = baseWidth + 'px';
       container.style.height = (baseHeight * currentZoom) + 'px';
+      
+      // ★ 100%（1.0）を超える拡大時に、左右にはみ出る分のスペースをマージンとして動的追加し、左側へのスクロールを可能にする
+      if (currentZoom > 1.0) {
+        const scaledWidth = baseWidth * currentZoom;
+        const extraSpace = (scaledWidth - baseWidth);
+        container.style.marginLeft = (extraSpace / 2) + 'px';
+        container.style.marginRight = (extraSpace / 2) + 'px';
+      } else {
+        container.style.marginLeft = '0px';
+        container.style.marginRight = '0px';
+      }
       
       document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
 
