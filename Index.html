@@ -2277,7 +2277,7 @@
       }
       sheet.appendChild(grid);
       container.appendChild(sheet);
-      applyZoom(false); // ★ 再描画時にも現在のズーム倍率と寸法を確実に維持する
+      applyZoom(false, false); // ★ 再描画時はサイズ維持のみ行い、スクロール位置は動かさない
       setTimeout(autoFitLongLines, 10);
     }
 
@@ -2693,16 +2693,16 @@
       applyZoom(false);
     }
 
-    function applyZoom(updateSlider = true) {
+    function applyZoom(updateSlider = true, focusSelected = true) {
       const container = document.getElementById('sheetsContainer');
       if (!container) return;
       const sheet = container.querySelector('.sheet-a4');
       
-      // A4シート(210mm x 297mm)の標準ピクセル寸法
-      const baseWidth = 794;
-      const baseHeight = 1123;
+      // A4シート(210mm x 297mm)の実際の描画ピクセル寸法を取得（未描画時は標準値 794 x 1123）
+      const baseWidth = sheet ? sheet.offsetWidth : 794;
+      const baseHeight = sheet ? sheet.offsetHeight : 1123;
       
-      // 外側のコンテナに「拡大後の実寸サイズ」を設定（これによりスクロール領域が100%正確に作られる）
+      // 外側のコンテナに「拡大後の実寸サイズ」を設定
       container.style.width = Math.round(baseWidth * currentZoom) + 'px';
       container.style.height = Math.round(baseHeight * currentZoom) + 'px';
       container.style.transform = 'none';
@@ -2720,6 +2720,11 @@
       if (updateSlider) {
         const slider = document.getElementById('zoomRangeInput');
         if (slider) slider.value = currentZoom;
+      }
+
+      // ★ ズーム変更時、選択中のラベルがあればそのラベルが中央に来るように即座にスクロールを追従させる
+      if (focusSelected && editingSlotIndex !== null) {
+        scrollToEditingSlot(editingSlotIndex, false);
       }
     }
 
@@ -2946,34 +2951,43 @@ function copyToRemainingEmptySlots() {
       const container = document.getElementById('sheetsContainer');
       if (!outerArea || !container) return;
 
+      const sheet = container.querySelector('.sheet-a4');
+      const baseWidth = sheet ? sheet.offsetWidth : 794;
+      const baseHeight = sheet ? sheet.offsetHeight : 1123;
+
       // 36面グリッド上の「列(0〜3)」と「段(0〜8)」を算出
       const col = slotIdx % 4;
       const row = Math.floor(slotIdx / 4);
 
-      // A4シート(210mm x 297mm = 794px x 1123px)における各部の比率計算
-      // 左余白:5mm, ラベル幅:50mm / 上余白:5.5mm, ラベル高:30mm, 縦間隔:2mm
-      const pxPerMmX = 794 / 210.0;
-      const pxPerMmY = 1123 / 297.0;
+      // A4シート(210mm x 297mm)に対する実際のピクセル比率
+      const pxPerMmX = baseWidth / 210.0;
+      const pxPerMmY = baseHeight / 297.0;
 
       // シート左上(0,0)から、対象ラベルの「中心点」までの物理座標(mm)
+      // 左余白:5mm + (列 × 幅50mm) + 半分25mm
+      // 上余白:5.5mm + (段 × [高30mm + 間隔2mm]) + 半分15mm
       const cellCenterMmX = 5.0 + (col * 50.0) + 25.0;
       const cellCenterMmY = 5.5 + (row * 32.0) + 15.0;
 
-      // 現在のズーム倍率を掛けた、コンテナ内での正確なピクセル中心座標
+      // 現在のズーム倍率を掛けた、シート左上からの正確なピクセル中心座標
       const targetCenterX = (cellCenterMmX * pxPerMmX) * currentZoom;
       const targetCenterY = (cellCenterMmY * pxPerMmY) * currentZoom;
 
-      // コンテナ自体のオフセット（padding分やmargin:autoによる余白）を加산
-      const containerLeft = container.offsetLeft;
-      const containerTop = container.offsetTop;
+      // .preview-outer の padding（左: 60px, 上: 20px）と margin:auto 分の余白を正確に算出
+      const scaledSheetWidth = baseWidth * currentZoom;
+      const innerAvailableWidth = outerArea.clientWidth - 120; // 左右padding(60px×2)を引いた幅
+      const autoMarginLeft = scaledSheetWidth < innerAvailableWidth ? (innerAvailableWidth - scaledSheetWidth) / 2 : 0;
+
+      const sheetStartX = 60 + autoMarginLeft;
+      const sheetStartY = 20; // 上padding(20px)
 
       // 表示領域（outerArea）の真ん中にラベルの中心が来るようにスクロール位置を算出
-      const scrollLeft = containerLeft + targetCenterX - (outerArea.clientWidth / 2);
-      const scrollTop = containerTop + targetCenterY - (outerArea.clientHeight / 2);
+      const scrollLeft = sheetStartX + targetCenterX - (outerArea.clientWidth / 2);
+      const scrollTop = sheetStartY + targetCenterY - (outerArea.clientHeight / 2);
 
       outerArea.scrollTo({
-        left: Math.max(0, scrollLeft),
-        top: Math.max(0, scrollTop),
+        left: Math.max(0, Math.round(scrollLeft)),
+        top: Math.max(0, Math.round(scrollTop)),
         behavior: useSmooth ? 'smooth' : 'auto'
       });
     }
