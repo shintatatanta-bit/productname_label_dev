@@ -1899,7 +1899,7 @@
         data.methodText = '別紙資料参照';
       } else if (methodKey === 'custom') {
         data.methodType = 'warm';
-        // 自由入力の場合は既存の直接編集テキストを維持、または空なら初期化
+        data.methodText = ''; // ★ 自由入力の場合は枠内の文字を空欄にする
       } else {
         // microwave, boil, water
         data.methodType = 'warm';
@@ -1908,19 +1908,6 @@
       
       updateMethodUI();
       renderAllSlots();
-    }
-
-    function rebuildMethodTextFromState(data) {
-      const dur = buildDurationString(data.methodMin, data.methodSec);
-      if (data.heatingType === 'boil') {
-        data.methodText = dur ? `湯煎で ${dur}温め` : '湯煎で温め';
-      } else if (data.heatingType === 'water') {
-        data.methodText = dur ? `流水解凍で ${dur}` : '流水解凍';
-      } else if (data.heatingType === 'doc') {
-        data.methodText = '別紙参照';
-      } else if (data.heatingType === 'microwave') {
-        data.methodText = dur ? `レンジ 600W で ${dur}温め` : 'レンジ 600W で温め';
-      }
     }
 
     function updateMethodUI() {
@@ -1953,15 +1940,28 @@
         }
       });
 
-      // 時間入力欄の表示制御（cold, doc の場合は非表示、それ以外は表示）
+      // ★ 時間入力欄の表示制御（cold, doc, custom の場合は非表示、それ以外は表示）
       const timeWrap = document.getElementById('methodTimeInputWrap');
       if (timeWrap) {
-        timeWrap.style.display = (methodKey === 'cold' || methodKey === 'doc') ? 'none' : 'flex';
+        timeWrap.style.display = (methodKey === 'cold' || methodKey === 'doc' || methodKey === 'custom') ? 'none' : 'flex';
       }
 
       document.getElementById('inputMethodMin').value = data.methodMin || '';
       document.getElementById('inputMethodSec').value = data.methodSec || '';
       document.getElementById('inputCustomMethod').value = data.methodText || '';
+    }
+
+    function rebuildMethodTextFromState(data) {
+      const dur = buildDurationString(data.methodMin, data.methodSec);
+      if (data.heatingType === 'boil') {
+        data.methodText = dur ? `湯煎で ${dur}温め` : '湯煎で温め';
+      } else if (data.heatingType === 'water') {
+        data.methodText = dur ? `流水解凍で ${dur}` : '流水解凍';
+      } else if (data.heatingType === 'doc') {
+        data.methodText = '別紙参照';
+      } else if (data.heatingType === 'microwave') {
+        data.methodText = dur ? `レンジ 600W で ${dur}温め` : 'レンジ 600W で温め';
+      }
     }
 
     function sanitizeHalfWidthDigits(str) {
