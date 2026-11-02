@@ -2948,22 +2948,28 @@ function copyToRemainingEmptySlots() {
       setTimeout(() => {
         const cell = document.querySelector(`.label-cell[data-slot-index="${slotIdx}"]`);
         const outerArea = document.getElementById('previewOuterArea');
-        if (!cell || !outerArea) return;
+        const container = document.getElementById('sheetsContainer');
+        if (!cell || !outerArea || !container) return;
 
-        // コンテナ内でのセルの相対位置と中央配置の計算
+        // コンテナとセルの位置関係をベースのピクセル座標で正確に算出する
         const cellRect = cell.getBoundingClientRect();
         const outerRect = outerArea.getBoundingClientRect();
 
-        const targetScrollLeft = outerArea.scrollLeft + (cellRect.left - outerRect.left) - (outerRect.width / 2) + (cellRect.width / 2);
-        const targetScrollTop = outerArea.scrollTop + (cellRect.top - outerRect.top) - (outerRect.height / 2) + (cellRect.height / 2);
+        // ズーム倍率を考慮した中央配置の計算
+        const currentScrollLeft = outerArea.scrollLeft;
+        const currentScrollTop = outerArea.scrollTop;
+
+        const targetLeft = currentScrollLeft + (cellRect.left - outerRect.left) - (outerRect.width / 2) + (cellRect.width / 2);
+        const targetTop = currentScrollTop + (cellRect.top - outerRect.top) - (outerRect.height / 2) + (cellRect.height / 2);
 
         outerArea.scrollTo({
-          left: Math.max(0, targetScrollLeft),
-          top: Math.max(0, targetScrollTop),
+          left: Math.max(0, targetLeft),
+          top: Math.max(0, targetTop),
           behavior: 'smooth'
         });
-      }, 50); // 描画更新の完了を少し待ってから実行
+      }, 60); // 描画とスケーリングの反映を少し待ってから実行
     }
+    
   </script>
 </body>
 </html>
