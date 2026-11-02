@@ -144,23 +144,22 @@
       min-height: calc(100vh - 90px);
     }
 
-/* プレビュー領域：拡大時にも左右両方向へスムーズにスクロールできるように修正 */
+/* プレビュー領域：左右の400pxパネルの間に確実に表示領域を確保する */
     .preview-outer {
       flex: 1;
       overflow: auto;
-      display: flex;
-      justify-content: flex-start; /* ★ center から flex-start に変更し、左側への見切れを防ぐ */
-      align-items: flex-start;
-      padding: 16px 60px 80px 60px;
+      display: block; /* ★ flexによる座標干渉を排除し、純粋なスクロールコンテナにする */
+      padding: 20px 60px 80px 60px;
       margin-left: 400px;  /* 左側のストックパネル分の余白 */
       margin-right: 400px; /* 右側の編集パネル分の余白 */
-      min-width: calc(100vw - 800px);
-      box-init: border-box;
+      width: calc(100vw - 800px);
+      max-height: calc(100vh - 90px);
+      box-sizing: border-box;
       z-index: 10;
     }
     .preview-container {
-      transform-origin: top center;
-      transition: transform 0.15s ease-out;
+      margin: 0 auto; /* ★ シートが画面より小さい時は自動で中央寄せにする */
+      position: relative;
     }
 
    /* A4シート実寸（31072: 36面・4列×9段） */
@@ -2278,6 +2277,7 @@
       }
       sheet.appendChild(grid);
       container.appendChild(sheet);
+      applyZoom(false); // ★ 再描画時にも現在のズーム倍率と寸法を確実に維持する
       setTimeout(autoFitLongLines, 10);
     }
 
@@ -2696,27 +2696,23 @@
     function applyZoom(updateSlider = true) {
       const container = document.getElementById('sheetsContainer');
       if (!container) return;
+      const sheet = container.querySelector('.sheet-a4');
       
+      // A4シート(210mm x 297mm)の標準ピクセル寸法
       const baseWidth = 794;
       const baseHeight = 1123;
       
-      // プレビューの変形起点を上部中央に固定
-      container.style.transformOrigin = 'top center';
-      container.style.transform = `scale(${currentZoom.toFixed(2)})`;
-      
-      // ベースのサイズを維持
-      container.style.width = baseWidth + 'px';
-      container.style.height = (baseHeight * currentZoom) + 'px';
-      
-      // ★ 100%（1.0）を超える拡大時に、左右にはみ出る分のスペースをマージンとして動的追加し、左側へのスクロールを可能にする
-      if (currentZoom > 1.0) {
-        const scaledWidth = baseWidth * currentZoom;
-        const extraSpace = (scaledWidth - baseWidth);
-        container.style.marginLeft = (extraSpace / 2) + 'px';
-        container.style.marginRight = (extraSpace / 2) + 'px';
-      } else {
-        container.style.marginLeft = '0px';
-        container.style.marginRight = '0px';
+      // 外側のコンテナに「拡大後の実寸サイズ」を設定（これによりスクロール領域が100%正確に作られる）
+      container.style.width = Math.round(baseWidth * currentZoom) + 'px';
+      container.style.height = Math.round(baseHeight * currentZoom) + 'px';
+      container.style.transform = 'none';
+      container.style.marginLeft = 'auto';
+      container.style.marginRight = 'auto';
+
+      // 内側のA4シート自体を「左上起点(0, 0)」で拡大縮小する
+      if (sheet) {
+        sheet.style.transformOrigin = 'top left';
+        sheet.style.transform = `scale(${currentZoom.toFixed(3)})`;
       }
       
       document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
@@ -2944,30 +2940,42 @@ function copyToRemainingEmptySlots() {
       alert('残りの空白枠にコピーしました。');
     }
 
-    function scrollToEditingSlot(slotIdx) {
-      setTimeout(() => {
-        const cell = document.querySelector(`.label-cell[data-slot-index="${slotIdx}"]`);
-        const outerArea = document.getElementById('previewOuterArea');
-        const container = document.getElementById('sheetsContainer');
-        if (!cell || !outerArea || !container) return;
+    function scrollToEditingSlot(slotIdx, useSmooth = true) {
+      if (slotIdx === null || slotIdx === undefined) return;
+      const outerArea = document.getElementById('previewOuterArea');
+      const container = document.getElementById('sheetsContainer');
+      if (!outerArea || !container) return;
 
-        // コンテナとセルの位置関係をベースのピクセル座標で正確に算出する
-        const cellRect = cell.getBoundingClientRect();
-        const outerRect = outerArea.getBoundingClientRect();
+      // 36面グリッド上の「列(0〜3)」と「段(0〜8)」を算出
+      const col = slotIdx % 4;
+      const row = Math.floor(slotIdx / 4);
 
-        // ズーム倍率を考慮した中央配置の計算
-        const currentScrollLeft = outerArea.scrollLeft;
-        const currentScrollTop = outerArea.scrollTop;
+      // A4シート(210mm x 297mm = 794px x 1123px)における各部の比率計算
+      // 左余白:5mm, ラベル幅:50mm / 上余白:5.5mm, ラベル高:30mm, 縦間隔:2mm
+      const pxPerMmX = 794 / 210.0;
+      const pxPerMmY = 1123 / 297.0;
 
-        const targetLeft = currentScrollLeft + (cellRect.left - outerRect.left) - (outerRect.width / 2) + (cellRect.width / 2);
-        const targetTop = currentScrollTop + (cellRect.top - outerRect.top) - (outerRect.height / 2) + (cellRect.height / 2);
+      // シート左上(0,0)から、対象ラベルの「中心点」までの物理座標(mm)
+      const cellCenterMmX = 5.0 + (col * 50.0) + 25.0;
+      const cellCenterMmY = 5.5 + (row * 32.0) + 15.0;
 
-        outerArea.scrollTo({
-          left: Math.max(0, targetLeft),
-          top: Math.max(0, targetTop),
-          behavior: 'smooth'
-        });
-      }, 60); // 描画とスケーリングの反映を少し待ってから実行
+      // 現在のズーム倍率を掛けた、コンテナ内での正確なピクセル中心座標
+      const targetCenterX = (cellCenterMmX * pxPerMmX) * currentZoom;
+      const targetCenterY = (cellCenterMmY * pxPerMmY) * currentZoom;
+
+      // コンテナ自体のオフセット（padding分やmargin:autoによる余白）を加산
+      const containerLeft = container.offsetLeft;
+      const containerTop = container.offsetTop;
+
+      // 表示領域（outerArea）の真ん中にラベルの中心が来るようにスクロール位置を算出
+      const scrollLeft = containerLeft + targetCenterX - (outerArea.clientWidth / 2);
+      const scrollTop = containerTop + targetCenterY - (outerArea.clientHeight / 2);
+
+      outerArea.scrollTo({
+        left: Math.max(0, scrollLeft),
+        top: Math.max(0, scrollTop),
+        behavior: useSmooth ? 'smooth' : 'auto'
+      });
     }
     
   </script>
