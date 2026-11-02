@@ -144,18 +144,18 @@
       min-height: calc(100vh - 90px);
     }
 
-/* プレビュー領域：左右の400pxパネルの間に確実に表示領域を確保し、拡大時にも全域にスクロール可能にする */
+/* プレビュー領域：拡大時にも左右両方向へスムーズにスクロールできるように修正 */
     .preview-outer {
       flex: 1;
       overflow: auto;
       display: flex;
-      justify-content: center;
+      justify-content: flex-start; /* ★ center から flex-start に変更し、左側への見切れを防ぐ */
       align-items: flex-start;
-      padding: 16px 80px 80px 80px; /* ★左右のパディングを十分に広げ、拡大時に左端までスクロールできるようにする */
+      padding: 16px 60px 80px 60px;
       margin-left: 400px;  /* 左側のストックパネル分の余白 */
       margin-right: 400px; /* 右側の編集パネル分の余白 */
       min-width: calc(100vw - 800px);
-      box-sizing: border-box;
+      box-init: border-box;
       z-index: 10;
     }
     .preview-container {
