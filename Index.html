@@ -2339,6 +2339,9 @@
       updateControlsUI();
       updateMethodUI();
       renderAllSlots();
+
+      // ★追加：選択したラベル枠に向かってプレビューを自動スクロール・フォーカスする
+      scrollToEditingSlot(slotIdx);
     }
 
     function closeEditPanel() {
@@ -2941,6 +2944,26 @@ function copyToRemainingEmptySlots() {
       alert('残りの空白枠にコピーしました。');
     }
 
+    function scrollToEditingSlot(slotIdx) {
+      setTimeout(() => {
+        const cell = document.querySelector(`.label-cell[data-slot-index="${slotIdx}"]`);
+        const outerArea = document.getElementById('previewOuterArea');
+        if (!cell || !outerArea) return;
+
+        // コンテナ内でのセルの相対位置と中央配置の計算
+        const cellRect = cell.getBoundingClientRect();
+        const outerRect = outerArea.getBoundingClientRect();
+
+        const targetScrollLeft = outerArea.scrollLeft + (cellRect.left - outerRect.left) - (outerRect.width / 2) + (cellRect.width / 2);
+        const targetScrollTop = outerArea.scrollTop + (cellRect.top - outerRect.top) - (outerRect.height / 2) + (cellRect.height / 2);
+
+        outerArea.scrollTo({
+          left: Math.max(0, targetScrollLeft),
+          top: Math.max(0, targetScrollTop),
+          behavior: 'smooth'
+        });
+      }, 50); // 描画更新の完了を少し待ってから実行
+    }
   </script>
 </body>
 </html>
