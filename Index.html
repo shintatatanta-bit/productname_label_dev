@@ -2123,7 +2123,15 @@
       const hasCatClass = categoryText ? "has-category" : "no-category";
       let headerBarInner = `<span class="header-logo">matoil</span>`;
       if (categoryText) {
-        headerBarInner += `<span class="txt-cat">${escapeHtml(categoryText)}</span>`;
+        // ★修正: 17文字を超えたら、超過分に応じて長体（scaleX）を動的に計算して適用する
+        const maxNormalChars = 17;
+        let catTransform = 'translateY(-0.5px)';
+        if (categoryText.length > maxNormalChars) {
+          // 17文字を基準に縮小率を算出（最小限度 0.45 まで縮小）
+          const scaleVal = Math.max(0.45, maxNormalChars / categoryText.length);
+          catTransform = `scaleX(${scaleVal.toFixed(3)}) translateY(-0.5px)`;
+        }
+        headerBarInner += `<span class="txt-cat" style="transform: ${catTransform};">${escapeHtml(categoryText)}</span>`;
       }
 
       return `
