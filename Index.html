@@ -2074,14 +2074,13 @@
     }
 
     function buildLabelDesignHtml(data) {
-      // ★ 加熱タイプに応じて下部ピル（帯）の色クラスを動的に決定
       let pillClass = '';
       if (data.heatingType === 'cold' || data.heatingType === 'water') {
-        pillClass = 'pill-cold'; // 青色（冷たいまま・流水解凍）
+        pillClass = 'pill-cold';
       } else if (data.heatingType === 'doc' || data.heatingType === 'custom') {
-        pillClass = 'pill-green'; // 緑色（別紙資料参照・自由入力）
+        pillClass = 'pill-green';
       } else {
-        pillClass = ''; // 赤色（レンジ・湯煎などのデフォルト）
+        pillClass = '';
       }
 
       const validProds = (data.products || []).filter(p => p.trim() !== "");
@@ -2089,19 +2088,23 @@
       let linesHtml = '';
 
       validProds.forEach((p, idx) => {
-        const mainText = p.trim();
+        const mainText = p; // .trim() を外すことで、意図しない空白の削ぎ落としを防ぐ
         const subText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
         let subLinesHtml = '';
 
         if (mainText) {
-          // ★修正: 改行文字（\n）を <br> に変換し、CSSの white-space で改行を有効にする
-          const formattedMainText = escapeHtml(mainText).replace(/\r\n|\r|\n/g, '<br>');
-
-          subLinesHtml += `
-            <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
-              <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: pre-wrap; text-align: center; word-break: break-all;">${formattedMainText}</span>
-            </div>
-          `;
+          // ★修正: 改行文字（\n）で分割し、行ごとに独立した長体用ラッパーを生成する
+          const textLines = mainText.split(/\r\n|\r|\n/);
+          
+          textLines.forEach(line => {
+            const cleanLine = line.trim();
+            // 空行であっても高さを確保するため、スペース等に置換またはそのまま描画
+            subLinesHtml += `
+              <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
+                <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: nowrap; text-align: center;">${escapeHtml(cleanLine)}</span>
+              </div>
+            `;
+          });
         }
         if (subText) {
           const subFontSize = Math.max(5.0, typo.fontSizePt * 0.8);
