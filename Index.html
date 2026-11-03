@@ -904,26 +904,85 @@
     }
 
     @media print {
-      @page { margin: 0; }
-      body { background: white; margin: 0; padding: 0; }
-      .control-panel, .edit-side-panel, .modal-overlay { display: none !important; }
-      .main-workspace { display: block !important; margin: 0 !important; padding: 0 !important; }
-      .preview-outer { 
-        padding: 0 !important; 
-        margin: 0 !important;
-        min-width: auto !important;
-        overflow: visible !important; 
-        display: block !important; 
+      @page {
+        size: A4 portrait;
+        margin: 0;
       }
-      .preview-container { padding: 0 !important; margin: 0 !important; transform: none !important; zoom: 1 !important; display: block !important; }
-      .sheet-a4 { box-shadow: none !important; margin: 0 !important; }
-      .label-cell { border: none !important; cursor: default !important; }
-      .label-cell.empty-cell { background: transparent !important; }
+      body {
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .control-panel, .edit-side-panel, .modal-overlay, #customDragBadge, #globalHoverPreviewPopup {
+        display: none !important;
+      }
+      .main-workspace {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        position: static !important;
+        width: auto !important;
+        min-height: auto !important;
+      }
+      .preview-outer {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 210mm !important;
+        height: 297mm !important;
+        max-height: none !important;
+        overflow: visible !important;
+        display: block !important;
+        position: static !important;
+      }
+      .preview-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        transform: none !important;
+        zoom: 1 !important;
+        display: block !important;
+        width: 210mm !important;
+        height: 297mm !important;
+      }
+      .sheet-a4 {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        page-break-after: always;
+        overflow: hidden !important;
+      }
+      .label-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, 50.0mm) !important;
+        grid-template-rows: repeat(9, 30.0mm) !important;
+        column-gap: 0.0mm !important;
+        row-gap: 2.0mm !important;
+        width: 200.0mm !important;
+        height: 286.0mm !important;
+        margin: 5.5mm 5.0mm !important;
+      }
+      .label-cell {
+        border: none !important;
+        cursor: default !important;
+        width: 50.0mm !important;
+        height: 30.0mm !important;
+      }
+      .label-cell.empty-cell {
+        background: transparent !important;
+      }
       .label-cell.active-editing {
         outline: none !important;
         box-shadow: none !important;
+        background: transparent !important;
       }
-      .slot-num-badge, .cell-quick-del-btn { display: none !important; }
+      .slot-num-badge, .cell-quick-del-btn {
+        display: none !important;
+      }
     }
 
     /* 商品マスタ管理モーダル専用スタイル */
