@@ -2094,9 +2094,12 @@
         let subLinesHtml = '';
 
         if (mainText) {
+          // ★修正: 改行文字（\n）を <br> に変換し、CSSの white-space で改行を有効にする
+          const formattedMainText = escapeHtml(mainText).replace(/\r\n|\r|\n/g, '<br>');
+
           subLinesHtml += `
             <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
-              <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: nowrap; text-align: center;">${escapeHtml(mainText)}</span>
+              <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: pre-wrap; text-align: center; word-break: break-all;">${formattedMainText}</span>
             </div>
           `;
         }
