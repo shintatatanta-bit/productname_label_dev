@@ -395,6 +395,7 @@
       text-align: center;
       display: inline-block;
       transform-origin: center center;
+      white-space: nowrap; /* ★勝手な自動改行を禁止し、1行を死守する */
     }
 
     .pill-text {
@@ -2095,7 +2096,7 @@
         if (mainText) {
           subLinesHtml += `
             <div class="product-subline-wrapper" style="width: 100%; display: flex; justify-content: center; overflow: visible;">
-              <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: pre-wrap; text-align: center; word-break: break-all;">${escapeHtml(mainText)}</span>
+              <span class="card-product-line" style="font-size:${typo.fontSizePt}pt; font-weight:${typo.fontWeight}; white-space: nowrap; text-align: center;">${escapeHtml(mainText)}</span>
             </div>
           `;
         }
