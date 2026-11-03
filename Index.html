@@ -908,10 +908,13 @@
         size: A4 portrait;
         margin: 0;
       }
-      body {
+      html, body {
+        width: 210.0mm !important;
+        height: 297.0mm !important;
         background: white !important;
         margin: 0 !important;
         padding: 0 !important;
+        overflow: hidden !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
@@ -922,72 +925,46 @@
         display: block !important;
         margin: 0 !important;
         padding: 0 !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
+        min-height: 0 !important;
         position: static !important;
-        width: auto !important;
-        min-height: auto !important;
       }
-      .preview-outer {
-        padding: 0 !important;
+      .preview-outer { 
+        padding: 0 !important; 
         margin: 0 !important;
-        width: 210mm !important;
-        height: 297mm !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
         max-height: none !important;
-        overflow: hidden !important;
-        display: block !important;
-        position: static !important;
+        min-width: 0 !important;
+        overflow: hidden !important; 
+        display: block !important; 
       }
       .preview-container {
         padding: 0 !important;
         margin: 0 !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
         transform: none !important;
         zoom: 1 !important;
         display: block !important;
-        width: 210mm !important;
-        height: 297mm !important;
       }
       .sheet-a4 {
         box-shadow: none !important;
         margin: 0 !important;
         width: 210.0mm !important;
         height: 297.0mm !important;
-        position: absolute !important;
-        top: 0 !important;
-        left: 0 !important;
-        padding-top: 4.0mm !important;
-        padding-bottom: 4.0mm !important;
-        padding-left: 5.0mm !important;
-        padding-right: 5.0mm !important;
-        page-break-after: avoid !important;
-        break-after: avoid !important;
-        overflow: hidden !important;
+        padding: 5.5mm 5.0mm !important;
+        transform: none !important; /* ★重要: applyZoomで付与されたscale縮小を確実に無効化 */
       }
-      .label-grid {
-        display: grid !important;
-        grid-template-columns: repeat(4, 50.0mm) !important;
-        grid-template-rows: repeat(9, 30.0mm) !important;
-        column-gap: 0.0mm !important;
-        row-gap: 1.0mm !important; /* 行間を1.0mmに詰めて確実におさめる */
-        width: 200.0mm !important;
-        height: 282.0mm !important;
-        margin: 0 !important;
-      }
-      .label-cell {
-        border: none !important;
-        cursor: default !important;
-        width: 50.0mm !important;
-        height: 30.0mm !important;
-      }
-      .label-cell.empty-cell {
-        background: transparent !important;
-      }
+      .label-cell { border: none !important; cursor: default !important; }
+      .label-cell.empty-cell { background: transparent !important; }
       .label-cell.active-editing {
         outline: none !important;
         box-shadow: none !important;
-        background: transparent !important;
+        background-color: transparent !important;
       }
-      .slot-num-badge, .cell-quick-del-btn {
-        display: none !important;
-      }
+      .slot-num-badge, .cell-quick-del-btn { display: none !important; }
     }
 
     /* 商品マスタ管理モーダル専用スタイル */
@@ -1688,6 +1665,13 @@
 
       const activeEl = document.querySelector('.label-cell.active-editing');
       if (activeEl) activeEl.classList.remove('active-editing');
+
+      // ★修正: 現在のズーム倍率を退避し、印刷前に一時的に等倍(1.0)へ戻して長体を正確に再計算させる
+      const savedZoom = currentZoom;
+      currentZoom = 1.0;
+      applyZoom(false, false);
+      autoFitLongLines();
+
       const now = new Date();
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -1698,11 +1682,19 @@
       const fileName = `商品ラベル${yyyy}${mm}${dd}_${hh}${min}${ss}`;
       const originalTitle = document.title;
       document.title = fileName;
-      window.print();
+
+      // DOMの等倍レンダリングを確実に反映させてから印刷ダイアログを起動
       setTimeout(() => {
-        document.title = originalTitle;
-        if (activeEl && editingSlotIndex !== null) activeEl.classList.add('active-editing');
-      }, 1000);
+        window.print();
+        setTimeout(() => {
+          document.title = originalTitle;
+          // 印刷ダイアログ終了後、元のズーム倍率へ復元
+          currentZoom = savedZoom;
+          applyZoom(true, false);
+          autoFitLongLines();
+          if (activeEl && editingSlotIndex !== null) activeEl.classList.add('active-editing');
+        }, 500);
+      }, 150);
     }
 
     window.onload = function() {
