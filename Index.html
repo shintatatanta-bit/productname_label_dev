@@ -419,8 +419,8 @@
     <span id="badgeText">コピー</span>
   </div>
 
-<!-- ② 分離したJavaScriptをBodyの最後で読み込みます -->
-  <?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
-
+<!-- 例: 大文字・小文字を完全に一致させる -->
+<?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
 </body>
 </html>
