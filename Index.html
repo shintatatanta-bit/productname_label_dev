@@ -164,6 +164,14 @@
         </div>
       </div>
 
+<div style="margin-top: 6px;">
+        <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">🏷️ ラベル種類:</label>
+        <div class="choice-group">
+          <button type="button" class="btn-choice active" id="btnType_main" onclick="setLabelType('main')">本体ラベル</button>
+          <button type="button" class="btn-choice" id="btnType_outer" onclick="setLabelType('outer')">外袋ラベル</button>
+        </div>
+      </div>
+
       <div class="master-call-bar">
         <span style="font-size:11px; font-weight:bold; color:#1a73e8;">📁 セット一括呼出:</span>
         <select class="select-master-preset" id="selSetPresets" onchange="applySetPresetToCurrentSlot(this.value)">
