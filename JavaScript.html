@@ -1,0 +1,1487 @@
+<script>
+    let currentZoom = 1.0;
+    let editingSlotIndex = null;
+    let draggedSlotIndex = null;
+    let isDraggingActive = false;
+    let isFontSettingsOpen = false;
+    let draggedRowIndex = null;
+    let actualPreviewScale = 1.0;
+
+    let slotsData = Array(36).fill(null);
+    let stockItems = [];
+    let labelStockItems = []; // ★ 一時保管ラベル用の配列
+    let singleMasterItems = [];
+    let setMasterPresets = [];
+    let savedDraftList = [];
+    let synonymMasterGroups = [
+      ['鶏', '鳥', 'とり', 'トリ', 'チキン'],
+      ['豚', 'ぶた', 'ブタ', 'ポーク'],
+      ['牛', 'うし', 'ウシ', 'ビーフ'],
+      ['鮭', 'さけ', 'サケ', 'サーモン'],
+      ['鯖', 'さば', 'サバ'],
+      ['芋', 'いも', 'イモ', 'ポテト']
+    ];
+    
+    let currentDraftTitle = "";
+    let currentWorkerName = "未設定作業者";
+    let lastSavedJsonStr = "";
+    let autoSaveIntervalId = null;
+
+    function findMasterEnglishByJa(jaText) {
+      if (!jaText) return '';
+      const cleanJa = jaText.trim();
+      const matchedWithEn = singleMasterItems.find(
+        item => (item.nameJa === cleanJa || item.internalName === cleanJa) && item.nameEn
+      );
+      return matchedWithEn ? matchedWithEn.nameEn : '';
+    }
+
+    function printLabels() {
+      const confirmMsg = "【重要：印刷設定の確認】\n\n印刷ズレを防ぐため、次の印刷プレビュー画面で以下の2点を必ず確認してください。\n\n① 「余白」を【なし】にする\n② 「倍率」を【規定値】または【100%】にする\n\n確認して印刷プレビューに進みますか？";
+      if (!confirm(confirmMsg)) return;
+
+      const activeEl = document.querySelector('.label-cell.active-editing');
+      if (activeEl) activeEl.classList.remove('active-editing');
+
+      // ★修正: 現在のズーム倍率を退避し、印刷前に一時的に等倍(1.0)へ戻して長体を正確に再計算させる
+      const savedZoom = currentZoom;
+      currentZoom = 1.0;
+      applyZoom(false, false);
+      autoFitLongLines();
+
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      const fileName = `商品ラベル${yyyy}${mm}${dd}_${hh}${min}${ss}`;
+      const originalTitle = document.title;
+      document.title = fileName;
+
+      // DOMの等倍レンダリングを確実に反映させてから印刷ダイアログを起動
+      setTimeout(() => {
+        window.print();
+        setTimeout(() => {
+          document.title = originalTitle;
+          // 印刷ダイアログ終了後、元のズーム倍率へ復元
+          currentZoom = savedZoom;
+          applyZoom(true, false);
+          autoFitLongLines();
+          if (activeEl && editingSlotIndex !== null) activeEl.classList.add('active-editing');
+        }, 500);
+      }, 150);
+    }
+
+    window.onload = function() {
+      loadSpreadsheetMasters();
+      updateUsageCount();
+      renderAllSlots();
+      startAutoSaveTimer();
+      setTimeout(() => {
+        setZoom(0.8); // ★ 初期表示の拡大率を 80% (0.8) に設定
+      }, 50);
+    };
+
+    function loadSpreadsheetMasters() {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            singleMasterItems = (res && res.singleItems) ? res.singleItems : [];
+            setMasterPresets = (res && res.setPresets) ? res.setPresets : [];
+            savedDraftList = (res && res.savedDrafts) ? res.savedDrafts : [];
+            if (res && res.synonymGroups && res.synonymGroups.length > 0) {
+              synonymMasterGroups = res.synonymGroups;
+            }
+            populateSetDropdown();
+            populateDraftDropdown();
+            currentDraftTitle = "";
+            currentWorkerName = "未設定作業者";
+            updateWorkInfoBadge();
+            updateSaveStatusText('未保存', '#5f6368');
+          })
+          .withFailureHandler(function(err) {
+            console.error('マスタ取得エラー:', err);
+          })
+          .getMasterDataFromSpreadsheet();
+      }
+    }
+
+    function populateSetDropdown() {
+      const sel = document.getElementById('selSetPresets');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">-- セットを選択 --</option>';
+      setMasterPresets.forEach((s, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = `${s.setName} (${s.prodsJa.length}品)`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function updateWorkInfoBadge() {
+      const el = document.getElementById('lblCurrentWorkInfo');
+      if (!el) return;
+      const t = currentDraftTitle || '未設定';
+      const w = currentWorkerName || '未設定';
+      el.innerText = `📝 保存名: ${t} | 👤 作業者: ${w}`;
+    }
+
+    function updateSaveStatusText(text, color = '#5f6368') {
+      const el = document.getElementById('lblAutoSaveStatus');
+      if (!el) return;
+      el.innerText = text;
+      el.style.color = color;
+    }
+
+    function populateDraftDropdown() {
+      const sel = document.getElementById('selSavedDrafts');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">📂 保存データから再開...</option>';
+      savedDraftList.forEach((d, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        const workerStr = d.worker ? `👤${d.worker} | ` : '';
+        opt.textContent = `${d.title} (${workerStr}${d.count}枚 | ${d.updatedAt})`;
+        if (d.title === currentDraftTitle) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      updateWorkInfoBadge();
+    }
+
+    function startAutoSaveTimer() {
+      if (autoSaveIntervalId) clearInterval(autoSaveIntervalId);
+      autoSaveIntervalId = setInterval(function() {
+        if (!currentDraftTitle) return;
+        const usedCount = slotsData.filter(Boolean).length;
+        if (usedCount === 0) return;
+        executeSaveDraft(currentDraftTitle, currentWorkerName, true);
+      }, 60000);
+    }
+
+    function saveCurrentWorkDraft() {
+      const usedCount = slotsData.filter(Boolean).length;
+      if (usedCount === 0) {
+        alert('保存するラベルが1枚も作成されていません。');
+        return;
+      }
+      const defaultTitle = currentDraftTitle || (() => {
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        return `ラベル作業_${yyyy}${mm}${dd}`;
+      })();
+
+      const inputTitle = prompt('【1/2】保存名を確認・入力してください。', defaultTitle);
+      if (inputTitle === null) return;
+      const cleanTitle = inputTitle.trim();
+      if (!cleanTitle) return;
+
+      const inputWorker = prompt('【2/2】作業者名を確認・入力してください。', currentWorkerName !== "未設定作業者" ? currentWorkerName : '');
+      if (inputWorker === null) return;
+      const cleanWorker = inputWorker.trim() || '未設定';
+
+      executeSaveDraft(cleanTitle, cleanWorker, false);
+    }
+
+    function executeSaveDraft(cleanTitle, cleanWorker, isAutoSave = false) {
+      // ★修正: 空の枠（null）や未入力のデータを削ぎ落とし、有効なスロットのみをマップ形式で圧縮保存する
+      const compressedSlots = {};
+      slotsData.forEach((d, idx) => {
+        if (d && ((d.products && d.products.some(p => p.trim() !== "")) || (d.categoryText && d.categoryText.trim() !== ""))) {
+          compressedSlots[idx] = d;
+        }
+      });
+
+      const saveDataObj = {
+        slotsMap: compressedSlots,
+        stocks: stockItems,
+        labelStocks: labelStockItems
+      };
+      const jsonStr = JSON.stringify(saveDataObj);
+      if (isAutoSave && jsonStr === lastSavedJsonStr) return;
+
+      google.script.run
+        .withSuccessHandler(function(updatedList) {
+          savedDraftList = updatedList || [];
+          currentDraftTitle = cleanTitle;
+          currentWorkerName = cleanWorker;
+          lastSavedJsonStr = jsonStr;
+          populateDraftDropdown();
+          updateSaveStatusText('✓ 保存済', '#137333');
+          if (!isAutoSave) alert('保存しました。');
+        })
+        .withFailureHandler(err => alert('保存エラー: ' + err))
+        .saveDraftToSpreadsheet(cleanTitle, cleanWorker, jsonStr, slotsData.filter(Boolean).length);
+    }
+
+    function loadSelectedWorkDraft(idxStr) {
+      if (idxStr === "") return;
+      const draft = savedDraftList[Number(idxStr)];
+      if (!draft) return;
+
+      try {
+        const parsed = JSON.parse(draft.jsonStr);
+        let parsedStocks = Array.isArray(parsed.stocks) ? parsed.stocks : [];
+        let parsedLabelStocks = Array.isArray(parsed.labelStocks) ? parsed.labelStocks : [];
+
+        let parsedSlots = Array(36).fill(null);
+
+        // ★修正: 新しい圧縮マップ形式（slotsMap）と、従来の配列形式（slots または配列直下）の両方に対応する互換処理
+        if (parsed.slotsMap) {
+          Object.keys(parsed.slotsMap).forEach(idxStrKey => {
+            const idx = parseInt(idxStrKey, 10);
+            const item = parsed.slotsMap[idxStrKey];
+            if (idx >= 0 && idx < 36 && item && typeof item === 'object') {
+              let prods = Array.isArray(item.products) ? item.products : [item.product || ""];
+              parsedSlots[idx] = {
+                categoryText: item.categoryText || "",
+                products: prods.map(p => String(p || "")),
+                subProducts: Array.isArray(item.subProducts) ? item.subProducts : prods.map(() => ""),
+                productsAlt: Array.isArray(item.productsAlt) ? item.productsAlt : prods.map(() => ""),
+                fontScale: item.fontScale || "normal",
+                customFontPt: item.customFontPt !== undefined ? item.customFontPt : 10.0,
+                marginPreset: item.marginPreset || "normal",
+                customMarginY: item.customMarginY !== undefined ? item.customMarginY : 0.55,
+                fontWeight: item.fontWeight || "700",
+                heatingType: item.heatingType || "microwave",
+                methodMin: item.methodMin !== undefined ? item.methodMin : "2",
+                methodSec: item.methodSec !== undefined ? item.methodSec : "",
+                methodText: item.methodText || "レンジ 600W で 2分温め",
+                methodType: item.methodType || "warm"
+              };
+            }
+          });
+        } else {
+          let rawSlots = Array.isArray(parsed) ? parsed : (parsed.slots || []);
+          rawSlots.forEach((item, idx) => {
+            if (idx < 36 && item && typeof item === 'object') {
+              let prods = Array.isArray(item.products) ? item.products : [item.product || ""];
+              parsedSlots[idx] = {
+                categoryText: item.categoryText || "",
+                products: prods.map(p => String(p || "")),
+                subProducts: Array.isArray(item.subProducts) ? item.subProducts : prods.map(() => ""),
+                productsAlt: Array.isArray(item.productsAlt) ? item.productsAlt : prods.map(() => ""),
+                fontScale: item.fontScale || "normal",
+                customFontPt: item.customFontPt !== undefined ? item.customFontPt : 10.0,
+                marginPreset: item.marginPreset || "normal",
+                customMarginY: item.customMarginY !== undefined ? item.customMarginY : 0.55,
+                fontWeight: item.fontWeight || "700",
+                heatingType: item.heatingType || "microwave",
+                methodMin: item.methodMin !== undefined ? item.methodMin : "2",
+                methodSec: item.methodSec !== undefined ? item.methodSec : "",
+                methodText: item.methodText || "レンジ 600W で 2分温め",
+                methodType: item.methodType || "warm"
+              };
+            }
+          });
+        }
+
+        slotsData = parsedSlots;
+        stockItems = parsedStocks;
+        labelStockItems = parsedLabelStocks;
+        currentDraftTitle = draft.title;
+        currentWorkerName = draft.worker || '未設定';
+        lastSavedJsonStr = draft.jsonStr;
+
+        closeEditPanel();
+        updateUsageCount();
+        renderStockList();
+        renderLabelStockList();
+        renderAllSlots();
+      } catch (e) {
+        alert('読込エラー: ' + e.message);
+      }
+    }
+
+    function deleteSelectedWorkDraft() {
+      const sel = document.getElementById('selSavedDrafts');
+      if (!sel || sel.value === "") return;
+      const draft = savedDraftList[Number(sel.value)];
+      if (!draft || !confirm(`「${draft.title}」を削除しますか？`)) return;
+
+      google.script.run
+        .withSuccessHandler(updatedList => {
+          savedDraftList = updatedList || [];
+          populateDraftDropdown();
+        })
+        .deleteDraftFromSpreadsheet(draft.title);
+    }
+
+    function applySetPresetToCurrentSlot(idxStr) {
+      if (idxStr === "") return;
+      if (editingSlotIndex === null) editingSlotIndex = 0;
+
+      const s = setMasterPresets[Number(idxStr)];
+      if (!s) return;
+
+      const prods = [...s.prodsJa];
+      slotsData[editingSlotIndex] = {
+        categoryText: "",
+        products: prods,
+        subProducts: prods.map(() => ""),
+        productsAlt: prods.map(() => ""),
+        fontScale: "normal",
+        customFontPt: 10.0,
+        marginPreset: "normal",
+        customMarginY: 0.55,
+        fontWeight: "700",
+        heatingType: "microwave",
+        methodMin: "2",
+        methodSec: "",
+        methodText: s.methodText,
+        methodType: "warm"
+      };
+
+      openEditPanel(editingSlotIndex);
+      updateUsageCount();
+      renderAllSlots();
+    }
+
+    function onSelectSingleMasterItem(rowIdx, selectedVal) {
+      if (editingSlotIndex === null || !selectedVal) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+
+      const matched = singleMasterItems.find(item => item.nameJa === selectedVal || item.internalName === selectedVal);
+      if (!matched) return;
+
+      data.products[rowIdx] = matched.nameJa;
+      renderProductInputFields(data.products);
+      renderAllSlots();
+    }
+
+    function selectHeatingMethod(methodKey) {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+
+      data.heatingType = methodKey;
+      
+      if (methodKey === 'cold') {
+        data.methodType = 'cold';
+        data.methodText = '冷たいまま';
+      } else if (methodKey === 'doc') {
+        data.methodType = 'warm';
+        data.methodText = '別紙資料参照';
+      } else if (methodKey === 'custom') {
+        data.methodType = 'warm';
+        data.methodText = ''; // ★ 自由入力の場合は枠内の文字を空欄にする
+      } else {
+        // microwave, boil, water
+        data.methodType = 'warm';
+        rebuildMethodTextFromState(data);
+      }
+      
+      updateMethodUI();
+      renderAllSlots();
+    }
+
+    function updateMethodUI() {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+
+      const methodKey = data.heatingType || 'microwave';
+      
+      // 各ボタンに紐付く固有の配色クラス定義
+      const btnColorClasses = {
+        microwave: 'warm-2',
+        boil: 'warm-2',
+        water: 'water',
+        cold: 'cold',
+        doc: 'doc',
+        custom: 'custom'
+      };
+
+      // 各ボタンのクラスを正しく再構築（配色クラスを維持しつつ active を切り替え）
+      ['microwave', 'boil', 'water', 'cold', 'doc', 'custom'].forEach(k => {
+        const btn = document.getElementById(`mBtn_${k}`);
+        if (btn) {
+          const colorClass = btnColorClasses[k];
+          if (k === methodKey) {
+            btn.className = `btn-method-choice ${colorClass} active`;
+          } else {
+            btn.className = `btn-method-choice ${colorClass}`;
+          }
+        }
+      });
+
+      // ★ 時間入力欄の表示制御（cold, doc, custom の場合は非表示、それ以外は表示）
+      const timeWrap = document.getElementById('methodTimeInputWrap');
+      if (timeWrap) {
+        timeWrap.style.display = (methodKey === 'cold' || methodKey === 'doc' || methodKey === 'custom') ? 'none' : 'flex';
+      }
+
+      document.getElementById('inputMethodMin').value = data.methodMin || '';
+      document.getElementById('inputMethodSec').value = data.methodSec || '';
+      document.getElementById('inputCustomMethod').value = data.methodText || '';
+    }
+
+    function rebuildMethodTextFromState(data) {
+      const dur = buildDurationString(data.methodMin, data.methodSec);
+      if (data.heatingType === 'boil') {
+        data.methodText = dur ? `湯煎で ${dur}温め` : '湯煎で温め';
+      } else if (data.heatingType === 'water') {
+        data.methodText = dur ? `流水解凍で ${dur}` : '流水解凍';
+      } else if (data.heatingType === 'doc') {
+        data.methodText = '別紙参照';
+      } else if (data.heatingType === 'microwave') {
+        data.methodText = dur ? `レンジ 600W で ${dur}温め` : 'レンジ 600W で温め';
+      }
+    }
+
+    function sanitizeHalfWidthDigits(str) {
+      if (!str) return '';
+      return String(str).replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/[^0-9]/g, '');
+    }
+
+    function onSplitTimeInput() {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data || data.heatingType === 'cold') return;
+
+      data.methodMin = sanitizeHalfWidthDigits(document.getElementById('inputMethodMin').value);
+      data.methodSec = sanitizeHalfWidthDigits(document.getElementById('inputMethodSec').value);
+
+      rebuildMethodTextFromState(data);
+      renderAllSlots();
+    }
+
+
+
+    function buildDurationString(minStr, secStr) {
+      const m = parseInt(minStr, 10) || 0;
+      const s = parseInt(secStr, 10) || 0;
+      let ja = '';
+      if (m > 0 && s > 0) ja = `${m}分${s}秒`;
+      else if (m > 0) ja = `${m}分`;
+      else if (s > 0) ja = `${s}秒`;
+      return ja;
+    }
+
+    
+
+    function onCustomMethodInput(val) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].methodText = val;
+      renderAllSlots();
+    }
+
+    
+
+    function toggleMethodLanguage() {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+      data.methodText = data.methodText.includes('Microwave') ? 'レンジ 600W で 2分温め' : 'Microwave 600W for 2 min';
+      renderAllSlots();
+    }
+
+    function deleteCurrentSlot() {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex] = null;
+      closeEditPanel();
+    }
+
+    function quickDeleteSlot(e, slotIdx) {
+      if (e) e.stopPropagation();
+      slotsData[slotIdx] = null;
+      if (editingSlotIndex === slotIdx) closeEditPanel();
+      else { updateUsageCount(); renderAllSlots(); }
+    }
+
+    function clearSingleProductRow(idx) {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data || !data.products) return;
+      data.products[idx] = '';
+      if (data.subProducts) data.subProducts[idx] = '';
+      renderProductInputFields(data.products);
+      renderAllSlots();
+    }
+
+    function updateUsageCount() {
+      const used = slotsData.filter(d => d && ((d.products && d.products.some(p => p.trim() !== "")) || (d.categoryText && d.categoryText.trim() !== ""))).length;
+      document.getElementById('lblTotalUsage').innerText = `作成中: ${used} / 36枚`;
+    }
+
+    async function toggleAllProductsLanguage() {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data || !data.products) return;
+
+      for (let i = 0; i < data.products.length; i++) {
+        const cur = data.products[i];
+        if (cur && !data.productsAlt[i]) {
+          data.productsAlt[i] = await translateTextToEnglish(cur);
+        }
+        if (data.productsAlt[i]) {
+          data.products[i] = data.productsAlt[i];
+          data.productsAlt[i] = cur;
+        }
+      }
+      renderProductInputFields(data.products);
+      renderAllSlots();
+    }
+
+    async function translateTextToEnglish(text) {
+      try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=ja&tl=en&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        return json[0].map(item => item[0]).join('');
+      } catch (e) {
+        return text;
+      }
+    }
+
+    function getEffectiveFontSettings(data) {
+      return { fontSizePt: data.customFontPt || 10.0, marginY: data.customMarginY || 0.55, fontWeight: data.fontWeight || '700' };
+    }
+
+    function buildLabelDesignHtml(data) {
+      const validProds = (data.products || []).filter(p => p.trim() !== "");
+      const typo = getEffectiveFontSettings(data);
+      let linesHtml = '';
+
+      // ユーザー設定のウェイト（太字/細字）を反映
+      const mainWeight = typo.fontWeight;
+
+      validProds.forEach((p, idx) => {
+        const mainText = p;
+        const subText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
+        let subLinesHtml = '';
+
+        if (mainText) {
+          const textLines = mainText.split(/\r\n|\r|\n/);
+          textLines.forEach(line => {
+            const cleanLine = line.trim();
+            subLinesHtml += `
+              <div class="product-subline-wrapper">
+                <span class="card-product-line item-name" style="font-size:${typo.fontSizePt}pt; font-weight:${mainWeight};">${escapeHtml(cleanLine)}</span>
+              </div>
+            `;
+          });
+        }
+        if (subText) {
+          // サブテキストはメインの文字サイズより少し小さめ（デザインの7pt基準に対応）
+          const subFontSize = Math.max(5.0, typo.fontSizePt * 0.7);
+          subLinesHtml += `
+            <div class="product-subline-wrapper">
+              <div class="card-product-line item-sub" style="font-size:${subFontSize.toFixed(1)}pt;">
+                <span class="weight-light">[</span> 
+                <span class="weight-bold">${escapeHtml(subText)}</span> 
+                <span class="weight-light">]</span>
+              </div>
+            </div>
+          `;
+        }
+        if (subLinesHtml) {
+          linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
+        }
+      });
+
+      const categoryText = data.categoryText || ""; 
+      let catTransform = 'none';
+      if (categoryText) {
+        const maxNormalChars = 17;
+        if (categoryText.length > maxNormalChars) {
+          const scaleVal = Math.max(0.45, maxNormalChars / categoryText.length);
+          catTransform = `scaleX(${scaleVal.toFixed(3)})`;
+        }
+      }
+
+      // SVGロゴ定義
+      const svgLogo = `
+        <svg class="header-logo-svg" viewBox="0 0 279.1858 83.4017" xmlns="http://www.w3.org/2000/svg">
+          <path d="M76.7013,82.3988h-8.1092v-.6897c0-10.482.0116-20.964-.0067-31.446-.0059-3.3459-.3646-6.6518-1.5813-9.8114-1.1515-2.9903-2.9451-5.4554-6.013-6.8012-4.4946-1.9715-9.9481-.9397-13.5275,2.5128-3.2622,3.1465-4.8511,6.9807-4.8557,11.4524-.0116,11.3339-.0038,22.6678-.0038,34.0017v.7634h-8.128c0-.2496,0-.4849,0-.7202,0-11.2598.0163-22.5197-.0109-33.7794-.0073-3.0016-.489-5.9387-1.7886-8.6909-1.6742-3.5455-4.3634-5.8469-8.3857-6.4026-3.7666-.5204-7.0827.5726-9.9327,2.9781-3.6753,3.102-5.5275,7.1167-5.8473,11.8416-.0399.5902-.0395,1.1837-.0396,1.7757-.0022,10.7413-.0016,21.4825-.0016,32.2238v.7919H.4228c-.2386-18.3832.321-36.7584-.4228-55.151h7.1329c.1735,2.9712.3456,5.9198.5179,8.8703.4533.2151.6505-.0148.8522-.3545,1.784-3.005,4.0081-5.6444,7.1534-7.3111,5.7796-3.0625,11.709-3.5243,17.6087-.3457,3.454,1.8609,5.6639,4.848,7.0892,8.4201.0137.0343.0131.0775.0344.105.1249.1607.2544.3179.3824.4762.1577-.1308.3524-.2359.4673-.3965.9618-1.3446,1.8196-2.7715,2.8756-4.039,5.5585-6.6718,14.5465-7.9675,20.8849-5.5528,4.7115,1.795,7.7411,5.226,9.5921,9.755,1.3055,3.1943,1.8978,6.5408,2.0217,9.9632.0898,2.478.0827,4.9601.085,7.4404.0088,9.1115.0035,18.2229.0035,27.3344v.786Z"/>
+          <path d="M206.0447,82.9916c-5.4057-.1707-10.49-1.3246-15.039-4.3413-5.046-3.3462-8.2636-8.0675-10.1399-13.7497-1.5905-4.8169-2.0155-9.7648-1.4924-14.8013.5183-4.9906,1.9625-9.6744,4.7553-13.8755,4.0819-6.1403,9.846-9.673,17.1021-10.7741,5.0204-.7618,9.982-.4611,14.7835,1.2702,6.928,2.498,11.631,7.3455,14.4644,14.0627,2.176,5.1585,2.8367,10.5632,2.4095,16.1173-.4059,5.2762-1.8578,10.2264-4.7693,14.6827-3.8413,5.8794-9.2756,9.4197-16.1525,10.7084-1.9491.3653-3.9463.4741-5.9215.7005ZM224.504,55.1873c-.0245-3.435-.3628-6.7155-1.2303-9.9272-1.1612-4.2995-3.0741-8.1776-6.3696-11.2746-5.2718-4.9542-13.4318-5.8453-19.642-2.1216-4.3677,2.6189-6.9621,6.6012-8.2562,11.3908-1.4419,5.3363-1.6251,10.8043-.7705,16.2628.6516,4.162,2.1188,8.0475,4.5348,11.5414,4.8395,6.9989,12.524,8.5981,19.1048,6.3808,4.8247-1.6256,8.0544-5.0352,10.1501-9.5826,1.8685-4.0544,2.4531-8.368,2.479-12.67Z"/>
+          <path d="M137.7213,73.2031c.9598.7371,1.8961,1.4561,2.9207,2.243-.8211,1.0884-1.5921,2.1837-2.4394,3.2166-1.3467,1.6418-2.8578,3.1082-4.834,3.9921-1.603.717-3.2819.9147-5.008.6064-1.8697-.334-3.2518-1.3901-4.0764-3.0719-.5862-1.1956-1.0009-2.4752-1.5131-3.77-.2615.1424-.5916.3205-.9202.5015-3.5186,1.9388-7.0736,3.8063-10.9348,4.9835-5.0522,1.5403-10.1521,1.8691-15.2251.1702-4.7947-1.6057-8.3264-4.6474-9.6886-9.6558-1.3846-5.0908-.2338-9.7533,3.0355-13.8642,2.7027-3.3984,6.3036-5.5454,10.2918-7.096,3.7037-1.44,7.5639-2.3113,11.4804-2.8709,3.8932-.5563,7.8131-.9261,11.7212-1.3786.199-.023.3971-.0543.6639-.0912,0-.5193.0168-1.0327-.003-1.5447-.0745-1.9258-.1313-3.8529-.2497-5.7761-.1845-2.9963-1.8507-5.0589-4.3036-6.5718-1.8494-1.1407-3.9115-1.651-6.0522-1.8406-2.8216-.2499-5.6181-.1396-8.3314.7844-.4355.1483-.8627.33-1.2767.5313-2.3063,1.1216-3.5457,2.9536-3.8026,5.5206-.127,1.2687-.3071,2.5706-.7287,3.7637-1.1181,3.1648-5.1467,4.3695-7.8767,2.4137-1.7847-1.2785-2.2408-3.12-1.9317-5.1823.4119-2.7486,2.0402-4.7578,4.1316-6.4312,2.8298-2.2642,6.1073-3.6045,9.6017-4.4163,6.1779-1.4352,12.3424-1.4167,18.4494.4074,2.6054.7782,5.0113,1.9611,6.9696,3.9054,2.0006,1.9863,3.1852,4.3851,3.3437,7.2085.2138,3.8083.4362,7.6204.48,11.4328.077,6.7116.0109,13.4247.0315,20.1371.0037,1.201.0631,2.4119.2283,3.6.2271,1.6326,1.5543,2.2068,2.9556,1.3044.5138-.3309.9572-.7945,1.3689-1.2547.5328-.5955,1.0016-1.2482,1.5219-1.9065ZM123.2156,51.105c-.3049,0-.5453-.0282-.7772.0042-3.3977.475-6.8121.8592-10.1862,1.4663-3.5371.6365-6.8825,1.8811-9.9376,3.8267-5.3839,3.4287-7.1508,8.5723-6.0039,14.0102.893,4.2338,3.9717,7.1452,8.1898,7.7572,2.3799.3453,4.723-.0686,7.0157-.7406,4.0252-1.1798,7.6465-3.2068,11.2159-5.3463.3808-.2282.4942-.4809.4932-.9109-.014-6.471-.0097-12.942-.0097-19.413v-.6538Z"/>
+          <path d="M174.2555,71.3361c.8121.9742,1.5395,1.8468,2.2943,2.7524-2.825,3.1082-5.5731,6.2627-9.5347,7.9174-3.3194,1.3865-6.7464,1.417-10.1321.2748-3.335-1.1251-5.2944-3.6378-6.4288-6.8677-1.0321-2.9385-1.3145-5.9967-1.3205-9.0789-.0218-11.0937-.0086-22.1875-.0086-33.2813,0-.2375,0-.4751,0-.7693h-8.6903v-3.4176c1.6776-.3997,3.3409-.6913,4.9338-1.2022,1.942-.6228,3.7462-1.6754,4.9092-3.3444,1.4704-2.1101,2.7309-4.3776,3.3161-6.9537.5139-2.2624.789-4.5461.8976-6.8567.0092-.1966.0378-.3923.0634-.6481,1.1055.112,2.169.2198,3.2979.3342v18.4755h17.183v3.5841h-17.1313c-.0139.2643-.0348.4765-.0348.6888-.0015,10.933-.0088,21.866.0054,32.799.0026,2.012.1827,4.0121.7853,5.9503,1.0142,3.2625,2.9471,4.8504,6.2046,5.0055,1.8383.0875,3.5884-.3916,5.0596-1.4678,1.4336-1.0488,2.7118-2.3103,4.0526-3.4849.1016-.089.1582-.2292.2782-.4095Z"/>
+          <path d="M264.9051,3.8299h8.562v.7971c0,22.49-.0062,44.9799.0227,67.4699.0011.8964.2225,1.8361.545,2.6775.3949,1.0301,1.2906,1.4969,2.4123,1.4442.5003-.0235.9996-.0699,1.5861-.1122.3731,2.0889.752,4.2104,1.1526,6.4531-.8418.1863-1.6463.4066-2.4651.5368-1.6985.2699-3.4047.2798-5.0933-.0803-3.192-.6807-5.1582-2.7132-5.9684-5.7882-.4256-1.6153-.7194-3.3191-.7228-4.9837-.0463-22.5904-.0311-45.1808-.0311-67.7713v-.6429Z"/>
+          <path d="M251.8078,81.9916h-8.2243V24.0555h8.2243v57.936Z"/>
+          <path d="M247.7311,0c2.6766.0081,4.8596,2.304,4.8428,5.0934-.0165,2.739-2.2279,5.0117-4.8808,5.0159-2.7627.0044-5.0277-2.2928-5.0122-5.0835C242.6965,2.2123,244.928-.0084,247.7311,0Z"/>
+        </svg>
+      `;
+
+      return `
+        <div class="design-card">
+          <div class="label-header">
+            ${svgLogo}
+            <span class="header-sub" style="transform: ${catTransform};">${escapeHtml(categoryText)}</span>
+          </div>
+          
+          <div class="body-content-center">
+            ${linesHtml}
+          </div>
+
+          <div class="body-footer">
+            <div class="green-line"></div>
+            <div class="footer-instruction">${escapeHtml(data.methodText)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAllSlots() {
+      const container = document.getElementById('sheetsContainer');
+      container.innerHTML = '';
+      const sheet = document.createElement('div');
+      sheet.className = 'sheet-a4';
+      const grid = document.createElement('div');
+      grid.className = 'label-grid';
+
+      for (let i = 0; i < 36; i++) {
+        const cell = document.createElement('div');
+        const data = slotsData[i];
+        const hasData = Boolean(data && ((data.products && data.products.some(p => p.trim() !== "")) || (data.categoryText && data.categoryText.trim() !== "")));
+
+        let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
+        if (i === editingSlotIndex) cellClass += ' active-editing';
+        cell.className = cellClass;
+        cell.dataset.slotIndex = i;
+        cell.draggable = hasData;
+
+        cell.ondragstart = function(e) {
+          draggedSlotIndex = i;
+          isDraggingActive = true;
+          cell.classList.add('is-dragging');
+          e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'slotMove', index: i }));
+          e.dataTransfer.effectAllowed = 'copyMove';
+          document.getElementById('customDragBadge').style.display = 'inline-flex';
+        };
+
+        cell.ondragend = function(e) {
+          cell.classList.remove('is-dragging');
+          document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
+          draggedSlotIndex = null;
+          setTimeout(() => { isDraggingActive = false; }, 100);
+          document.getElementById('customDragBadge').style.display = 'none';
+        };
+
+        cell.ondragover = function(e) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = e.ctrlKey ? 'copy' : 'move';
+          cell.classList.add('drag-over');
+        };
+
+        cell.ondragleave = function() { cell.classList.remove('drag-over'); };
+
+        cell.ondrop = function(e) {
+          e.preventDefault();
+          cell.classList.remove('drag-over');
+
+          const rawData = e.dataTransfer.getData('text/plain');
+          if (!rawData) return;
+          console.log('プレビュー枠ドロップ検知 - 生データ:', rawData);
+
+          let parsed = null;
+          try { 
+            parsed = JSON.parse(rawData); 
+          } catch(err) { 
+            parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; 
+          }
+
+          console.log('パース後データタイプ:', parsed.type);
+
+          // 1. ラベルストックからのドロップ処理
+          if (parsed.type === 'labelStockItem') {
+            const stockIndex = parsed.stockIndex;
+            const stockItem = labelStockItems[stockIndex];
+            console.log('取得したラベルストックアイテム:', stockItem);
+            if (stockItem) {
+              slotsData[i] = JSON.parse(JSON.stringify(stockItem));
+              updateUsageCount();
+              renderAllSlots();
+              openEditPanel(i);
+            }
+            return;
+          }
+          
+          // 2. 料理名ストックからのドロップ処理
+          if (parsed.type === 'stockItem') {
+            const stockName = parsed.value;
+            console.log('料理名ストックからのドロップ検知:', stockName);
+            
+            // 枠が空、または有効な品目がまだ入っていない場合は、そのまま品目1として登録
+            if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
+              slotsData[i] = {
+                categoryText: "",
+                products: [stockName],
+                subProducts: [""],
+                productsAlt: [""],
+                fontScale: "normal",
+                customFontPt: 10.0,
+                marginPreset: "normal",
+                customMarginY: 0.55,
+                fontWeight: "700",
+                heatingType: "microwave",
+                methodMin: "2",
+                methodSec: "",
+                methodText: "レンジ 600W で 2分温め",
+                methodType: "warm"
+              };
+              updateUsageCount();
+              renderAllSlots();
+              openEditPanel(i);
+            } else {
+              // すでに品目が入っている場合は、結合か新規追加かを選択するモーダルを起動
+              openStockDropChoiceModal(i, stockName);
+            }
+            return;
+          }
+
+          // 3. ラベル枠同士の移動（スロット移動・コピー）処理
+          if (parsed.type === 'slotMove') {
+            const sourceIdx = parsed.index;
+            if (sourceIdx !== null && sourceIdx !== i) {
+              if (e.ctrlKey) {
+                if (slotsData[sourceIdx]) slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
+              } else {
+                const temp = slotsData[i];
+                slotsData[i] = slotsData[sourceIdx];
+                slotsData[sourceIdx] = temp;
+                if (editingSlotIndex === sourceIdx) editingSlotIndex = i;
+                else if (editingSlotIndex === i) editingSlotIndex = sourceIdx;
+              }
+              updateUsageCount();
+              renderAllSlots();
+              if (editingSlotIndex !== null) openEditPanel(editingSlotIndex);
+            }
+            return;
+          }
+        };
+
+        cell.onclick = function() {
+          if (!isDraggingActive) openEditPanel(i);
+        };
+
+        let cellHtml = `<span class="slot-num-badge">#${i + 1}</span>`;
+        if (hasData) {
+          cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${i})">✕</button>`;
+          cellHtml += buildLabelDesignHtml(data);
+        }
+        cell.innerHTML = cellHtml;
+        grid.appendChild(cell);
+      }
+      sheet.appendChild(grid);
+      container.appendChild(sheet);
+      applyZoom(false, false); // ★ 再描画時はサイズ維持のみ行い、スクロール位置は動かさない
+      setTimeout(autoFitLongLines, 10);
+    }
+
+    function autoFitLongLines() {
+      document.querySelectorAll('.design-card').forEach(card => {
+        const topBox = card.querySelector('.card-top-box');
+        if (!topBox) return;
+        const containerWidth = Math.max(50, topBox.clientWidth - 26);
+        topBox.querySelectorAll('.product-subline-wrapper').forEach(wrap => {
+          const span = wrap.querySelector('.card-product-line');
+          if (!span) return;
+          span.style.transform = 'none';
+          const w = span.scrollWidth;
+          if (w > containerWidth && containerWidth > 0) {
+            span.style.transform = `scaleX(${(containerWidth / w).toFixed(3)})`;
+          }
+        });
+      });
+    }
+
+    function openActualSizeModal() {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+      document.getElementById('actualLabelStage').innerHTML = buildLabelDesignHtml(data);
+      document.getElementById('actualSizeModal').style.display = 'flex';
+      setTimeout(autoFitLongLines, 10);
+    }
+
+    function closeActualSizeModal() { document.getElementById('actualSizeModal').style.display = 'none'; }
+
+    function openEditPanel(slotIdx) {
+      editingSlotIndex = slotIdx;
+      if (!slotsData[slotIdx]) {
+        slotsData[slotIdx] = {
+          categoryText: "",
+          products: [""],
+          subProducts: [""],
+          productsAlt: [""],
+          fontScale: "normal",
+          customFontPt: 10.0,
+          marginPreset: "normal",
+          customMarginY: 0.55,
+          fontWeight: "700",
+          heatingType: "microwave",
+          methodMin: "2",
+          methodSec: "",
+          methodText: "レンジ 600W で 2分温め",
+          methodType: "warm"
+        };
+      }
+      const data = slotsData[slotIdx];
+      document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
+      document.getElementById('inputCategoryText').value = data.categoryText || '';
+
+      const count = Math.max(1, Math.min(4, data.products.length));
+      highlightChoiceButton('btnCount', count);
+      renderProductInputFields(data.products);
+      updateControlsUI();
+      updateMethodUI();
+      renderAllSlots();
+
+      // ★追加：選択したラベル枠に向かってプレビューを自動スクロール・フォーカスする
+      scrollToEditingSlot(slotIdx);
+    }
+
+    function closeEditPanel() {
+      if (editingSlotIndex !== null) {
+        const d = slotsData[editingSlotIndex];
+        if (d && !d.products.some(p => p.trim() !== "") && !d.categoryText.trim() && !d.methodText) {
+          slotsData[editingSlotIndex] = null;
+        }
+      }
+      editingSlotIndex = null;
+      updateUsageCount();
+      renderAllSlots();
+    }
+
+    function toggleFontSettings() {
+      isFontSettingsOpen = !isFontSettingsOpen;
+      document.getElementById('fontCustomSection').classList.toggle('show', isFontSettingsOpen);
+    }
+
+    function setProductCount(count) {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+
+      const newProds = [], newSubs = [], newAlts = [];
+      for (let i = 0; i < count; i++) {
+        newProds.push(data.products[i] || "");
+        newSubs.push(data.subProducts[i] || "");
+        newAlts.push(data.productsAlt[i] || "");
+      }
+      data.products = newProds;
+      data.subProducts = newSubs;
+      data.productsAlt = newAlts;
+
+      highlightChoiceButton('btnCount', count);
+      renderProductInputFields(newProds);
+      renderAllSlots();
+    }
+
+    function setFontWeight(w) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].fontWeight = w;
+      document.getElementById('btnWeight_bold').className = w === '700' ? 'btn-choice active' : 'btn-choice';
+      document.getElementById('btnWeight_light').className = w === '400' ? 'btn-choice active' : 'btn-choice';
+      renderAllSlots();
+    }
+
+    function setFontScale(scaleKey) {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      data.fontScale = scaleKey;
+      data.customFontPt = scaleKey === 'small' ? 8.0 : (scaleKey === 'xsmall' ? 6.0 : 10.0);
+      highlightChoiceButton('btnScale', scaleKey);
+      updateControlsUI();
+      renderAllSlots();
+    }
+
+    function onManualFontSizeSlider(val) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].customFontPt = parseFloat(val);
+      updateControlsUI();
+      renderAllSlots();
+    }
+
+    function setMarginPreset(key, val) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].customMarginY = val;
+      highlightChoiceButton('btnMargin', key);
+      updateControlsUI();
+      renderAllSlots();
+    }
+
+    function onManualMarginSlider(val) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].customMarginY = parseFloat(val);
+      updateControlsUI();
+      renderAllSlots();
+    }
+
+    function updateControlsUI() {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      const typo = getEffectiveFontSettings(data);
+      document.getElementById('lblCurrentPt').innerText = `${typo.fontSizePt} pt`;
+      document.getElementById('rangeFontPt').value = typo.fontSizePt;
+      document.getElementById('lblCurrentMargin').innerText = `${typo.marginY} mm`;
+      document.getElementById('rangeMargin').value = typo.marginY;
+    }
+
+    function highlightChoiceButton(prefix, currentKey) {
+      ['1','2','3','4','normal','small','xsmall','narrow','wide'].forEach(k => {
+        const btn = document.getElementById(`${prefix}_${k}`) || document.getElementById(`${prefix}${k}`);
+        if (btn) btn.className = (k == currentKey) ? 'btn-choice active' : 'btn-choice';
+      });
+    }
+
+    function renderProductInputFields(products) {
+      const container = document.getElementById('productInputsContainer');
+      container.innerHTML = '';
+      const data = slotsData[editingSlotIndex];
+      if (!data.subProducts) data.subProducts = products.map(() => "");
+
+      let singleOptionsHtml = '<option value="">＋ 単品マスタから選択</option>';
+      singleMasterItems.forEach(item => {
+        if (item.nameJa) singleOptionsHtml += `<option value="${escapeHtml(item.nameJa)}">${escapeHtml(item.nameJa)}</option>`;
+      });
+
+      products.forEach((val, idx) => {
+        const subVal = data.subProducts[idx] || "";
+        const row = document.createElement('div');
+        row.className = 'single-product-field';
+        row.innerHTML = `
+          <div class="field-top-row">
+            <span class="field-tag">品名 ${idx + 1}:</span>
+            <select class="select-single-item" onchange="onSelectSingleMasterItem(${idx}, this.value)">${singleOptionsHtml}</select>
+          </div>
+          <div class="field-input-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
+              <div class="input-suggest-wrapper">
+                <textarea class="input-prod-text" id="prodInput_${idx}" rows="1" placeholder="メイン品名" oninput="onSingleProductInput(${idx}, this)" oncompositionend="onSingleProductInput(${idx}, this)">${escapeHtml(val)}</textarea>
+              </div>
+              <button type="button" class="btn-clear-row" onclick="clearSingleProductRow(${idx})">✕</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
+              <span style="font-size: 10.5px; color: #666; width: 55px; text-align: right; flex-shrink: 0;">親料理名:</span>
+              <textarea class="input-prod-text" id="subInput_${idx}" rows="1" placeholder="親料理名" oninput="onSubProductInput(${idx}, this)" oncompositionend="onSubProductInput(${idx}, this)" style="font-size: 11.5px; min-height: 28px; background: #fafafa;">${escapeHtml(subVal)}</textarea>
+            </div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function sanitizeProductInput(text) {
+      if (!text) return '';
+      return String(text).replace(/[\u3000\u00A0]/g, ' ').replace(/（/g, '(').replace(/）/g, ')');
+    }
+
+    function onSingleProductInput(idx, el) {
+      if (editingSlotIndex === null) return;
+      const sanitized = sanitizeProductInput(el.value);
+      if (el.value !== sanitized) el.value = sanitized;
+      slotsData[editingSlotIndex].products[idx] = el.value;
+      renderAllSlots();
+    }
+
+    function onSubProductInput(idx, el) {
+      if (editingSlotIndex === null) return;
+      const sanitized = sanitizeProductInput(el.value);
+      if (el.value !== sanitized) el.value = sanitized;
+      if (!slotsData[editingSlotIndex].subProducts) slotsData[editingSlotIndex].subProducts = [];
+      slotsData[editingSlotIndex].subProducts[idx] = el.value;
+      renderAllSlots();
+    }
+
+    function onCategoryTextInput(val) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].categoryText = sanitizeProductInput(val).trim();
+      renderAllSlots();
+    }
+
+    function addStockItem() {
+      const input = document.getElementById('inputNewStockName');
+      if (!input || !input.value.trim()) return;
+      input.value.split('\n').forEach(line => {
+        const clean = sanitizeProductInput(line).trim();
+        if (clean && !stockItems.includes(clean)) stockItems.push(clean);
+      });
+      input.value = '';
+      renderStockList();
+    }
+
+    function renderStockList() {
+      const container = document.getElementById('stockListContainer');
+      document.getElementById('lblStockCount').innerText = `登録数: ${stockItems.length}件`;
+      if (stockItems.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#888; font-size:12px; padding:20px;">ストックはまだありません</div>';
+        return;
+      }
+      let html = '';
+      stockItems.forEach((item, idx) => {
+        html += `
+          <div draggable="true" ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'stockItem', value: '${escapeHtml(item)}' }))"
+               style="display:flex; justify-content:space-between; align-items:center; background:white; border:1.5px solid #ccc; padding:7px 10px; border-radius:5px; cursor:grab;">
+            <span style="font-size:12.5px; font-weight:bold; color:#333;">${escapeHtml(item)}</span>
+            <button type="button" class="btn-clear-row" onclick="stockItems.splice(${idx}, 1); renderStockList();">✕</button>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // --- ラベルストック関連の完全実装 ---
+    function switchStockTab(tabName) {
+      document.getElementById('btnTabMaster').classList.toggle('active', tabName === 'master');
+      document.getElementById('btnTabLabel').classList.toggle('active', tabName === 'label');
+      document.getElementById('paneMasterStock').classList.toggle('active', tabName === 'master');
+      document.getElementById('paneLabelStock').classList.toggle('active', tabName === 'label');
+      if (tabName === 'label') renderLabelStockList();
+    }
+
+    function clearAllLabels() {
+      console.log('=== clearAllLabels 実行開始 ===');
+      if (!confirm('本当にすべてのラベルをクリアしますか？')) {
+        return;
+      }
+      try {
+        if (editingSlotIndex !== null) {
+          closeEditPanel();
+        }
+        slotsData = Array(36).fill(null);
+        updateUsageCount();
+        renderAllSlots();
+        console.log('すべてのラベル枠をクリアしました。');
+      } catch (err) {
+        console.error('clearAllLabels 実行時エラー:', err);
+      }
+    }
+
+    function renderLabelStockList() {
+      const container = document.getElementById('labelStockListContainer');
+      document.getElementById('lblLabelStockCount').innerText = `保管数: ${labelStockItems.length}件`;
+      if (labelStockItems.length === 0) {
+        container.innerHTML = '<div style="text-align:center; color:#888; font-size:12px; padding:20px;">一時保管ラベルはまだありません<br>(ここに枠をD&D)</div>';
+        return;
+      }
+      let html = '';
+      labelStockItems.forEach((item, idx) => {
+        const labelHtml = buildLabelDesignHtml(item);
+        html += `
+          <div class="label-stock-card" draggable="true"
+               data-stock-idx="${idx}"
+               ondragstart="event.dataTransfer.setData('text/plain', JSON.stringify({ type: 'labelStockItem', stockIndex: ${idx} }));">
+            <button type="button" class="btn-clear-row" onclick="event.stopPropagation(); document.getElementById('globalHoverPreviewPopup').style.display='none'; labelStockItems.splice(${idx}, 1); renderLabelStockList();" 
+                    style="position: absolute; top: 2px; right: 2px; z-index: 5; padding: 1px 4px; font-size: 8px; background: rgba(255,255,255,0.8); border-radius: 3px;">✕</button>
+            <div style="width: 100%; display: flex; justify-content: center; align-items: center; overflow: hidden;">
+              ${labelHtml}
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+
+      // --- ホバー1秒タイマーのバインド処理 ---
+      const popup = document.getElementById('globalHoverPreviewPopup');
+      let hoverTimer = null;
+
+      container.querySelectorAll('.label-stock-card').forEach(card => {
+        card.addEventListener('mouseenter', function(e) {
+          const idx = parseInt(card.getAttribute('data-stock-idx'), 10);
+          const itemData = labelStockItems[idx];
+          if (!itemData) return;
+
+          // 既存のタイマーがあればクリア
+          if (hoverTimer) clearTimeout(hoverTimer);
+
+          // 1秒（1000ms）後にポップアップを表示
+          hoverTimer = setTimeout(() => {
+            popup.innerHTML = buildLabelDesignHtml(itemData);
+            
+            // マウスカーソルの位置、またはカードの近傍にポップアップを表示
+            const rect = card.getBoundingClientRect();
+            popup.style.left = (rect.right + 10) + 'px';
+            popup.style.top = rect.top + 'px';
+            popup.style.display = 'block';
+          }, 1000);
+        });
+
+        card.addEventListener('mouseleave', function() {
+          // マウスが外れたらタイマーを即座にキャンセルし、ポップアップを隠す
+          if (hoverTimer) clearTimeout(hoverTimer);
+          popup.style.display = 'none';
+        });
+      });
+    }
+
+    function handleLabelStockDrop(e) {
+      e.preventDefault();
+      console.log('=== handleLabelStockDrop 実行開始 ===');
+      try {
+        const raw = e.dataTransfer.getData('text/plain');
+        console.log('受信した生データ:', raw);
+        if (!raw) {
+          console.warn('データが空です');
+          return;
+        }
+
+        let parsed = null;
+        try {
+          parsed = JSON.parse(raw);
+        } catch (jsonErr) {
+          console.warn('JSONパース失敗、数値として処理します:', raw);
+          parsed = { type: 'slotMove', index: parseInt(raw, 10) };
+        }
+
+        console.log('パース結果:', parsed);
+
+        // プレビューのラベル枠（スロット）からドラッグされた場合
+        if (parsed.type === 'slotMove') {
+          const sourceIndex = parsed.index;
+          const slotData = slotsData[sourceIndex];
+          if (slotData) {
+            // 複製データを作成
+            const newStockItem = JSON.parse(JSON.stringify(slotData));
+
+            // ★ 同一のラベルがすでにラベルストック内に存在するかチェック
+            const isAlreadyExists = labelStockItems.some(item => {
+              return JSON.stringify(item) === JSON.stringify(newStockItem);
+            });
+
+            if (isAlreadyExists) {
+              alert('このラベルはすでにラベルストックに登録されています。');
+              return; // 登録を中断
+            }
+
+            // 1. ラベルストックに複製を追加
+            labelStockItems.push(newStockItem);
+            
+            // 2. 元のプレビュー枠をクリア（削除）
+            slotsData[sourceIndex] = null;
+            
+            // 3. 編集パネルが開いていた枠であれば閉じる
+            if (editingSlotIndex === sourceIndex) {
+              closeEditPanel();
+            }
+            
+            // 4. 画面全体（使用数・プレビュー・ストック一覧）を更新
+            updateUsageCount();
+            renderAllSlots();
+            renderLabelStockList();
+            
+            // 5. 自動でラベルストックタブに切り替える
+            switchStockTab('label');
+          }
+        }
+      } catch (err) {
+        console.error('handleLabelStockDrop 内部エラー:', err);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ▼ 修正後の完全復元されたズーム関数群
+    function onZoomSliderInput(val) {
+      currentZoom = parseFloat(val);
+      applyZoom(false);
+    }
+
+    function applyZoom(updateSlider = true, focusSelected = true) {
+      const container = document.getElementById('sheetsContainer');
+      if (!container) return;
+      const sheet = container.querySelector('.sheet-a4');
+      
+      // A4シート(210mm x 297mm)の実際の描画ピクセル寸法を取得（未描画時は標準値 794 x 1123）
+      const baseWidth = sheet ? sheet.offsetWidth : 794;
+      const baseHeight = sheet ? sheet.offsetHeight : 1123;
+      
+      // 外側のコンテナに「拡大後の実寸サイズ」を設定
+      container.style.width = Math.round(baseWidth * currentZoom) + 'px';
+      container.style.height = Math.round(baseHeight * currentZoom) + 'px';
+      container.style.transform = 'none';
+      container.style.marginLeft = 'auto';
+      container.style.marginRight = 'auto';
+
+      // 内側のA4シート自体を「左上起点(0, 0)」で拡大縮小する
+      if (sheet) {
+        sheet.style.transformOrigin = 'top left';
+        sheet.style.transform = `scale(${currentZoom.toFixed(3)})`;
+      }
+      
+      document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
+
+      if (updateSlider) {
+        const slider = document.getElementById('zoomRangeInput');
+        if (slider) slider.value = currentZoom;
+      }
+
+      // ★ ズーム変更時、選択中のラベルがあればそのラベルが中央に来るように即座にスクロールを追従させる
+      if (focusSelected && editingSlotIndex !== null) {
+        scrollToEditingSlot(editingSlotIndex, false);
+      }
+    }
+
+    function changeZoom(delta) { 
+      currentZoom = Math.min(2.0, Math.max(0.3, currentZoom + delta)); 
+      applyZoom(); 
+    }
+    
+    function setZoom(val) { 
+      currentZoom = Math.min(2.0, Math.max(0.3, val)); 
+      applyZoom(); 
+    }
+    
+    function fitPage() {
+      const outerArea = document.getElementById('previewOuterArea');
+      const headerH = document.getElementById('topControlPanel').offsetHeight || 90;
+      const availableW = (outerArea ? outerArea.clientWidth : (window.innerWidth - 800));
+      const availableH = window.innerHeight - headerH - 40;
+      const fitScale = Math.min(availableW / 794, availableH / 1123);
+      setZoom(Math.max(0.35, fitScale));
+    }
+
+    window.addEventListener('keydown', e => { if (e.key === 'Control' || e.ctrlKey) document.body.classList.add('ctrl-pressed'); });
+    window.addEventListener('keyup', e => { if (!e.ctrlKey || e.key === 'Control') document.body.classList.remove('ctrl-pressed'); });
+    window.addEventListener('blur', () => document.body.classList.remove('ctrl-pressed'));
+
+    function openManualModal() { document.getElementById('manualModal').style.display = 'flex'; }
+    function closeManualModal() { document.getElementById('manualModal').style.display = 'none'; }
+    function openProductMasterModal() { document.getElementById('productMasterModal').style.display = 'flex'; }
+    function closeProductMasterModal() { document.getElementById('productMasterModal').style.display = 'none'; }
+    function openSpecModal() { document.getElementById('specModal').style.display = 'flex'; }
+    function closeSpecModal() { document.getElementById('specModal').style.display = 'none'; }
+    function copyToAllSlots() {
+      if (editingSlotIndex === null) return;
+      const cur = slotsData[editingSlotIndex];
+      if (!cur || !confirm('シート全体の36枠すべてにコピーしますか？')) return;
+      for (let i = 0; i < 36; i++) slotsData[i] = JSON.parse(JSON.stringify(cur));
+      updateUsageCount();
+      renderAllSlots();
+    }
+
+    let hoverPreviewTimer = null;
+
+    // --- ラベルストックのホバー拡大プレビュー関連の処理 ---
+    document.addEventListener('mouseover', function(e) {
+      const card = e.target.closest('.label-stock-card');
+      if (!card) return;
+
+      // どのインデックスのラベルか、HTML要素のデータ属性等から特定するか、
+      // あるいは要素自身からインデックスを逆引きできるようにします。
+      // ここでは簡易的に、親コンテナ内の何番目かを特定してデータを取得します。
+    });
+
+    // より確実に紐付けるため、renderLabelStockList 内でカード生成時に mouseenter / mouseleave をバインドします。
+  
+    let pendingDropData = null;
+
+    function openStockDropChoiceModal(slotIndex, stockName) {
+      pendingDropData = { slotIndex: slotIndex, stockName: stockName };
+      const products = slotsData[slotIndex].products || [];
+
+      const container = document.getElementById('dropChoiceButtonsContainer');
+      let html = '';
+
+      // ① 既存のすべての有効な品目（品名1〜4）それぞれに対して結合ボタンを生成
+      products.forEach((prod, idx) => {
+        if (prod && prod.trim() !== "") {
+          html += `
+            <button type="button" class="btn-main" style="background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff; padding:10px; justify-content:flex-start; font-size:12.5px;" onclick="executeStockDropChoice('combine', ${idx})">
+              🔗 品名 ${idx + 1}（「${escapeHtml(prod.trim())}」）の後ろに結合する
+            </button>
+          `;
+        }
+      });
+
+      // 空の枠があるか、または配列長が4未満かをチェック
+      const emptyIdx = products.findIndex(p => !p || p.trim() === "");
+      const canAddNewRow = (emptyIdx !== -1) || (products.length < 4);
+      const nextRowNum = (emptyIdx !== -1) ? (emptyIdx + 1) : (products.length + 1);
+
+      // ② 新たな品名として独立して追加する選択肢（最大4品まで）
+      if (canAddNewRow) {
+        html += `
+          <button type="button" class="btn-main" style="background:#e6f4ea; color:#137333; border:1.5px solid #ceead6; padding:10px; justify-content:flex-start; font-size:12.5px;" onclick="executeStockDropChoice('newRow')">
+            ➕ 新たな品名（品名 ${nextRowNum}）として独立して追加する
+          </button>
+        `;
+      } else {
+        html += `<div style="color:#5f6368; font-weight:bold; font-size:11.5px; text-align:center; padding:6px;">※すでに最大4品登録されているため、新規行の追加はできません（既存品目への結合は可能です）。</div>`;
+      }
+
+      container.innerHTML = html;
+      document.getElementById('dropChoiceModal').style.display = 'flex';
+    }
+
+    function executeStockDropChoice(mode, targetIdx = 0) {
+      if (!pendingDropData) {
+        cancelDropChoice();
+        return;
+      }
+      const { slotIndex, stockName } = pendingDropData;
+      const data = slotsData[slotIndex];
+
+      if (mode === 'combine') {
+        // ① 指定されたインデックス（targetIdx: 品名1〜4）の後ろに結合
+        if (data.products && data.products[targetIdx] !== undefined) {
+          const currentBase = data.products[targetIdx].trim();
+          data.products[targetIdx] = currentBase ? `${currentBase} ${stockName}` : stockName;
+        }
+      } else if (mode === 'newRow') {
+        // ② 新たな品名（空き行があればそこへ、なければ末尾）として追加
+        if (!data.products) data.products = [];
+        if (!data.subProducts) data.subProducts = [];
+        if (!data.productsAlt) data.productsAlt = [];
+        
+        const emptyIdx = data.products.findIndex(p => !p || p.trim() === "");
+        if (emptyIdx !== -1) {
+          // 既存の空行（例：「2品」ボタンを押して空になっている品名2など）があればそこへ格納
+          data.products[emptyIdx] = stockName;
+          if (data.subProducts[emptyIdx] === undefined) data.subProducts[emptyIdx] = "";
+          if (data.productsAlt[emptyIdx] === undefined) data.productsAlt[emptyIdx] = "";
+        } else {
+          if (data.products.length >= 4) {
+            alert('1つのラベルに記載できる商品は最大4品までです。');
+            cancelDropChoice();
+            return;
+          }
+          data.products.push(stockName);
+          data.subProducts.push("");
+          data.productsAlt.push("");
+        }
+      }
+
+      cancelDropChoice();
+
+      editingSlotIndex = slotIndex;
+      document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIndex + 1} を編集`;
+      document.getElementById('inputCategoryText').value = data.categoryText || '';
+
+      const count = Math.max(1, Math.min(4, data.products.length));
+      highlightChoiceButton('btnCount', count);
+      renderProductInputFields(data.products);
+      updateControlsUI();
+      updateMethodUI();
+
+      updateUsageCount();
+      renderAllSlots();
+    }
+
+    function cancelDropChoice() {
+      pendingDropData = null;
+      document.getElementById('dropChoiceModal').style.display = 'none';
+    }
+
+    function clearAllLabelStock() {
+      console.log('=== clearAllLabelStock 実行開始 ===');
+      
+      // 確認ダイアログを表示
+      if (!confirm('すべての保管ラベルを削除しますか？')) {
+        console.log('クリア操作がキャンセルされました。');
+        return;
+      }
+
+      try {
+        // 1. ホバープレビューの強制非表示
+        const popup = document.getElementById('globalHoverPreviewPopup');
+        if (popup) {
+          popup.style.display = 'none';
+        }
+
+        // 2. 配列の初期化
+        labelStockItems = [];
+        console.log('labelStockItems を空にしました:', labelStockItems);
+
+        // 3. リストの再描画
+        renderLabelStockList();
+        console.log('ラベルストックリストの再描画が完了しました。');
+
+      } catch (err) {
+        console.error('clearAllLabelStock 実行時エラー:', err);
+        alert('クリア処理中にエラーが発生しました: ' + err.message);
+      }
+    }
+
+function copyToRemainingEmptySlots() {
+      if (editingSlotIndex === null) {
+        alert('コピー元のラベル枠が選択されていません。');
+        return;
+      }
+      const cur = slotsData[editingSlotIndex];
+      if (!cur || (!cur.products.some(p => p && p.trim() !== "") && !cur.categoryText.trim())) {
+        alert('選択中の枠に有効なデータが入っていません。');
+        return;
+      }
+
+      // 空白枠の数をカウント
+      const emptyCount = slotsData.filter(d => !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim())).length;
+      if (emptyCount === 0) {
+        alert('コピー先の空白枠がありません。');
+        return;
+      }
+
+      if (!confirm(`残りのすべての空白枠（${emptyCount}枠）に、このラベルをコピーして埋めますか？`)) {
+        return;
+      }
+
+      // 36枠を走査し、データが入っていない（空白の）枠にのみ複製を代入
+      for (let i = 0; i < 36; i++) {
+        const d = slotsData[i];
+        const isEmpty = !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim());
+        if (isEmpty) {
+          slotsData[i] = JSON.parse(JSON.stringify(cur));
+        }
+      }
+
+      updateUsageCount();
+      renderAllSlots();
+      alert('残りの空白枠にコピーしました。');
+    }
+
+    function scrollToEditingSlot(slotIdx, useSmooth = true) {
+      if (slotIdx === null || slotIdx === undefined) return;
+      const outerArea = document.getElementById('previewOuterArea');
+      const container = document.getElementById('sheetsContainer');
+      if (!outerArea || !container) return;
+
+      const sheet = container.querySelector('.sheet-a4');
+      const baseWidth = sheet ? sheet.offsetWidth : 794;
+      const baseHeight = sheet ? sheet.offsetHeight : 1123;
+
+      // 36面グリッド上の「列(0〜3)」と「段(0〜8)」を算出
+      const col = slotIdx % 4;
+      const row = Math.floor(slotIdx / 4);
+
+      // A4シート(210mm x 297mm)に対する実際のピクセル比率
+      const pxPerMmX = baseWidth / 210.0;
+      const pxPerMmY = baseHeight / 297.0;
+
+      // シート左上(0,0)から、対象ラベルの「中心点」までの物理座標(mm)
+      // 左余白:5mm + (列 × 幅50mm) + 半分25mm
+      // 上余白:5.5mm + (段 × [高30mm + 間隔2mm]) + 半分15mm
+      const cellCenterMmX = 5.0 + (col * 50.0) + 25.0;
+      const cellCenterMmY = 5.5 + (row * 32.0) + 15.0;
+
+      // 現在のズーム倍率を掛けた、シート左上からの正確なピクセル中心座標
+      const targetCenterX = (cellCenterMmX * pxPerMmX) * currentZoom;
+      const targetCenterY = (cellCenterMmY * pxPerMmY) * currentZoom;
+
+      // .preview-outer の padding（左: 60px, 上: 20px）と margin:auto 分の余白を正確に算出
+      const scaledSheetWidth = baseWidth * currentZoom;
+      const innerAvailableWidth = outerArea.clientWidth - 120; // 左右padding(60px×2)を引いた幅
+      const autoMarginLeft = scaledSheetWidth < innerAvailableWidth ? (innerAvailableWidth - scaledSheetWidth) / 2 : 0;
+
+      const sheetStartX = 60 + autoMarginLeft;
+      const sheetStartY = 20; // 上padding(20px)
+
+      // 表示領域（outerArea）の真ん中にラベルの中心が来るようにスクロール位置を算出
+      const scrollLeft = sheetStartX + targetCenterX - (outerArea.clientWidth / 2);
+      const scrollTop = sheetStartY + targetCenterY - (outerArea.clientHeight / 2);
+
+      outerArea.scrollTo({
+        left: Math.max(0, Math.round(scrollLeft)),
+        top: Math.max(0, Math.round(scrollTop)),
+        behavior: useSmooth ? 'smooth' : 'auto'
+      });
+    }
+    
+  </script>

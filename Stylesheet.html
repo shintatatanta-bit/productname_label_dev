@@ -1,0 +1,1177 @@
+<style>
+/* マニュアルモーダル専用スタイル */
+    .manual-modal-content {
+      background: #ffffff;
+      border-radius: 8px;
+      width: 650px;
+      max-width: 95vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+    .manual-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #333;
+    }
+    .manual-body h3 {
+      font-size: 14.5px;
+      color: #1a73e8;
+      border-bottom: 2px solid #e8f0fe;
+      padding-bottom: 4px;
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+    .manual-body h3:first-child {
+      margin-top: 0;
+    }
+    .manual-body ul {
+      margin: 4px 0 12px 20px;
+      padding: 0;
+    }
+    .manual-body li {
+      margin-bottom: 4px;
+    }
+    .manual-body p {
+      margin: 4px 0 10px 0;
+    }
+
+
+    * { box-sizing: border-box; }
+    
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+
+    body {
+      font-family: "Yu Gothic Medium", "YuGothic", "游ゴシック体", "游ゴシック", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #4a4d50;
+      color: #333;
+      overflow-x: hidden;
+    }
+
+    /* コントロールパネル */
+    .control-panel {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #ffffff;
+      border-bottom: 2.5px solid #1a73e8;
+      padding: 10px 16px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .top-action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn-main {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+    .btn-clear { background: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
+    .btn-clear:hover { background: #fad2cf; }
+    .btn-spec { background: #455a64; color: white; }
+    .btn-spec:hover { background: #37474f; }
+    .btn-print { background: #1a73e8; color: white; font-size: 13px; }
+    .btn-print:hover { background: #1557b0; }
+
+    /* 下部ステータスバー */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      border-top: 1px dotted #dadce0;
+      padding-top: 6px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .zoom-controls {
+      display: inline-flex;
+      align-items: center;
+      background: #f1f3f4;
+      padding: 2px 4px;
+      border-radius: 6px;
+      border: 1px solid #dadce0;
+      gap: 4px;
+    }
+    .btn-zoom {
+      background: #ffffff;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+/* メイン作業領域：左・中央・右の3カラム配置の基準とする */
+    .main-workspace {
+      display: flex;
+      position: relative;
+      width: 100%;
+      min-height: calc(100vh - 90px);
+    }
+
+/* プレビュー領域：左右の400pxパネルの間に確実に表示領域を確保する */
+    .preview-outer {
+      flex: 1;
+      overflow: auto;
+      display: block; /* ★ flexによる座標干渉を排除し、純粋なスクロールコンテナにする */
+      padding: 20px 60px 80px 60px;
+      margin-left: 400px;  /* 左側のストックパネル分の余白 */
+      margin-right: 400px; /* 右側の編集パネル分の余白 */
+      width: calc(100vw - 800px);
+      max-height: calc(100vh - 90px);
+      box-sizing: border-box;
+      z-index: 10;
+    }
+    .preview-container {
+      margin: 0 auto; /* ★ シートが画面より小さい時は自動で中央寄せにする */
+      position: relative;
+    }
+
+   /* A4シート実寸（31072: 36面・4列×9段） */
+    .sheet-a4 {
+      width: 210.0mm;
+      height: 297.0mm;
+      background: white;
+      padding-top: 5.5mm;
+      padding-bottom: 5.5mm;
+      padding-left: 5.0mm;
+      padding-right: 5.0mm;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .label-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 50.0mm);
+      grid-template-rows: repeat(9, 30.0mm);
+      column-gap: 0.0mm;
+      row-gap: 2.0mm;
+      width: 200.0mm;
+      height: 286.0mm;
+    }
+
+    /* 1. 実際のシールサイズ（横50mm × 縦30mm）を表す外側のセル枠 */
+    .label-cell {
+      width: 50.0mm;
+      height: 30.0mm;
+      padding: 0;
+      border: 0.5px dashed #ccc;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      background: #ffffff;
+    }
+
+    .label-cell.has-data {
+      cursor: grab;
+    }
+    .label-cell.has-data:active {
+      cursor: grabbing;
+    }
+
+    .label-cell.empty-cell:hover {
+      background: #fffde7;
+      border-color: #fbc02d;
+    }
+
+    .label-cell.is-dragging {
+      opacity: 0.35;
+      outline: 2px dashed #e37400;
+    }
+
+    .label-cell.drag-over {
+      background: #e8f0fe !important;
+      outline: 2.5px dashed #1a73e8 !important;
+      z-index: 50;
+    }
+
+    .label-cell.active-editing {
+      outline: 3.5px dashed #1a73e8 !important;
+      background-color: #f0f7ff !important;
+      z-index: 100;
+      box-shadow: 0 0 15px rgba(26, 115, 232, 0.8);
+    }
+
+    .slot-num-badge {
+      position: absolute;
+      top: 1.5mm;
+      left: 1.5mm;
+      font-size: 8px;
+      font-weight: bold;
+      color: #999;
+      pointer-events: none;
+    }
+
+    .cell-quick-del-btn {
+      position: absolute;
+      top: 1.0mm;
+      right: 1.0mm;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(197, 34, 31, 0.88);
+      color: #ffffff;
+      border: 1px solid #ffffff;
+      font-size: 11px;
+      font-weight: bold;
+      line-height: 1;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 60;
+      padding: 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      transition: transform 0.1s, background 0.1s;
+    }
+    .cell-quick-del-btn:hover {
+      background: #b31412;
+      transform: scale(1.15);
+    }
+    .label-cell.has-data:hover .cell-quick-del-btn {
+      display: flex;
+    }
+
+   /* =========================================================================
+      2. 確定版デザインカード領域（白背景新デザイン） 
+      ========================================================================= */
+    .design-card {
+      width: 50.0mm;
+      height: 30.0mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      box-sizing: border-box;
+      position: relative;
+      background: #ffffff !important;
+      border: none !important;
+      padding: 0 4.0mm; /* 左右マージン 4.0mm */
+    }
+
+    .label-header {
+      height: 5.8mm;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 0.25pt solid #2b2b2b;
+      padding-bottom: 0.3mm; /* 0.5mm下げ調整 */
+      box-sizing: border-box;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .header-logo-svg {
+      height: 2.3mm; 
+      fill: #2b2b2b;
+      display: inline-block;
+      transform: translateY(0.5px);
+    }
+
+    .header-sub {
+      font-size: 6pt;
+      font-weight: bold;
+      color: #2b2b2b;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .body-content-center {
+      flex: 1; /* 余白を自動調整 */
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .product-group-block {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .product-subline-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: visible;
+    }
+
+    .item-name {
+      color: #2b2b2b;
+      line-height: 1.0;
+      white-space: nowrap;
+    }
+
+    .item-sub {
+      color: #555555;
+      line-height: 1.0;
+      white-space: nowrap;
+      margin-top: 0.8mm;
+    }
+
+    .weight-light { font-weight: 300; }
+    .weight-bold { font-weight: 700; }
+
+    .body-footer {
+      height: 5.5mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.1mm;
+      box-sizing: border-box;
+      padding-top: 0.4mm;
+      width: 100%;
+      flex-shrink: 0;
+    }
+
+    .green-line {
+      width: 100%;
+      height: 1.0pt;
+      background-color: #2e7d32;
+    }
+
+    .footer-instruction {
+      font-size: 7pt;
+      font-weight: 700;
+      color: #2e7d32;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    /* 右端固定型・編集サイドパネル */
+    .edit-side-panel {
+      position: fixed;
+      top: 90px;
+      right: 0;
+      width: 400px;
+      height: calc(100vh - 105px);
+      background: #ffffff;
+      box-shadow: -5px 0 25px rgba(0,0,0,0.25);
+      border-left: 2px solid #1a73e8;
+      border-radius: 8px 0 0 8px;
+      z-index: 1500;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #1a73e8;
+      padding-bottom: 6px;
+    }
+    .panel-title {
+      font-size: 14.5px;
+      font-weight: bold;
+      color: #1a73e8;
+    }
+    .panel-close-btn {
+      cursor: pointer;
+      font-size: 18px;
+      color: #666;
+      border: none;
+      background: none;
+      font-weight: bold;
+    }
+
+    .choice-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-choice {
+      flex: 1;
+      padding: 6px 0;
+      border: 1.5px solid #dadce0;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #444;
+      transition: all 0.12s;
+    }
+    .btn-choice:hover { background: #e8f0fe; border-color: #1a73e8; }
+    .btn-choice.active {
+      background: #1a73e8;
+      color: white;
+      border-color: #1a73e8;
+    }
+
+    .master-call-bar {
+      display: flex;
+      gap: 6px;
+      background: #eef5fc;
+      border: 1px solid #c2e7ff;
+      border-radius: 6px;
+      padding: 6px 8px;
+      align-items: center;
+    }
+    .select-master-preset {
+      flex: 1;
+      padding: 5px;
+      font-size: 12px;
+      border: 1.5px solid #1a73e8;
+      border-radius: 4px;
+      font-weight: bold;
+      background: white;
+    }
+
+    .btn-toggle-font-settings {
+      width: 100%;
+      background: #f1f3f4;
+      border: 1.5px solid #dadce0;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 11.5px;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s;
+    }
+    .btn-toggle-font-settings:hover {
+      background: #e8eaed;
+      border-color: #bdc1c6;
+    }
+
+    .font-custom-section {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      background: #fcfcfc;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 10px;
+    }
+    .font-custom-section.show {
+      display: flex;
+    }
+
+    .product-inputs-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .single-product-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: #ffffff;
+      padding: 6px 8px;
+      border: 1px solid #e8eaed;
+      border-radius: 6px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .single-product-field.row-dragging {
+      opacity: 0.4;
+      background: #f1f3f4;
+      border: 1.5px dashed #1a73e8;
+    }
+    .single-product-field.row-dragover {
+      border: 2px dashed #1a73e8;
+      background: #e8f0fe;
+    }
+    .stock-item-dragover {
+      background: #e8f0fe !important;
+      border: 2.0px dashed #1a73e8 !important;
+      transform: scale(1.01);
+      transition: all 0.1s ease;
+    }
+
+    .field-top-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .drag-handle {
+      cursor: grab;
+      user-select: none;
+      color: #888;
+      font-size: 15px;
+      padding: 0 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s;
+    }
+    .drag-handle:hover { color: #1a73e8; }
+    .drag-handle:active { cursor: grabbing; }
+
+    .field-tag {
+      font-size: 11px;
+      font-weight: bold;
+      color: #3d2314;
+      width: 44px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .select-single-item {
+      flex: 1;
+      padding: 3px 5px;
+      font-size: 11px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      background: #f8f9fa;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .field-input-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding-left: 20px;
+    }
+
+    .input-prod-text {
+      flex: 1;
+      padding: 5px 7px;
+      border: 1.5px solid #dadce0;
+      border-radius: 5px;
+      font-size: 12.5px;
+      font-weight: bold;
+      color: #111;
+      font-family: "Yu Gothic Medium", "YuGothic", "游ゴシック体", "游ゴシック", sans-serif;
+      resize: vertical;
+      min-height: 32px;
+      line-height: 1.3;
+    }
+    .input-prod-text:focus {
+      outline: none;
+      border-color: #1a73e8;
+      background: #fbfdff;
+    }
+
+    .input-suggest-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+    }
+    .suggest-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 2px;
+      background: #ffffff;
+      border: 1.5px solid #1a73e8;
+      border-radius: 6px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+      max-height: 185px;
+      overflow-y: auto;
+      z-index: 2000;
+      display: none;
+      flex-direction: column;
+    }
+    .suggest-dropdown.show {
+      display: flex;
+    }
+    .suggest-item {
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #202124;
+      border-bottom: 1px solid #f1f3f4;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .suggest-item:last-child {
+      border-bottom: none;
+    }
+    .suggest-item:hover, .suggest-item.active-suggest {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+    .suggest-sub-info {
+      font-size: 10px;
+      color: #5f6368;
+      font-weight: normal;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .badge-trans-source {
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      line-height: 1.2;
+    }
+    .badge-google {
+      background: #fef7e0;
+      color: #b06000;
+      border: 1px solid #f9ab00;
+    }
+    .badge-master {
+      background: #e6f4ea;
+      color: #137333;
+      border: 1px solid #ceead6;
+    }
+
+    .btn-toggle-lang {
+      background: #e8f0fe;
+      color: #1a73e8;
+      border: 1px solid #c2e7ff;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 4px 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.1s;
+    }
+    .btn-toggle-lang:hover {
+      background: #1a73e8;
+      color: white;
+    }
+
+    .btn-clear-row {
+      background: #f1f3f4;
+      color: #5f6368;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 7px;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.1s;
+    }
+    .btn-clear-row:hover {
+      background: #fce8e6;
+      color: #c5221f;
+      border-color: #fad2cf;
+    }
+
+    .custom-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f8f9fa;
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid #dadce0;
+      margin-top: 4px;
+    }
+    .custom-range-input {
+      flex: 1;
+      cursor: pointer;
+    }
+    .btn-step {
+      width: 24px;
+      height: 24px;
+      border: 1px solid #ccc;
+      background: white;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-step:hover { background: #e8eaed; }
+
+    .method-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #f8f9fa;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+    .method-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+    }
+    .btn-method-choice {
+      padding: 5px 0;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 4px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      color: white;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .btn-method-choice.warm-2 { background: #b71c1c; } /* レンジ・湯煎（赤） */
+    .btn-method-choice.water { background: #0288d1; }  /* 流水解凍（青：冷たいままと同色） */
+    .btn-method-choice.cold { background: #0288d1; }   /* 冷たいまま（青） */
+    .btn-method-choice.doc { background: #2e7d32; }    /* 別紙資料参照（緑） */
+    .btn-method-choice.custom { background: #2e7d32; } /* 自由入力（緑） */
+    .btn-method-choice.active {
+      box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a73e8;
+    }
+
+    .time-split-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      padding: 5px 8px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+    }
+    .input-time-box {
+      width: 48px;
+      padding: 3px 5px;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .input-time-box:focus {
+      outline: none;
+      border-color: #1a73e8;
+      background: #f0f7ff;
+    }
+
+    .panel-bottom-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px dotted #ccc;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.45);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content-card {
+      background: #ffffff;
+      border-radius: 8px;
+      width: 500px;
+      max-width: 95vw;
+      padding: 18px 20px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+    }
+    .spec-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+    .spec-table th, .spec-table td {
+      border: 1px solid #dadce0;
+      padding: 7px 10px;
+    }
+    .spec-table th {
+      background: #f1f3f4;
+      font-weight: bold;
+      width: 38%;
+      color: #333;
+    }
+    .spec-table td {
+      font-weight: bold;
+      color: #111;
+    }
+
+    .actual-size-popup {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 20px 24px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      max-width: 90vw;
+    }
+
+    .actual-label-stage {
+      width: 50.0mm;
+      height: 30.0mm;
+      border: 1px dashed #666;
+      border-radius: 2mm;
+      padding: 0.5mm 1.5mm 2.5mm 1.5mm;
+      background: #ffffff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      transform-origin: center center;
+      transition: transform 0.1s;
+    }
+
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      html, body {
+        width: 210.0mm !important;
+        height: 297.0mm !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .control-panel, .edit-side-panel, .modal-overlay, #customDragBadge, #globalHoverPreviewPopup {
+        display: none !important;
+      }
+      .main-workspace {
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
+        min-height: 0 !important;
+        position: static !important;
+      }
+      .preview-outer { 
+        padding: 0 !important; 
+        margin: 0 !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
+        max-height: none !important;
+        min-width: 0 !important;
+        overflow: hidden !important; 
+        display: block !important; 
+      }
+      .preview-container {
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
+        transform: none !important;
+        zoom: 1 !important;
+        display: block !important;
+      }
+      .sheet-a4 {
+        box-shadow: none !important;
+        margin: 0 !important;
+        width: 210.0mm !important;
+        height: 297.0mm !important;
+        padding: 5.5mm 5.0mm !important;
+        transform: none !important; /* ★重要: applyZoomで付与されたscale縮小を確実に無効化 */
+      }
+      .label-cell { border: none !important; cursor: default !important; }
+      .label-cell.empty-cell { background: transparent !important; }
+      .label-cell.active-editing {
+        outline: none !important;
+        box-shadow: none !important;
+        background-color: transparent !important;
+      }
+      .slot-num-badge, .cell-quick-del-btn { display: none !important; }
+    }
+
+    /* 商品マスタ管理モーダル専用スタイル */
+    .master-modal-content {
+      background: #ffffff;
+      border-radius: 8px;
+      width: 820px;
+      max-width: 95vw;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+      overflow: hidden;
+    }
+    .master-modal-body {
+      padding: 16px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 12.5px;
+    }
+    .master-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+    .master-table th, .master-table td {
+      border: 1px solid #dadce0;
+      padding: 6px 8px;
+      text-align: left;
+    }
+    .master-table th {
+      background: #f1f3f4;
+      cursor: pointer;
+      user-select: none;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .master-table th:hover {
+      background: #e2e5e8;
+    }
+    .sort-icon {
+      font-size: 10px;
+      margin-left: 4px;
+      color: #1a73e8;
+    }
+    
+    .form-grid-add {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #dadce0;
+    }
+    .form-grid-add-row {
+      display: flex;
+      gap: 10px;
+    }
+    .form-grid-add input, .form-grid-add select, .form-grid-add textarea {
+      padding: 6px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 12px;
+      width: 100%;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+    .form-grid-add textarea {
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    /* カスタム・ドラッグインジケーター（コピーバッジ） */
+    #customDragBadge {
+      position: fixed;
+      z-index: 99999;
+      pointer-events: none;
+      background: #1a73e8;
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+      align-items: center;
+      gap: 4px;
+      transform: translate(12px, 12px);
+      transition: background 0.1s;
+    }
+    #customDragBadge.is-copy {
+      background: #137333;
+    }
+
+    body.ctrl-pressed .label-cell.has-data,
+    body.ctrl-pressed .label-cell.has-data *,
+    body.ctrl-pressed .label-cell.has-data:hover,
+    body.ctrl-pressed .label-cell.has-data:hover * {
+      cursor: copy !important;
+    }
+
+    /* --- Google Chrome風タブデザイン --- */
+    .stock-tab-container {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 0px;
+      padding: 6px 6px 0 6px;
+      background: #e0e4e8; /* タブバーのベースとなる落ち着いた背景色 */
+      border-radius: 6px 6px 0 0;
+      align-items: flex-end;
+    }
+
+    .btn-stock-tab {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 11.5px;
+      font-weight: bold;
+      background: #b0bec5; /* 非アクティブタブ：ハッキリと暗めに沈める */
+      color: #37474f;
+      border: none;
+      border-radius: 8px 8px 0 0; /* Chrome風のなめらかな角丸 */
+      cursor: pointer;
+      text-align: center;
+      position: relative;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .btn-stock-tab:hover {
+      background: #cfd8dc;
+      color: #202124;
+    }
+
+    .btn-stock-tab.active {
+      background: #ffffff; /* アクティブタブ：純白で手前に浮き出る表現 */
+      color: #1a73e8;       /* 選択中の文字色は鮮やかな青で強調 */
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.12); /* 上部と側面に影をつけて立体的に */
+      z-index: 5;
+      font-weight: 700;
+    }
+
+    .stock-tab-pane {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      gap: 6px;
+      overflow-y: auto;
+    }
+    .stock-tab-pane.active {
+      display: flex;
+    }
+
+   /* ラベルストックのカードスタイル（従来） */
+    .label-stock-card {
+      background: #ffffff;
+      border: 1.5px solid #dadce0;
+      border-radius: 6px;
+      padding: 3px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+      height: 18mm; /* 高さを固定して安定させる */
+    }
+    .label-stock-card:hover {
+      border-color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label-stock-card:active {
+      cursor: grabbing;
+    }
+    /* スケールを 0.76 まで大きくし、上部に美しく収める */
+    .label-stock-card .design-card {
+      transform: scale(0.76);
+      transform-origin: center center;
+      pointer-events: none;
+    }
+    .label-stock-card:hover {
+      border-color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label-stock-card:active {
+      cursor: grabbing;
+    }
+    .label-stock-card.drag-over {
+      background: #e8f0fe !important;
+      border-color: #1a73e8 !important;
+    }
+
+    /* ラベルストックのコンテナを2列グリッドに変更 */
+    #labelStockListContainer {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 6px !important;
+      align-content: start;
+    }
+
+    /* ラベルストックのカードスタイル（2列用） */
+    .label-stock-card {
+      background: #ffffff;
+      border: 1.5px solid #dadce0;
+      border-radius: 6px;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      cursor: grab;
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .label-stock-card:hover {
+      border-color: #1a73e8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .label-stock-card:active {
+      cursor: grabbing;
+    }
+    /* 2列の幅に美しく収まるよう、縮小率を 0.52 に調整 */
+    .label-stock-card .design-card {
+      transform: scale(0.52);
+      transform-origin: top center;
+      margin-bottom: -13mm;
+      pointer-events: none;
+    }
+
+    /* ホバー時拡大プレビュー用ポップアップスタイル */
+    .hover-preview-popup {
+      position: fixed;
+      z-index: 999999;
+      background: #ffffff;
+      border: 2px solid #1a73e8;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      padding: 10px;
+      display: none;
+      pointer-events: none;
+      transform: scale(1.5); /* 縮小版を1.5倍に拡大表示 */
+      transform-origin: center center;
+    }
+  </style>

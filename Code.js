@@ -1,7 +1,11 @@
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('Index')
+  // 変更箇所: createHtmlOutputFromFile を createTemplateFromFile にし、.evaluate() を追加
+  return HtmlService.createTemplateFromFile('Index')
+    .evaluate()
     .setTitle('商品ラベル発行システム (A-one 31072)')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
+}    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0');
 }
 
