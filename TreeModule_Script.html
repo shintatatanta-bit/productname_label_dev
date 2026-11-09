@@ -217,7 +217,7 @@
             </div>
           </div>
 
-          <div class="t-step-section-1" onclick="t_focusOuterStep1(${group.outerId})">
+          <div class="t-step-section-1">
             <div class="t-step-banner s1">ステップ1：ツリー構成（骨組み）の作成</div>
             <div style="margin-bottom:8px; display:flex; gap:6px;">
               <button class="t-btn-main" onclick="t_addCombinationGroupStep1(${group.outerId})">＋ 組み合わせ料理を追加</button>
@@ -533,11 +533,6 @@
         setTimeout(() => { previewCard.classList.remove('highlighted'); }, 1200);
       }, 100);
     }
-  }
-
-  function t_focusOuterStep1(outerId) {
-    const box = document.getElementById(`t-set-group-${outerId}`);
-    if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function t_focusPreviewCard(packId) {
