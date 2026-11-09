@@ -1,49 +1,547 @@
 <script>
-// モックで作成したツリー用データモデルと関数をすべてここへ移植
-let t_treeData = [];
-let t_isComposing = false;
+  const t_svgLogoString = `
+    <svg class="t-p-logo-svg" viewBox="0 0 279.1858 83.4017" xmlns="http://www.w3.org/2000/svg">
+      <path d="M76.7013,82.3988h-8.1092v-.6897c0-10.482.0116-20.964-.0067-31.446-.0059-3.3459-.3646-6.6518-1.5813-9.8114-1.1515-2.9903-2.9451-5.4554-6.013-6.8012-4.4946-1.9715-9.9481-.9397-13.5275,2.5128-3.2622,3.1465-4.8511,6.9807-4.8557,11.4524-.0116,11.3339-.0038,22.6678-.0038,34.0017v.7634h-8.128c0-.2496,0-.4849,0-.7202,0-11.2598.0163-22.5197-.0109-33.7794-.0073-3.0016-.489-5.9387-1.7886-8.6909-1.6742-3.5455-4.3634-5.8469-8.3857-6.4026-3.7666-.5204-7.0827.5726-9.9327,2.9781-3.6753,3.102-5.5275,7.1167-5.8473,11.8416-.0399.5902-.0395,1.1837-.0396,1.7757-.0022,10.7413-.0016,21.4825-.0016,32.2238v.7919H.4228c-.2386-18.3832.321-36.7584-.4228-55.151h7.1329c.1735,2.9712.3456,5.9198.5179,8.8703.4533.2151.6505-.0148.8522-.3545,1.784-3.005,4.0081-5.6444,7.1534-7.3111,5.7796-3.0625,11.709-3.5243,17.6087-.3457,3.454,1.8609,5.6639,4.848,7.0892,8.4201.0137.0343.0131.0775.0344.105.1249.1607.2544.3179.3824.4762.1577-.1308.3524-.2359.4673-.3965.9618-1.3446,1.8196-2.7715,2.8756-4.039,5.5585-6.6718,14.5465-7.9675,20.8849-5.5528,4.7115,1.795,7.7411,5.226,9.5921,9.755,1.3055,3.1943,1.8978,6.5408,2.0217,9.9632.0898,2.478.0827,4.9601.085,7.4404.0088,9.1115.0035,18.2229.0035,27.3344v.786Z"/>
+      <path d="M206.0447,82.9916c-5.4057-.1707-10.49-1.3246-15.039-4.3413-5.046-3.3462-8.2636-8.0675-10.1399-13.7497-1.5905-4.8169-2.0155-9.7648-1.4924-14.8013.5183-4.9906,1.9625-9.6744,4.7553-13.8755,4.0819-6.1403,9.846-9.673,17.1021-10.7741,5.0204-.7618,9.982-.4611,14.7835,1.2702,6.928,2.498,11.631,7.3455,14.4644,14.0627,2.176,5.1585,2.8367,10.5632,2.4095,16.1173-.4059,5.2762-1.8578,10.2264-4.7693,14.6827-3.8413,5.8794-9.2756,9.4197-16.1525,10.7084-1.9491.3653-3.9463.4741-5.9215.7005ZM224.504,55.1873c-.0245-3.435-.3628-6.7155-1.2303-9.9272-1.1612-4.2995-3.0741-8.1776-6.3696-11.2746-5.2718-4.9542-13.4318-5.8453-19.642-2.1216-4.3677,2.6189-6.9621,6.6012-8.2562,11.3908-1.4419,5.3363-1.6251,10.8043-.7705,16.2628.6516,4.162,2.1188,8.0475,4.5348,11.5414,4.8395,6.9989,12.524,8.5981,19.1048,6.3808,4.8247-1.6256,8.0544-5.0352,10.1501-9.5826,1.8685-4.0544,2.4531-8.368,2.479-12.67Z"/>
+      <path d="M137.7213,73.2031c.9598.7371,1.8961,1.4561,2.9207,2.243-.8211,1.0884-1.5921,2.1837-2.4394,3.2166-1.3467,1.6418-2.8578,3.1082-4.834,3.9921-1.603.717-3.2819.9147-5.008.6064-1.8697-.334-3.2518-1.3901-4.0764-3.0719-.5862-1.1956-1.0009-2.4752-1.5131-3.77-.2615.1424-.5916.3205-.9202.5015-3.5186,1.9388-7.0736,3.8063-10.9348,4.9835-5.0522,1.5403-10.1521,1.8691-15.2251.1702-4.7947-1.6057-8.3264-4.6474-9.6886-9.6558-1.3846-5.0908-.2338-9.7533,3.0355-13.8642,2.7027-3.3984,6.3036-5.5454,10.2918-7.096,3.7037-1.44,7.5639-2.3113,11.4804-2.8709,3.8932-.5563,7.8131-.9261,11.7212-1.3786.199-.023.3971-.0543.6639-.0912,0-.5193.0168-1.0327-.003-1.5447-.0745-1.9258-.1313-3.8529-.2497-5.7761-.1845-2.9963-1.8507-5.0589-4.3036-6.5718-1.8494-1.1407-3.9115-1.651-6.0522-1.8406-2.8216-.2499-5.6181-.1396-8.3314.7844-.4355.1483-.8627.33-1.2767.5313-2.3063,1.1216-3.5457,2.9536-3.8026,5.5206-.127,1.2687-.3071,2.5706-.7287,3.7637-1.1181,3.1648-5.1467,4.3695-7.8767,2.4137-1.7847-1.2785-2.2408-3.12-1.9317-5.1823.4119-2.7486,2.0402-4.7578,4.1316-6.4312,2.8298-2.2642,6.1073-3.6045,9.6017-4.4163,6.1779-1.4352,12.3424-1.4167,18.4494.4074,2.6054.7782,5.0113,1.9611,6.9696,3.9054,2.0006,1.9863,3.1852,4.3851,3.3437,7.2085.2138,3.8083.4362,7.6204.48,11.4328.077,6.7116.0109,13.4247.0315,20.1371.0037,1.201.0631,2.4119.2283,3.6.2271,1.6326,1.5543,2.2068,2.9556,1.3044.5138-.3309.9572-.7945,1.3689-1.2547.5328-.5955,1.0016-1.2482,1.5219-1.9065ZM123.2156,51.105c-.3049,0-.5453-.0282-.7772.0042-3.3977.475-6.8121.8592-10.1862,1.4663-3.5371.6365-6.8825,1.8811-9.9376,3.8267-5.3839,3.4287-7.1508,8.5723-6.0039,14.0102.893,4.2338,3.9717,7.1452,8.1898,7.7572,2.3799.3453,4.723-.0686,7.0157-.7406,4.0252-1.1798,7.6465-3.2068,11.2159-5.3463.3808-.2282.4942-.4809.4932-.9109-.014-6.471-.0097-12.942-.0097-19.413v-.6538Z"/>
+      <path d="M174.2555,71.3361c.8121.9742,1.5395,1.8468,2.2943,2.7524-2.825,3.1082-5.5731,6.2627-9.5347,7.9174-3.3194,1.3865-6.7464,1.417-10.1321.2748-3.335-1.1251-5.2944-3.6378-6.4288-6.8677-1.0321-2.9385-1.3145-5.9967-1.3205-9.0789-.0218-11.0937-.0086-22.1875-.0086-33.2813,0-.2375,0-.4751,0-.7693h-8.6903v-3.4176c1.6776-.3997,3.3409-.6913,4.9338-1.2022,1.942-.6228,3.7462-1.6754,4.9092-3.3444,1.4704-2.1101,2.7309-4.3776,3.3161-6.9537.5139-2.2624.789-4.5461.8976-6.8567.0092-.1966.0378-.3923.0634-.6481,1.1055.112,2.169.2198,3.2979.3342v18.4755h17.183v3.5841h-17.1313c-.0139.2643-.0348.4765-.0348.6888-.0015,10.933-.0088,21.866.0054,32.799.0026,2.012.1827,4.0121.7853,5.9503,1.0142,3.2625,2.9471,4.8504,6.2046,5.0055,1.8383.0875,3.5884-.3916,5.0596-1.4678,1.4336-1.0488,2.7118-2.3103,4.0526-3.4849.1016-.089.1582-.2292.2782-.4095Z"/>
+      <path d="M264.9051,3.8299h8.562v.7971c0,22.49-.0062,44.9799.0227,67.4699.0011.8964.2225,1.8361.545,2.6775.3949,1.0301,1.2906,1.4969,2.4123,1.4442.5003-.0235.9996-.0699,1.5861-.1122.3731,2.0889.752,4.2104,1.1526,6.4531-.8418.1863-1.6463.4066-2.4651.5368-1.6985.2699-3.4047.2798-5.0933-.0803-3.192-.6807-5.1582-2.7132-5.9684-5.7882-.4256-1.6153-.7194-3.3191-.7228-4.9837-.0463-22.5904-.0311-45.1808-.0311-67.7713v-.6429Z"/>
+      <path d="M251.8078,81.9916h-8.2243V24.0555h8.2243v57.936Z"/>
+      <path d="M247.7311,0c2.6766.0081,4.8596,2.304,4.8428,5.0934-.0165,2.739-2.2279,5.0117-4.8808,5.0159-2.7627.0044-5.0277-2.2928-5.0122-5.0835C242.6965,2.2123,244.928-.0084,247.7311,0Z"/>
+    </svg>
+  `;
 
-// モーダル開閉制御
-function openTreeModal() {
-  document.getElementById('treeModalOverlay').style.display = 'flex';
-  t_render();
-}
-function closeTreeModal() {
-  document.getElementById('treeModalOverlay').style.display = 'none';
-}
+  let t_treeData = [];
 
-function applyTreeToSlots() {
-  alert("【ステップ2検証項目】\n後日、ここで作成したツリー構造を解析し、既存の36面に自動展開するデータ変換ロジックを実装します。");
-}
-
-// ツリー画面のメイン描画関数
-function t_render() {
-  const inputPanel = document.getElementById('t-treeInputPanel');
-  const previewPanel = document.getElementById('t-treePreviewPanel');
-  
-  if (t_treeData.length === 0) {
-    inputPanel.innerHTML = `
-      <div style="font-weight:bold; color:#3d2314; border-bottom:1px solid #dcd6ce; padding-bottom:6px; margin-bottom:10px;">ツリー構成の構築と詳細入力</div>
-      <div style="text-align:center; padding:40px; color:#777;">
-        <p>外袋セットがまだ登録されていません。</p>
-        <button class="t-btn-main" style="background:#3d2314; color:white;" onclick="t_addSetGroup()">＋ 外袋セットを追加する</button>
-      </div>
-    `;
-    previewPanel.innerHTML = `
-      <div style="font-weight:bold; color:#3d2314; border-bottom:1px solid #dcd6ce; padding-bottom:6px; margin-bottom:10px;">ツリー連動印刷プレビュー</div>
-      <div style="text-align:center; padding:40px; color:#777;">プレビューはありません</div>
-    `;
-    return;
+  function openTreeModal() {
+    document.getElementById('treeModalOverlay').style.display = 'flex';
+    t_render();
+  }
+  function closeTreeModal() {
+    document.getElementById('treeModalOverlay').style.display = 'none';
   }
 
-  // （※ここに、先ほど完成したモックのレンダリング処理や `applyAutoFit` のロジックを配置します）
-  // モックの完成コードをそのまま適用できます。
-}
+  function applyTreeToSlots() {
+    alert("【将来の連携予定】\nここで作成したツリーデータを36面スロットに自動展開するロジックを実装します。");
+  }
 
-function t_addSetGroup() {
-  t_treeData.push({ outerId: Date.now(), outerName: '', outerOption: '1', setCopies: 1, items: [] });
-  t_render();
-}
+  // --- ツリー描画 ---
+  function t_render() {
+    const inputPanel = document.getElementById('t-treeInputPanel');
+    const previewPanel = document.getElementById('t-treePreviewPanel');
+    
+    let htmlLeft = `<div class="t-panel-header-row"><div class="t-panel-title">ツリー構成の構築と詳細入力</div></div>`;
+    let htmlRight = `<div class="t-panel-header-row"><div class="t-panel-title">ツリー連動印刷プレビュー</div></div>`;
 
-// ... 他のモックの関数群（追加・削除・更新・プレビュー連動など）をすべて記述
+    if (t_treeData.length === 0) {
+      inputPanel.innerHTML = htmlLeft + `
+        <div style="text-align:center; padding:40px; color:#777;">
+          <p>外袋セットがまだ登録されていません。</p>
+          <button class="t-btn-main" onclick="t_addSetGroup()">＋ 外袋セットを追加する</button>
+        </div>
+      `;
+      previewPanel.innerHTML = htmlRight + `<div style="text-align:center; padding:40px; color:#777;">プレビューはありません</div>`;
+      return;
+    }
+
+    t_treeData.forEach((group) => {
+      const outerOpt = group.outerOption || "1";
+
+      let step1ItemsHtml = '';
+      if (group.items.length === 0) {
+        step1ItemsHtml = `<div style="color:#888; font-size:12px; padding:12px; text-align:center;">料理やパックがまだ追加されていません。</div>`;
+      } else {
+        group.items.forEach((item) => {
+          if (item.type === 'combination') {
+            let packsListHtml = '';
+            const canDeletePack = item.packs.length > 2;
+            item.packs.forEach(p => {
+              packsListHtml += `
+                <div style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px;">
+                  <span style="color:#b71c1c; font-weight:bold;">〇</span>
+                  <span style="font-size:11px; color:#555; width:55px;">パック名:</span>
+                  <input type="text" class="t-input-text" value="${p.packName}" placeholder="例: ハンバーグ" 
+                    oninput="t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, this.value)"
+                    onfocus="t_highlightPreviewCard(${p.id})">
+                  ${canDeletePack ? `<button class="t-btn-danger" onclick="t_deleteCombPackStep1(${group.outerId}, ${item.groupId}, ${p.id})">✕ 削除</button>` : `<span style="font-size:10px; color:#888;">(最低2)</span>`}
+                </div>
+              `;
+            });
+
+            step1ItemsHtml += `
+              <div class="t-comb-group-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <span style="font-size:12.5px; font-weight:bold; color:#3d2314;">🍳 組み合わせ料理名: 
+                    <input type="text" class="t-input-text" value="${item.groupName}" placeholder="例: ハンバーグデミグラスソース" style="width:240px; display:inline-block;" 
+                      oninput="t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, this.value)">
+                  </span>
+                  <div style="display:flex; gap:4px;">
+                    <button class="t-btn-main" onclick="t_addPackToCombStep1(${group.outerId}, ${item.groupId})">＋ パック追加</button>
+                    <button class="t-btn-danger" onclick="t_deleteTreeItemStep1(${group.outerId}, ${item.groupId})">グループ削除</button>
+                  </div>
+                </div>
+                <div style="padding-left:15px; display:flex; flex-direction:column; gap:4px;">
+                  ${packsListHtml}
+                </div>
+              </div>
+            `;
+          } else {
+            step1ItemsHtml += `
+              <div class="t-single-item-card">
+                <div style="display:flex; align-items:center; gap:8px; flex:1;">
+                  <span style="color:#555; font-weight:bold;">・</span>
+                  <span style="font-size:11px; color:#555; width:55px;">単体料理:</span>
+                  <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" 
+                    oninput="t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, this.value)"
+                    onfocus="t_highlightPreviewCard(${item.id})">
+                </div>
+                <button class="t-btn-danger" onclick="t_deleteTreeItemStep1(${group.outerId}, ${item.id})">削除</button>
+              </div>
+            `;
+          }
+        });
+      }
+
+      let step2DetailsHtml = '';
+      if (group.items.length === 0) {
+        step2DetailsHtml = `<div style="color:#888; font-size:12px; padding:10px; text-align:center;">構成が未設定のため詳細設定はありません</div>`;
+      } else {
+        group.items.forEach((item) => {
+          if (item.type === 'combination') {
+            let packsDetailHtml = '';
+            item.packs.forEach((pack) => {
+              const hMode = pack.heatMode || 'range';
+              let heatSubInputHtml = '';
+              if (hMode === 'range' || hMode === 'yusen') {
+                heatSubInputHtml = `
+                  <div class="t-time-wrap">
+                    <span style="font-size:11px; font-weight:bold; color:#555;">⏱:</span>
+                    <input type="number" class="t-input-num" style="width:38px;" value="${pack.heatMin || ''}" placeholder="分" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatMin', this.value)"> 分
+                    <input type="number" class="t-input-num" style="width:38px;" value="${pack.heatSec || ''}" placeholder="秒" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatSec', this.value)"> 秒
+                  </div>
+                `;
+              } else if (hMode === 'custom') {
+                heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${pack.heatCustom || ''}" placeholder="自由入力" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatCustom', this.value)">`;
+              }
+
+              packsDetailHtml += `
+                <div class="t-tree-node-row" data-link-pack="${pack.id}" onclick="t_focusPreviewCard(${pack.id})">
+                  <div class="t-input-group">
+                    <span style="font-size:12px; font-weight:bold; color:#b71c1c; width:15px;">〇</span>
+                    <label>パック</label>
+                    <input type="text" class="t-input-text" value="${pack.packName}" placeholder="例: ハンバーグ" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'packName', this.value)" onfocus="t_highlightPreviewCard(${pack.id})">
+                    
+                    <label>温め</label>
+                    <div style="display:flex; gap:2px; flex:1;">
+                      <div class="t-btn-heat-choice range ${hMode==='range'?'active':''}" onclick="t_setPackHeatMode(${group.outerId}, ${item.groupId}, ${pack.id}, 'range')">レンジ</div>
+                      <div class="t-btn-heat-choice yusen ${hMode==='yusen'?'active':''}" onclick="t_setPackHeatMode(${group.outerId}, ${item.groupId}, ${pack.id}, 'yusen')">湯煎</div>
+                      <div class="t-btn-heat-choice cold ${hMode==='cold'?'active':''}" onclick="t_setPackHeatMode(${group.outerId}, ${item.groupId}, ${pack.id}, 'cold')">冷</div>
+                      <div class="t-btn-heat-choice besshi ${hMode==='besshi'?'active':''}" onclick="t_setPackHeatMode(${group.outerId}, ${item.groupId}, ${pack.id}, 'besshi')">別紙</div>
+                    </div>
+                    ${heatSubInputHtml}
+
+                    <label style="width:30px;">枚数</label>
+                    <input type="number" class="t-input-num" value="${pack.copies}" min="1" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'copies', this.value)">
+                  </div>
+                </div>
+              `;
+            });
+            step2DetailsHtml += `
+              <div style="background:#fffdf9; border:1px solid #d4a373; border-radius:6px; padding:8px; margin-bottom:8px;">
+                <div style="font-size:12px; font-weight:bold; color:#3d2314; margin-bottom:6px;">🍳 組合せ: ${item.groupName}</div>
+                ${packsDetailHtml}
+              </div>
+            `;
+          } else {
+            const hMode = item.heatMode || 'range';
+            let heatSubInputHtml = '';
+            if (hMode === 'range' || hMode === 'yusen') {
+              heatSubInputHtml = `
+                <div class="t-time-wrap">
+                  <span style="font-size:11px; font-weight:bold; color:#555;">⏱:</span>
+                  <input type="number" class="t-input-num" style="width:38px;" value="${item.heatMin || ''}" placeholder="分" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatMin', this.value)"> 分
+                  <input type="number" class="t-input-num" style="width:38px;" value="${item.heatSec || ''}" placeholder="秒" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatSec', this.value)"> 秒
+                </div>
+              `;
+            } else if (hMode === 'custom') {
+              heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${item.heatCustom || ''}" placeholder="自由入力" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatCustom', this.value)">`;
+            }
+
+            step2DetailsHtml += `
+              <div class="t-tree-node-row" data-link-pack="${item.id}" onclick="t_focusPreviewCard(${item.id})">
+                <div class="t-input-group">
+                  <span style="font-size:12px; font-weight:bold; color:#555; width:15px;">・</span>
+                  <label>単体</label>
+                  <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'packName', this.value)" onfocus="t_highlightPreviewCard(${item.id})">
+                  
+                  <label>温め</label>
+                  <div style="display:flex; gap:2px; flex:1;">
+                    <div class="t-btn-heat-choice range ${hMode==='range'?'active':''}" onclick="t_setSingleHeatMode(${group.outerId}, ${item.id}, 'range')">レンジ</div>
+                    <div class="t-btn-heat-choice yusen ${hMode==='yusen'?'active':''}" onclick="t_setSingleHeatMode(${group.outerId}, ${item.id}, 'yusen')">湯煎</div>
+                    <div class="t-btn-heat-choice cold ${hMode==='cold'?'active':''}" onclick="t_setSingleHeatMode(${group.outerId}, ${item.id}, 'cold')">冷</div>
+                    <div class="t-btn-heat-choice besshi ${hMode==='besshi'?'active':''}" onclick="t_setSingleHeatMode(${group.outerId}, ${item.id}, 'besshi')">別紙</div>
+                  </div>
+                  ${heatSubInputHtml}
+
+                  <label style="width:30px;">枚数</label>
+                  <input type="number" class="t-input-num" value="${item.copies}" min="1" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'copies', this.value)">
+                </div>
+              </div>
+            `;
+          }
+        });
+      }
+
+      htmlLeft += `
+        <div class="t-tree-set-box" id="t-set-group-${group.outerId}">
+          <div class="t-tree-set-header">
+            <div class="t-input-group">
+              <strong style="color:#3d2314; font-size:13px; white-space:nowrap;">📦 外袋ラベル（親）:</strong>
+              <input type="text" class="t-input-text" value="${group.outerName}" placeholder="例: 魚アレルギー対応 朝食" oninput="t_updateOuter(${group.outerId}, 'outerName', this.value)">
+              
+              <div class="t-outer-option-wrap">
+                <span style="font-size:11px; color:#555; font-weight:bold;">右上の表示:</span>
+                <div style="display:flex; gap:4px;">
+                  <div class="t-btn-outer-choice ${outerOpt==='1'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '1')">冷凍・前日</div>
+                  <div class="t-btn-outer-choice ${outerOpt==='2'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '2')">冷蔵保管</div>
+                  <div class="t-btn-outer-choice ${outerOpt==='3'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '3')">冷凍保管</div>
+                  <div class="t-btn-outer-choice ${outerOpt==='4'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '4')">無し</div>
+                </div>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:11px; color:#555; font-weight:bold;">枚数:</span>
+                <input type="number" class="t-input-num" value="${group.setCopies}" min="1" oninput="t_updateOuter(${group.outerId}, 'setCopies', this.value)">
+                <button class="t-btn-danger" onclick="t_deleteSet(${group.outerId})">外袋削除</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="t-step-section-1" onclick="t_focusOuterStep1(${group.outerId})">
+            <div class="t-step-banner s1">ステップ1：ツリー構成（骨組み）の作成</div>
+            <div style="margin-bottom:8px; display:flex; gap:6px;">
+              <button class="t-btn-main" onclick="t_addCombinationGroupStep1(${group.outerId})">＋ 組み合わせ料理を追加</button>
+              <button class="t-btn-secondary" onclick="t_addSinglePackStep1(${group.outerId})">＋ 単体料理を追加</button>
+            </div>
+            <div>${step1ItemsHtml}</div>
+          </div>
+
+          <div class="t-step-section-2">
+            <div class="t-step-banner s2">ステップ2：詳細属性の設定（温め方・枚数）</div>
+            <div>${step2DetailsHtml}</div>
+          </div>
+        </div>
+      `;
+    });
+
+    htmlLeft += `<div style="margin-top:10px;"><button class="t-btn-main" style="width:100%;" onclick="t_addSetGroup()">＋ 外袋セットを追加する</button></div>`;
+    inputPanel.innerHTML = htmlLeft;
+
+    t_updatePreviewOnly();
+  }
+
+  function t_computeHeatingText(pack) {
+    const m = pack.heatMode || 'range';
+    if (m === 'range') {
+      let t = 'レンジ 600Wで';
+      if (pack.heatMin) t += `${pack.heatMin}分`;
+      if (pack.heatSec) t += `${pack.heatSec}秒`;
+      return t + '温め';
+    } else if (m === 'yusen') {
+      let t = '湯煎で';
+      if (pack.heatMin) t += `${pack.heatMin}分`;
+      if (pack.heatSec) t += `${pack.heatSec}秒`;
+      return t + '温め';
+    } else if (m === 'cold') return '冷たいまま';
+    else if (m === 'besshi') return '調理方法は別紙資料参照';
+    else if (m === 'custom') return pack.heatCustom || '';
+    return '';
+  }
+
+  function t_updatePreviewOnly() {
+    const previewPanel = document.getElementById('t-treePreviewPanel');
+    let previewHTML = `<div class="t-panel-header-row"><div class="t-panel-title">ツリー連動印刷プレビュー</div></div>`;
+
+    if (t_treeData.length === 0) {
+      previewPanel.innerHTML = previewHTML + `<div style="text-align:center; padding:40px; color:#777;">プレビューはありません</div>`;
+      return;
+    }
+
+    t_treeData.forEach((group) => {
+      const outerOpt = group.outerOption || "1";
+      let outerSubTextHtml = "";
+      let outerHeaderStyle = "";
+      if (outerOpt === "1") outerSubTextHtml = '<span class="t-p-outer-cat">冷凍庫保管・前日冷蔵庫解凍</span>';
+      else if (outerOpt === "2") outerSubTextHtml = '<span class="t-p-outer-cat">冷蔵庫保管</span>';
+      else if (outerOpt === "3") outerSubTextHtml = '<span class="t-p-outer-cat">冷凍庫保管</span>';
+      else if (outerOpt === "4") outerHeaderStyle = 'justify-content: center;';
+
+      const outerNameLines = (group.outerName || '').split(/\r\n|\r|\n/);
+      let outerNameHtml = '';
+      outerNameLines.forEach(line => {
+        if (line.trim() !== '') outerNameHtml += `<div class="t-p-line-wrapper"><span class="t-p-item-name">${line}</span></div>`;
+      });
+
+      let childCardsHtml = '';
+      group.items.forEach(item => {
+        let listToRender = item.type === 'combination' ? item.packs : [item];
+        listToRender.forEach(pack => {
+          const itemNameHtml = `<div class="t-p-line-wrapper"><span class="t-p-item-name">${pack.packName || ''}</span></div>`;
+          
+          let cookingHtml = '';
+          let cardStyleClass = 'single-card';
+          if (item.type === 'combination') {
+            cardStyleClass = 'comb-card';
+            cookingHtml = `
+              <div class="t-p-line-wrapper">
+                <div class="t-p-item-sub">
+                  <span class="weight-light">[</span> 
+                  <span class="weight-bold">${item.groupName}</span> 
+                  <span class="weight-light">]</span>
+                </div>
+              </div>
+            `;
+          }
+
+          const heatingText = t_computeHeatingText(pack);
+          const hMode = pack.heatMode || 'range';
+          let heatingColor = '#2e7d32'; 
+          if (hMode === 'range' || hMode === 'yusen') heatingColor = '#b71c1c'; 
+          if (hMode === 'cold') heatingColor = '#0288d1';   
+
+          childCardsHtml += `
+            <div class="t-preview-child-row">
+              <div class="t-label-preview-card ${cardStyleClass}" data-preview-pack="${pack.id}" onclick="t_focusInputRow(${pack.id})">
+                <div class="t-p-header" style="${outerHeaderStyle}">
+                  ${t_svgLogoString}
+                  <div class="t-p-cat-wrapper"><span class="t-p-set-cat">${group.outerName || ''}</span></div>
+                </div>
+                <div class="t-p-body-center">
+                  ${itemNameHtml}
+                  ${cookingHtml}
+                </div>
+                <div class="t-p-footer">
+                  <div class="t-p-green-line" style="background-color: ${heatingColor};"></div>
+                  <div class="t-p-footer-instruction" style="color: ${heatingColor};">${heatingText}</div>
+                </div>
+              </div>
+              <div class="t-preview-copies-badge">× ${pack.copies || 1} 枚</div>
+            </div>
+          `;
+        });
+      });
+
+      previewHTML += `
+        <div class="t-preview-tree-group">
+          <div class="t-preview-parent-row">
+            <div class="t-label-preview-card outer-bag">
+              <div class="t-p-header" style="${outerHeaderStyle}">
+                ${t_svgLogoString}
+                <div class="t-p-cat-wrapper">${outerSubTextHtml}</div>
+              </div>
+              <div class="t-p-body-center">${outerNameHtml}</div>
+            </div>
+            <div class="t-preview-copies-badge">× ${Number(group.setCopies || 1)} 枚</div>
+          </div>
+          <div class="t-preview-children-box">${childCardsHtml}</div>
+        </div>
+      `;
+    });
+
+    previewPanel.innerHTML = previewHTML;
+    t_bindHoverSync();
+    t_applyAutoFit();
+  }
+
+  // --- 操作用関数群 ---
+  function t_addSetGroup() {
+    t_treeData.push({ outerId: Date.now(), outerName: '', outerOption: '1', setCopies: 1, items: [] });
+    t_render();
+  }
+  function t_deleteSet(outerId) {
+    if (confirm("外袋セットを削除しますか？")) {
+      t_treeData = t_treeData.filter(x => x.outerId !== outerId);
+      t_render();
+    }
+  }
+
+  function t_addCombinationGroupStep1(outerId) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      const id = Date.now();
+      g.items.push({
+        type: 'combination', groupId: id, groupName: '',
+        packs: [
+          { id: id + 1, packName: '', heatMode: 'range', heatMin: '2', heatSec: '', copies: g.setCopies },
+          { id: id + 2, packName: '', heatMode: 'range', heatMin: '2', heatSec: '', copies: g.setCopies }
+        ]
+      });
+      t_render();
+    }
+  }
+
+  function t_addSinglePackStep1(outerId) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      g.items.push({ type: 'single', id: Date.now(), packName: '', heatMode: 'range', heatMin: '2', heatSec: '', copies: g.setCopies });
+      t_render();
+    }
+  }
+
+  function t_addPackToCombStep1(outerId, groupId) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === groupId);
+      if (item) { item.packs.push({ id: Date.now(), packName: '', heatMode: 'range', heatMin: '2', heatSec: '', copies: g.setCopies }); t_render(); }
+    }
+  }
+
+  function t_deleteCombPackStep1(outerId, groupId, packId) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === groupId);
+      if (item) {
+        if (item.packs.length <= 2) { alert('最低2パック必要です。'); return; }
+        item.packs = item.packs.filter(p => p.id !== packId); t_render();
+      }
+    }
+  }
+
+  function t_deleteTreeItemStep1(outerId, id) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { g.items = g.items.filter(i => (i.type === 'combination' ? i.groupId !== id : i.id !== id)); t_render(); }
+  }
+
+  function t_onFieldInput(outerId, type, id1, id2, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (!g) return;
+    if (type === 'groupName') {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
+      if (item) item.groupName = val;
+    } else if (type === 'combPackName') {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
+      if (item) { const p = item.packs.find(x => x.id === id2); if (p) p.packName = val; }
+    } else if (type === 'singleName') {
+      const item = g.items.find(i => i.type === 'single' && i.id === id1);
+      if (item) item.packName = val;
+    }
+    t_updatePreviewOnly();
+  }
+
+  function t_updateOuter(outerId, field, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { g[field] = val.replace(/ /g, ' '); t_updatePreviewOnly(); }
+  }
+  function t_setOuterOption(outerId, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { g.outerOption = val; t_render(); }
+  }
+  
+  function t_updatePackDetail(outerId, groupId, packId, field, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === groupId);
+      if (item) { const p = item.packs.find(x => x.id === packId); if (p) { p[field] = val; t_updatePreviewOnly(); } }
+    }
+  }
+  function t_updateSingleItemDetail(outerId, itemId, field, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { const item = g.items.find(i => i.type === 'single' && i.id === itemId); if (item) { item[field] = val; t_updatePreviewOnly(); } }
+  }
+  function t_setPackHeatMode(outerId, groupId, packId, mode) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === groupId);
+      if (item) { const p = item.packs.find(x => x.id === packId); if (p) { p.heatMode = mode; t_render(); } }
+    }
+  }
+  function t_setSingleHeatMode(outerId, itemId, mode) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { const item = g.items.find(i => i.type === 'single' && i.id === itemId); if (item) { item.heatMode = mode; t_render(); } }
+  }
+
+  // 自動長体処理
+  function t_applyAutoFit() {
+    document.querySelectorAll('.t-label-preview-card').forEach(card => {
+      const header = card.querySelector('.t-p-header');
+      if (!header) return;
+      const logoSvg = header.querySelector('.t-p-logo-svg');
+      const logoWidth = logoSvg ? logoSvg.getBoundingClientRect().width : 35;
+      const headerWidth = header.clientWidth - logoWidth - 6; 
+      
+      const setCatSpan = card.querySelector('.t-p-set-cat');
+      if (setCatSpan) {
+        setCatSpan.style.transform = 'none';
+        if (setCatSpan.scrollWidth > headerWidth && headerWidth > 0) {
+          const scale = headerWidth / setCatSpan.scrollWidth;
+          setCatSpan.style.transform = `scaleX(${Math.max(0.3, scale).toFixed(3)})`;
+        }
+      }
+      const outerCatSpan = card.querySelector('.t-p-outer-cat');
+      if (outerCatSpan) {
+        outerCatSpan.style.transform = 'none';
+        if (outerCatSpan.scrollWidth > headerWidth && headerWidth > 0) {
+          const scale = headerWidth / outerCatSpan.scrollWidth;
+          outerCatSpan.style.transform = `scaleX(${Math.max(0.3, scale).toFixed(3)})`;
+        }
+      }
+
+      const bodyCenter = card.querySelector('.t-p-body-center');
+      if (bodyCenter) {
+        const bodyWidth = bodyCenter.clientWidth - 8;
+        card.querySelectorAll('.t-p-item-name, .t-p-item-sub .weight-bold').forEach(el => {
+          const targetEl = el.classList.contains('weight-bold') ? el.parentElement : el;
+          targetEl.style.transform = 'none';
+          if (targetEl.scrollWidth > bodyWidth && bodyWidth > 0) {
+            const scale = bodyWidth / targetEl.scrollWidth;
+            targetEl.style.transform = `scaleX(${Math.max(0.3, scale).toFixed(3)})`;
+            targetEl.style.display = 'inline-block';
+          }
+        });
+      }
+    });
+  }
+
+  // ホバー同期・スクロール追従
+  function t_bindHoverSync() {
+    document.querySelectorAll('.t-tree-node-row').forEach(row => {
+      const packId = row.dataset.linkPack;
+      const previewCard = document.querySelector(`[data-preview-pack="${packId}"]`);
+      if (!previewCard) return;
+      row.addEventListener('mouseenter', () => { row.classList.add('active-hover'); previewCard.classList.add('highlighted'); });
+      row.addEventListener('mouseleave', () => { row.classList.remove('active-hover'); previewCard.classList.remove('highlighted'); });
+      previewCard.addEventListener('mouseenter', () => { previewCard.classList.add('highlighted'); row.classList.add('active-hover'); });
+      previewCard.addEventListener('mouseleave', () => { previewCard.classList.remove('highlighted'); row.classList.remove('active-hover'); });
+    });
+  }
+  function t_highlightPreviewCard(packId) {
+    const previewCard = document.querySelector(`[data-preview-pack="${packId}"]`);
+    if (previewCard) {
+      previewCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      previewCard.classList.add('highlighted');
+      setTimeout(() => { previewCard.classList.remove('highlighted'); }, 1200);
+    }
+  }
+  function t_focusInputRow(packId) {
+    const targetRow = document.querySelector(`[data-link-pack="${packId}"]`);
+    if (targetRow) {
+      targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const input = targetRow.querySelector('input[type="text"]');
+      if (input) input.focus();
+      targetRow.classList.add('active-hover');
+      setTimeout(() => { targetRow.classList.remove('active-hover'); }, 1200);
+    }
+  }
+  function t_focusOuterStep1(outerId) {
+    const box = document.getElementById(`t-set-group-${outerId}`);
+    if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function t_focusPreviewCard(packId) {
+    const previewCard = document.querySelector(`[data-preview-pack="${packId}"]`);
+    if (previewCard) {
+      previewCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      previewCard.classList.add('highlighted');
+      setTimeout(() => { previewCard.classList.remove('highlighted'); }, 1200);
+    }
+  }
 </script>
