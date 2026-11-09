@@ -125,7 +125,7 @@
               }
 
               packsDetailHtml += `
-                <div class="t-tree-node-row" data-link-pack="${pack.id}">
+                <div class="t-tree-node-row" data-link-pack="${pack.id}" onclick="t_focusPreviewCard(${pack.id})">
                   <div class="t-input-group">
                     <span style="font-size:12px; font-weight:bold; color:#b71c1c; width:15px;">〇</span>
                     <label>パック</label>
@@ -168,7 +168,7 @@
             }
 
             step2DetailsHtml += `
-              <div class="t-tree-node-row" data-link-pack="${item.id}">
+              <div class="t-tree-node-row" data-link-pack="${item.id}" onclick="t_focusPreviewCard(${item.id})">
                 <div class="t-input-group">
                   <span style="font-size:12px; font-weight:bold; color:#555; width:15px;">・</span>
                   <label>単体</label>
@@ -234,13 +234,13 @@
       `;
     });
 
-    // ★修正: 最下部に外袋追加ボタンを確実に、かつ目立つように配置
-    const bottomActionHtml = `
+    // ★修正1: 外袋追加ボタンをオレンジ色で明示的に配置
+    htmlLeft += `
       <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #dcd6ce; flex-shrink: 0;">
         <button class="t-btn-main" style="width: 100%; background: #e65100; border: 1px solid #ef6c00;" onclick="t_addSetGroup()">＋ 外袋セットを追加する</button>
       </div>
     `;
-    inputPanel.innerHTML = htmlLeft + bottomActionHtml;
+    inputPanel.innerHTML = htmlLeft;
 
     t_updatePreviewOnly();
   }
@@ -314,7 +314,7 @@
           if (hMode === 'range' || hMode === 'yusen') heatingColor = '#b71c1c'; 
           if (hMode === 'cold') heatingColor = '#0288d1';   
 
-          // ★修正: プレビューカードの onclick を削除
+          // ★修正2: ピタゴラスイッチ防止のためプレビューからのonclick属性を完全削除
           childCardsHtml += `
             <div class="t-preview-child-row">
               <div class="t-label-preview-card ${cardStyleClass}" data-preview-pack="${pack.id}">
@@ -475,7 +475,7 @@
       const logoWidth = logoSvg ? logoSvg.getBoundingClientRect().width : 35;
       const headerWidth = header.clientWidth - logoWidth - 12; 
       
-      // ★修正: 長体処理の起点を右端 (right) に設定し、罫線にピッタリ揃える
+      // ★修正3: 長体処理の起点を右寄せに指定
       const setCatSpan = card.querySelector('.t-p-set-cat');
       if (setCatSpan) {
         setCatSpan.style.transform = 'none';
@@ -527,7 +527,6 @@
   function t_highlightPreviewCard(packId) {
     const previewCard = document.querySelector(`[data-preview-pack="${packId}"]`);
     if (previewCard) {
-      // ★修正: 入力時のマウス操作との競合（ピタゴラスイッチ）を防ぐため、ごくわずかな遅延を挟んでスクロールさせる
       setTimeout(() => {
         previewCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         previewCard.classList.add('highlighted');
@@ -539,5 +538,14 @@
   function t_focusOuterStep1(outerId) {
     const box = document.getElementById(`t-set-group-${outerId}`);
     if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function t_focusPreviewCard(packId) {
+    const previewCard = document.querySelector(`[data-preview-pack="${packId}"]`);
+    if (previewCard) {
+      previewCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      previewCard.classList.add('highlighted');
+      setTimeout(() => { previewCard.classList.remove('highlighted'); }, 1200);
+    }
   }
 </script>
