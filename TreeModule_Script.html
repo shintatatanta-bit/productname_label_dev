@@ -1,0 +1,49 @@
+<script>
+// モックで作成したツリー用データモデルと関数をすべてここへ移植
+let t_treeData = [];
+let t_isComposing = false;
+
+// モーダル開閉制御
+function openTreeModal() {
+  document.getElementById('treeModalOverlay').style.display = 'flex';
+  t_render();
+}
+function closeTreeModal() {
+  document.getElementById('treeModalOverlay').style.display = 'none';
+}
+
+function applyTreeToSlots() {
+  alert("【ステップ2検証項目】\n後日、ここで作成したツリー構造を解析し、既存の36面に自動展開するデータ変換ロジックを実装します。");
+}
+
+// ツリー画面のメイン描画関数
+function t_render() {
+  const inputPanel = document.getElementById('t-treeInputPanel');
+  const previewPanel = document.getElementById('t-treePreviewPanel');
+  
+  if (t_treeData.length === 0) {
+    inputPanel.innerHTML = `
+      <div style="font-weight:bold; color:#3d2314; border-bottom:1px solid #dcd6ce; padding-bottom:6px; margin-bottom:10px;">ツリー構成の構築と詳細入力</div>
+      <div style="text-align:center; padding:40px; color:#777;">
+        <p>外袋セットがまだ登録されていません。</p>
+        <button class="t-btn-main" style="background:#3d2314; color:white;" onclick="t_addSetGroup()">＋ 外袋セットを追加する</button>
+      </div>
+    `;
+    previewPanel.innerHTML = `
+      <div style="font-weight:bold; color:#3d2314; border-bottom:1px solid #dcd6ce; padding-bottom:6px; margin-bottom:10px;">ツリー連動印刷プレビュー</div>
+      <div style="text-align:center; padding:40px; color:#777;">プレビューはありません</div>
+    `;
+    return;
+  }
+
+  // （※ここに、先ほど完成したモックのレンダリング処理や `applyAutoFit` のロジックを配置します）
+  // モックの完成コードをそのまま適用できます。
+}
+
+function t_addSetGroup() {
+  t_treeData.push({ outerId: Date.now(), outerName: '', outerOption: '1', setCopies: 1, items: [] });
+  t_render();
+}
+
+// ... 他のモックの関数群（追加・削除・更新・プレビュー連動など）をすべて記述
+</script>

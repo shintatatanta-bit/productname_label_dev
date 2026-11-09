@@ -24,6 +24,11 @@
     <div class="top-action-bar">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <span style="font-size:13px; font-weight:bold; color:#1a73e8;">🍱 商品温めラベル (A-one 31072)</span>
+<button type="button" class="btn-main" style="background:#e65100; color:white; border:1px solid #ef6c00;" onclick="openTreeModal()">
+          🌳 ツリー形式でセット構成を入力
+        </button>
+
+
         <span style="font-size:12px; font-weight:bold;" id="lblTotalUsage">作成中: 0 / 36枚</span>
         <button type="button" class="btn-main btn-clear" onclick="clearAllLabels()">全クリア</button>
 
@@ -422,5 +427,11 @@
 <!-- 例: 大文字・小文字を完全に一致させる -->
 <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
 <?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
+
+<!-- ★追加: ツリー入力システム用の外部ファイル（HTML/CSS/JS）を読み込む -->
+<?!= HtmlService.createHtmlOutputFromFile('TreeModule_Style').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('TreeModule_Layout').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('TreeModule_Script').getContent(); ?>
+
 </body>
 </html>
