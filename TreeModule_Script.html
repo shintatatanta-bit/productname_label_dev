@@ -60,9 +60,10 @@
                 <div style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px;">
                   <span style="color:#b71c1c; font-weight:bold;">〇</span>
                   <span style="font-size:11px; color:#555; width:55px;">パック名:</span>
-                  <!-- ★修正: this.value を this に変更 -->
+                  <!-- ★修正: oninputは元のまま、onblurを追加 -->
                   <input type="text" class="t-input-text" value="${p.packName}" placeholder="例: ハンバーグ" 
-                    oninput="t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, this)"
+                    oninput="t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, this.value)"
+                    onblur="t_sanitizeField(this, ${group.outerId}, 'combPackName', ${item.groupId}, ${p.id})"
                     onfocus="t_highlightPreviewCard(${p.id})">
                   ${canDeletePack ? `<button class="t-btn-danger" onclick="t_deleteCombPackStep1(${group.outerId}, ${item.groupId}, ${p.id})">✕ 削除</button>` : `<span style="font-size:10px; color:#888;">(最低2)</span>`}
                 </div>
@@ -73,9 +74,10 @@
               <div class="t-comb-group-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                   <span style="font-size:12.5px; font-weight:bold; color:#3d2314;">🍳 組み合わせ料理名: 
-                    <!-- ★修正: this.value を this に変更 -->
+                    <!-- ★修正: oninputは元のまま、onblurを追加 -->
                     <input type="text" class="t-input-text" value="${item.groupName}" placeholder="例: ハンバーグデミグラスソース" style="width:240px; display:inline-block;" 
-                      oninput="t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, this)">
+                      oninput="t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, this.value)"
+                      onblur="t_sanitizeField(this, ${group.outerId}, 'groupName', ${item.groupId}, null)">
                   </span>
                   <div style="display:flex; gap:4px;">
                     <button class="t-btn-main" onclick="t_addPackToCombStep1(${group.outerId}, ${item.groupId})">＋ パック追加</button>
@@ -93,9 +95,10 @@
                 <div style="display:flex; align-items:center; gap:8px; flex:1;">
                   <span style="color:#555; font-weight:bold;">・</span>
                   <span style="font-size:11px; color:#555; width:55px;">単体料理:</span>
-                  <!-- ★修正: this.value を this に変更 -->
+                  <!-- ★修正: oninputは元のまま、onblurを追加 -->
                   <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" 
-                    oninput="t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, this)"
+                    oninput="t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, this.value)"
+                    onblur="t_sanitizeField(this, ${group.outerId}, 'singleName', ${item.id}, null)"
                     onfocus="t_highlightPreviewCard(${item.id})">
                 </div>
                 <button class="t-btn-danger" onclick="t_deleteTreeItemStep1(${group.outerId}, ${item.id})">削除</button>
@@ -119,22 +122,25 @@
                 heatSubInputHtml = `
                   <div class="t-time-wrap">
                     <span style="font-size:11px; font-weight:bold; color:#555;">⏱:</span>
-                    <!-- ★修正: this.value を this に変更 -->
-                    <input type="number" class="t-input-num" style="width:38px;" value="${pack.heatMin || ''}" placeholder="分" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatMin', this)"> 分
-                    <input type="number" class="t-input-num" style="width:38px;" value="${pack.heatSec || ''}" placeholder="秒" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatSec', this)"> 秒
+                    <input type="number" class="t-input-num" style="width:38px;" value="${pack.heatMin || ''}" placeholder="分" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatMin', this.value)"> 分
+                    <input type="number" class="t-input-num" style="width:38px;" value="${pack.heatSec || ''}" placeholder="秒" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatSec', this.value)"> 秒
                   </div>
                 `;
               } else if (hMode === 'custom') {
-                heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${pack.heatCustom || ''}" placeholder="自由入力" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatCustom', this)">`;
+                // ★修正: oninputは元のまま、onblurを追加
+                heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${pack.heatCustom || ''}" placeholder="自由入力" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatCustom', this.value)" onblur="t_sanitizeField(this, ${group.outerId}, 'heatCustom', ${item.groupId}, ${pack.id})">`;
               }
 
               packsDetailHtml += `
-                <div class="t-tree-node-row" data-link-pack="${pack.id}" onclick="t_focusPreviewCard(${pack.id})">
+                <div class="t-tree-node-row" data-link-pack="${pack.id}">
                   <div class="t-input-group">
                     <span style="font-size:12px; font-weight:bold; color:#b71c1c; width:15px;">〇</span>
                     <label>パック</label>
-                    <!-- ★修正: this.value を this に変更 -->
-                    <input type="text" class="t-input-text" value="${pack.packName}" placeholder="例: ハンバーグ" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'packName', this)" onfocus="t_highlightPreviewCard(${pack.id})">
+                    <!-- ★修正: oninputは元のまま、onblurを追加 -->
+                    <input type="text" class="t-input-text" value="${pack.packName}" placeholder="例: ハンバーグ" 
+                      oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'packName', this.value)" 
+                      onblur="t_sanitizeField(this, ${group.outerId}, 'packNameDetail', ${item.groupId}, ${pack.id})"
+                      onfocus="t_highlightPreviewCard(${pack.id})">
                     
                     <label>温め</label>
                     <div style="display:flex; gap:2px; flex:1;">
@@ -146,7 +152,7 @@
                     ${heatSubInputHtml}
 
                     <label style="width:30px;">枚数</label>
-                    <input type="number" class="t-input-num" value="${pack.copies}" min="1" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'copies', this)">
+                    <input type="number" class="t-input-num" value="${pack.copies}" min="1" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'copies', this.value)">
                   </div>
                 </div>
               `;
@@ -164,22 +170,25 @@
               heatSubInputHtml = `
                 <div class="t-time-wrap">
                   <span style="font-size:11px; font-weight:bold; color:#555;">⏱:</span>
-                  <!-- ★修正: this.value を this に変更 -->
-                  <input type="number" class="t-input-num" style="width:38px;" value="${item.heatMin || ''}" placeholder="分" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatMin', this)"> 分
-                  <input type="number" class="t-input-num" style="width:38px;" value="${item.heatSec || ''}" placeholder="秒" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatSec', this)"> 秒
+                  <input type="number" class="t-input-num" style="width:38px;" value="${item.heatMin || ''}" placeholder="分" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatMin', this.value)"> 分
+                  <input type="number" class="t-input-num" style="width:38px;" value="${item.heatSec || ''}" placeholder="秒" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatSec', this.value)"> 秒
                 </div>
               `;
             } else if (hMode === 'custom') {
-              heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${item.heatCustom || ''}" placeholder="自由入力" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatCustom', this)">`;
+              // ★修正: oninputは元のまま、onblurを追加
+              heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${item.heatCustom || ''}" placeholder="自由入力" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatCustom', this.value)" onblur="t_sanitizeField(this, ${group.outerId}, 'singleHeatCustom', ${item.id}, null)">`;
             }
 
             step2DetailsHtml += `
-              <div class="t-tree-node-row" data-link-pack="${item.id}" onclick="t_focusPreviewCard(${item.id})">
+              <div class="t-tree-node-row" data-link-pack="${item.id}">
                 <div class="t-input-group">
                   <span style="font-size:12px; font-weight:bold; color:#555; width:15px;">・</span>
                   <label>単体</label>
-                  <!-- ★修正: this.value を this に変更 -->
-                  <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'packName', this)" onfocus="t_highlightPreviewCard(${item.id})">
+                  <!-- ★修正: oninputは元のまま、onblurを追加 -->
+                  <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" 
+                    oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'packName', this.value)" 
+                    onblur="t_sanitizeField(this, ${group.outerId}, 'singleNameDetail', ${item.id}, null)"
+                    onfocus="t_highlightPreviewCard(${item.id})">
                   
                   <label>温め</label>
                   <div style="display:flex; gap:2px; flex:1;">
@@ -191,7 +200,7 @@
                   ${heatSubInputHtml}
 
                   <label style="width:30px;">枚数</label>
-                  <input type="number" class="t-input-num" value="${item.copies}" min="1" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'copies', this)">
+                  <input type="number" class="t-input-num" value="${item.copies}" min="1" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'copies', this.value)">
                 </div>
               </div>
             `;
@@ -204,8 +213,10 @@
           <div class="t-tree-set-header">
             <div class="t-input-group">
               <strong style="color:#3d2314; font-size:13px; white-space:nowrap;">📦 外袋ラベル（親）:</strong>
-              <!-- ★修正: this.value を this に変更 -->
-              <input type="text" class="t-input-text" value="${group.outerName}" placeholder="例: 魚アレルギー対応 朝食" oninput="t_updateOuter(${group.outerId}, 'outerName', this)">
+              <!-- ★修正: oninputは元のまま、onblurを追加 -->
+              <input type="text" class="t-input-text" value="${group.outerName}" placeholder="例: 魚アレルギー対応 朝食" 
+                oninput="t_updateOuter(${group.outerId}, 'outerName', this.value)"
+                onblur="t_sanitizeField(this, ${group.outerId}, 'outerName', null, null)">
               
               <div class="t-outer-option-wrap">
                 <span style="font-size:11px; color:#555; font-weight:bold;">右上の表示:</span>
@@ -219,8 +230,7 @@
 
               <div style="display:flex; align-items:center; gap:6px;">
                 <span style="font-size:11px; color:#555; font-weight:bold;">枚数:</span>
-                <!-- ★修正: this.value を this に変更 -->
-                <input type="number" class="t-input-num" value="${group.setCopies}" min="1" oninput="t_updateOuter(${group.outerId}, 'setCopies', this)">
+                <input type="number" class="t-input-num" value="${group.setCopies}" min="1" oninput="t_updateOuter(${group.outerId}, 'setCopies', this.value)">
                 <button class="t-btn-danger" onclick="t_deleteSet(${group.outerId})">外袋削除</button>
               </div>
             </div>
@@ -610,5 +620,83 @@
       previewCard.classList.add('highlighted');
       setTimeout(() => { previewCard.classList.remove('highlighted'); }, 1200);
     }
+  }
+
+  // ★新規追加: フォーカスが外れたタイミングで入力をクリーニングし、画面とデータを同期させる関数
+  function t_sanitizeField(el, outerId, type, id1, id2) {
+    if (!el || !el.value) return;
+    
+    // 全角スペースを半角にし、連続スペースを1つにまとめ、前後をトリムする
+    const cleanVal = String(el.value).replace(/ /g, ' ').replace(/ +/g, ' ').trim();
+    
+    // 値が変わっていれば、画面のテキストボックスを上書き
+    if (el.value !== cleanVal) {
+      el.value = cleanVal;
+    }
+
+    // データモデルを更新して再描画
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (!g) return;
+
+    if (type === 'outerName') {
+      g.outerName = cleanVal;
+    } else if (type === 'groupName') {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
+      if (item) item.groupName = cleanVal;
+    } else if (type === 'combPackName' || type === 'packNameDetail') {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
+      if (item) { const p = item.packs.find(x => x.id === id2); if (p) p.packName = cleanVal; }
+    } else if (type === 'singleName' || type === 'singleNameDetail') {
+      const item = g.items.find(i => i.type === 'single' && i.id === id1);
+      if (item) item.packName = cleanVal;
+    } else if (type === 'heatCustom') {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
+      if (item) { const p = item.packs.find(x => x.id === id2); if (p) p.heatCustom = cleanVal; }
+    } else if (type === 'singleHeatCustom') {
+      const item = g.items.find(i => i.type === 'single' && i.id === id1);
+      if (item) item.heatCustom = cleanVal;
+    }
+    
+    t_updatePreviewOnly();
+  }
+
+  // 以下は元のコード（oninput時に呼ばれる軽量な更新処理）に戻します
+  function t_onFieldInput(outerId, type, id1, id2, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (!g) return;
+    if (type === 'groupName') {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
+      if (item) item.groupName = val;
+    } else if (type === 'combPackName') {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
+      if (item) { const p = item.packs.find(x => x.id === id2); if (p) p.packName = val; }
+    } else if (type === 'singleName') {
+      const item = g.items.find(i => i.type === 'single' && i.id === id1);
+      if (item) item.packName = val;
+    }
+    t_updatePreviewOnly();
+  }
+
+  function t_updateOuter(outerId, field, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { g[field] = val; t_updatePreviewOnly(); }
+  }
+  
+  function t_setOuterOption(outerId, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { g.outerOption = val; t_render(); }
+  }
+  
+  function t_updatePackDetail(outerId, groupId, packId, field, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      const item = g.items.find(i => i.type === 'combination' && i.groupId === groupId);
+      if (item) { const p = item.packs.find(x => x.id === packId); if (p) { p[field] = val; t_updatePreviewOnly(); } }
+    }
+  }
+  
+  function t_updateSingleItemDetail(outerId, itemId, field, val) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) { const item = g.items.find(i => i.type === 'single' && i.id === itemId); if (item) { item[field] = val; t_updatePreviewOnly(); } }
   }
 </script>
