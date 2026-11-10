@@ -62,7 +62,7 @@
                   <span style="color:#b71c1c; font-weight:bold;">〇</span>
                   <span style="font-size:11px; color:#555; width:55px;">パック名:</span>
                   <input type="text" class="t-input-text" value="${p.packName}" placeholder="例: ハンバーグ" 
-                    oninput="t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, this.value)"
+                    oninput="t_handleInput(this, val => t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, val))"
                     onfocus="t_highlightPreviewCard(${p.id})">
                   ${canDeletePack ? `<button class="t-btn-danger" onclick="t_deleteCombPackStep1(${group.outerId}, ${item.groupId}, ${p.id})">✕ 削除</button>` : `<span style="font-size:10px; color:#888;">(最低2)</span>`}
                 </div>
@@ -74,7 +74,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                   <span style="font-size:12.5px; font-weight:bold; color:#3d2314;">🍳 組み合わせ料理名: 
                     <input type="text" class="t-input-text" value="${item.groupName}" placeholder="例: ハンバーグデミグラスソース" style="width:240px; display:inline-block;" 
-                      oninput="t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, this.value)">
+                      oninput="t_handleInput(this, val => t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, val))">
                   </span>
                   <div style="display:flex; gap:4px;">
                     <button class="t-btn-main" onclick="t_addPackToCombStep1(${group.outerId}, ${item.groupId})">＋ パック追加</button>
@@ -93,7 +93,7 @@
                   <span style="color:#555; font-weight:bold;">・</span>
                   <span style="font-size:11px; color:#555; width:55px;">単体料理:</span>
                   <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" 
-                    oninput="t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, this.value)"
+                    oninput="t_handleInput(this, val => t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, val))"
                     onfocus="t_highlightPreviewCard(${item.id})">
                 </div>
                 <button class="t-btn-danger" onclick="t_deleteTreeItemStep1(${group.outerId}, ${item.id})">削除</button>
@@ -249,6 +249,7 @@
                 </div>
               </div>
 
+              <!-- ★中身の右上に外袋名を反映するかどうかのトグル -->
               <div class="t-outer-option-wrap">
                 <span style="font-size:11px; color:#555; font-weight:bold;">中身の右上に外袋名:</span>
                 <div style="display:flex; gap:4px;">
@@ -282,57 +283,6 @@
           <div class="t-step-section-3">
             <div class="t-step-banner s3">ステップ3：印刷枚数の設定</div>
             <div>${step3DetailsHtml}</div>
-          </div>
-        </div>
-      `;
-    });
-
-      htmlLeft += `
-        <div class="t-tree-set-box" id="t-set-group-${group.outerId}">
-          <div class="t-tree-set-header">
-            <div class="t-input-group" style="flex-wrap: wrap;">
-              <strong style="color:#3d2314; font-size:13px; white-space:nowrap;">📦 外袋ラベル（親）:</strong>
-              <input type="text" class="t-input-text" value="${group.outerName}" placeholder="例: 魚アレルギー対応 朝食" oninput="t_updateOuter(${group.outerId}, 'outerName', this.value)">
-              
-              <div class="t-outer-option-wrap">
-                <span style="font-size:11px; color:#555; font-weight:bold;">右上の表示:</span>
-                <div style="display:flex; gap:4px;">
-                  <div class="t-btn-outer-choice ${outerOpt==='1'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '1')">冷凍・前日</div>
-                  <div class="t-btn-outer-choice ${outerOpt==='2'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '2')">冷蔵保管</div>
-                  <div class="t-btn-outer-choice ${outerOpt==='3'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '3')">冷凍保管</div>
-                  <div class="t-btn-outer-choice ${outerOpt==='4'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '4')">無し</div>
-                </div>
-              </div>
-
-              <!-- ★追加: 中身の右上に外袋名を反映するかどうかのトグル -->
-              <div class="t-outer-option-wrap">
-                <span style="font-size:11px; color:#555; font-weight:bold;">中身の右上に外袋名:</span>
-                <div style="display:flex; gap:4px;">
-                  <div class="t-btn-outer-choice ${showOuterOnPacks ? 'active' : ''}" onclick="t_setShowOuterOnPacks(${group.outerId}, true)">表示する</div>
-                  <div class="t-btn-outer-choice ${!showOuterOnPacks ? 'active' : ''}" onclick="t_setShowOuterOnPacks(${group.outerId}, false)">無し</div>
-                </div>
-              </div>
-
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:11px; color:#555; font-weight:bold;">枚数:</span>
-                <input type="number" class="t-input-num" value="${group.setCopies}" min="1" oninput="t_updateOuter(${group.outerId}, 'setCopies', this.value)">
-                <button class="t-btn-danger" onclick="t_deleteSet(${group.outerId})">外袋削除</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="t-step-section-1">
-            <div class="t-step-banner s1">ステップ1：ツリー構成（骨組み）の作成</div>
-            <div style="margin-bottom:8px; display:flex; gap:6px;">
-              <button class="t-btn-main" onclick="t_addCombinationGroupStep1(${group.outerId})">＋ 組み合わせ料理を追加</button>
-              <button class="t-btn-secondary" onclick="t_addSinglePackStep1(${group.outerId})">＋ 単体料理を追加</button>
-            </div>
-            <div>${step1ItemsHtml}</div>
-          </div>
-
-          <div class="t-step-section-2">
-            <div class="t-step-banner s2">ステップ2：詳細属性の設定（温め方・枚数）</div>
-            <div>${step2DetailsHtml}</div>
           </div>
         </div>
       `;
