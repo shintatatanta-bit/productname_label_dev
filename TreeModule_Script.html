@@ -217,6 +217,7 @@
             </div>
           </div>
 
+          <!-- ★修正: onclick属性を削除し、入力時の誤スクロールを防止 -->
           <div class="t-step-section-1">
             <div class="t-step-banner s1">ステップ1：ツリー構成（骨組み）の作成</div>
             <div style="margin-bottom:8px; display:flex; gap:6px;">
@@ -343,7 +344,8 @@
             <div class="t-label-preview-card outer-bag">
               <div class="t-p-header" style="${outerHeaderStyle}">
                 ${t_svgLogoString}
-                <div class="t-p-cat-wrapper">${outerSubTextHtml}</div>
+                <!-- ★修正: ネストされたバッククォートを排除し構文エラーを解消 -->
+                ${outerOpt !== "4" ? '<div class="t-p-cat-wrapper">' + outerSubTextHtml + '</div>' : ''}
               </div>
               <div class="t-p-body-center">${outerNameHtml}</div>
             </div>
