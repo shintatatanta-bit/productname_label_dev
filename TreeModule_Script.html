@@ -423,23 +423,29 @@
   function t_onFieldInput(outerId, type, id1, id2, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (!g) return;
+    
+    // ★修正: 入力値の全角スペースを半角スペースへ確実に変換する
+    const cleanVal = String(val).replace(/ /g, ' ');
+
     if (type === 'groupName') {
       const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
-      if (item) item.groupName = val;
+      if (item) item.groupName = cleanVal;
     } else if (type === 'combPackName') {
       const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
-      if (item) { const p = item.packs.find(x => x.id === id2); if (p) p.packName = val; }
+      if (item) { const p = item.packs.find(x => x.id === id2); if (p) p.packName = cleanVal; }
     } else if (type === 'singleName') {
       const item = g.items.find(i => i.type === 'single' && i.id === id1);
-      if (item) item.packName = val;
+      if (item) item.packName = cleanVal;
     }
     t_updatePreviewOnly();
   }
 
   function t_updateOuter(outerId, field, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
-    if (g) { g[field] = val.replace(/ /g, ' '); t_updatePreviewOnly(); }
+    // ★修正: 全角スペースを半角に変換
+    if (g) { g[field] = String(val).replace(/ /g, ' '); t_updatePreviewOnly(); }
   }
+  
   function t_setOuterOption(outerId, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) { g.outerOption = val; t_render(); }
@@ -449,13 +455,17 @@
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) {
       const item = g.items.find(i => i.type === 'combination' && i.groupId === groupId);
-      if (item) { const p = item.packs.find(x => x.id === packId); if (p) { p[field] = val; t_updatePreviewOnly(); } }
+      // ★修正: 全角スペースを半角に変換
+      if (item) { const p = item.packs.find(x => x.id === packId); if (p) { p[field] = String(val).replace(/ /g, ' '); t_updatePreviewOnly(); } }
     }
   }
+  
   function t_updateSingleItemDetail(outerId, itemId, field, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
-    if (g) { const item = g.items.find(i => i.type === 'single' && i.id === itemId); if (item) { item[field] = val; t_updatePreviewOnly(); } }
+    // ★修正: 全角スペースを半角に変換
+    if (g) { const item = g.items.find(i => i.type === 'single' && i.id === itemId); if (item) { item[field] = String(val).replace(/ /g, ' '); t_updatePreviewOnly(); } }
   }
+  
   function t_setPackHeatMode(outerId, groupId, packId, mode) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) {
