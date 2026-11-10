@@ -299,7 +299,9 @@
       else if (outerOpt === "3") outerSubTextHtml = '<span class="t-p-outer-cat">冷凍庫保管</span>';
       else if (outerOpt === "4") outerHeaderStyle = 'justify-content: center;';
 
-      const outerNameLines = (group.outerName || '').split(/\r\n|\r|\n/);
+      // ★修正: プレビュー描画時に「全角スペースを半角に」「連続する半角を1つに」「前後空白を削除」して出力する
+      const cleanOuterName = (group.outerName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
+      const outerNameLines = cleanOuterName.split(/\r\n|\r|\n/);
       let outerNameHtml = '';
       outerNameLines.forEach(line => {
         if (line.trim() !== '') outerNameHtml += `<div class="t-p-line-wrapper"><span class="t-p-item-name">${line}</span></div>`;
@@ -309,17 +311,21 @@
       group.items.forEach(item => {
         let listToRender = item.type === 'combination' ? item.packs : [item];
         listToRender.forEach(pack => {
-          const itemNameHtml = `<div class="t-p-line-wrapper"><span class="t-p-item-name">${pack.packName || ''}</span></div>`;
+          // ★修正: パック名をクリーニングして出力
+          const cleanPackName = (pack.packName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
+          const itemNameHtml = `<div class="t-p-line-wrapper"><span class="t-p-item-name">${cleanPackName}</span></div>`;
           
           let cookingHtml = '';
           let cardStyleClass = 'single-card';
           if (item.type === 'combination') {
             cardStyleClass = 'comb-card';
+            // ★修正: 組み合わせ料理名をクリーニングして出力
+            const cleanGroupName = (item.groupName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
             cookingHtml = `
               <div class="t-p-line-wrapper">
                 <div class="t-p-item-sub">
                   <span class="weight-light">[</span> 
-                  <span class="weight-bold">${item.groupName}</span> 
+                  <span class="weight-bold">${cleanGroupName}</span> 
                   <span class="weight-light">]</span>
                 </div>
               </div>
