@@ -424,14 +424,16 @@
     <span id="badgeText">コピー</span>
   </div>
 
-<!-- 例: 大文字・小文字を完全に一致させる -->
+<!-- 1. すべてのスタイルシート（CSS）を先に読み込む -->
 <?!= HtmlService.createHtmlOutputFromFile('Stylesheet').getContent(); ?>
-<?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
-
-<!-- ★追加: ツリー入力システム用の外部ファイル（HTML/CSS/JS）を読み込む -->
 <?!= HtmlService.createHtmlOutputFromFile('TreeModule_Style').getContent(); ?>
+
+<!-- 2. すべてのレイアウト（HTML）を読み込む -->
 <?!= HtmlService.createHtmlOutputFromFile('TreeModule_Layout').getContent(); ?>
+
+<!-- 3. DOMが完成した最後に、すべてのスクリプト（JS）を読み込む -->
 <?!= HtmlService.createHtmlOutputFromFile('TreeModule_Script').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('JavaScript').getContent(); ?>
 
 </body>
 </html>
