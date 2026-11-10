@@ -420,12 +420,18 @@
     if (g) { g.items = g.items.filter(i => (i.type === 'combination' ? i.groupId !== id : i.id !== id)); t_render(); }
   }
 
+  // ★追加: 共通のサニタイズ関数（全角スペースを半角にし、連続スペースを1つにまとめ、前後をトリムする）
+  function t_sanitizeInput(text) {
+    if (!text) return '';
+    return String(text).replace(/ /g, ' ').replace(/ +/g, ' ').trim();
+  }
+
   function t_onFieldInput(outerId, type, id1, id2, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (!g) return;
     
-    // ★修正: 入力値の全角スペースを半角スペースへ確実に変換する
-    const cleanVal = String(val).replace(/ /g, ' ');
+    // 共通のサニタイズ関数を使用
+    const cleanVal = t_sanitizeInput(val);
 
     if (type === 'groupName') {
       const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
@@ -442,10 +448,17 @@
 
   function t_updateOuter(outerId, field, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
-    // ★修正: 全角スペースを半角に変換
-    if (g) { g[field] = String(val).replace(/ /g, ' '); t_updatePreviewOnly(); }
+    if (g) {
+      // 数値（setCopiesなど）と文字列を分岐
+      if (field === 'setCopies') {
+        g[field] = val;
+      } else {
+        g[field] = t_sanitizeInput(val);
+      }
+      t_updatePreviewOnly();
+    }
   }
-  
+
   function t_setOuterOption(outerId, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) { g.outerOption = val; t_render(); }
@@ -455,17 +468,29 @@
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) {
       const item = g.items.find(i => i.type === 'combination' && i.groupId === groupId);
-      // ★修正: 全角スペースを半角に変換
-      if (item) { const p = item.packs.find(x => x.id === packId); if (p) { p[field] = String(val).replace(/ /g, ' '); t_updatePreviewOnly(); } }
+      if (item) {
+        const p = item.packs.find(x => x.id === packId);
+        if (p) {
+          // 数値系のフィールド以外をサニタイズ
+          p[field] = (field === 'packName' || field === 'heatCustom') ? t_sanitizeInput(val) : val;
+          t_updatePreviewOnly();
+        }
+      }
     }
   }
-  
+
   function t_updateSingleItemDetail(outerId, itemId, field, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
-    // ★修正: 全角スペースを半角に変換
-    if (g) { const item = g.items.find(i => i.type === 'single' && i.id === itemId); if (item) { item[field] = String(val).replace(/ /g, ' '); t_updatePreviewOnly(); } }
+    if (g) {
+      const item = g.items.find(i => i.type === 'single' && i.id === itemId);
+      if (item) {
+        // 数値系のフィールド以外をサニタイズ
+        item[field] = (field === 'packName' || field === 'heatCustom') ? t_sanitizeInput(val) : val;
+        t_updatePreviewOnly();
+      }
+    }
   }
-  
+
   function t_setPackHeatMode(outerId, groupId, packId, mode) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) {
