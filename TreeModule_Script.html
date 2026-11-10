@@ -299,12 +299,8 @@
       else if (outerOpt === "3") outerSubTextHtml = '<span class="t-p-outer-cat">冷凍庫保管</span>';
       else if (outerOpt === "4") outerHeaderStyle = 'justify-content: center;';
 
-      // ＝＝＝ 🔍 検証ポイント 1: 外袋ラベルのログ出力 ＝＝＝
-      console.log("【1. 外袋 入力値】: [" + group.outerName + "]");
-      const cleanOuterName = (group.outerName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
-      console.log("【1. 外袋 置換後】: [" + cleanOuterName + "]");
-      // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-
+      // ★修正: 全角スペースの判定をUnicode(\u3000)で行い、確実に半角へ変換
+      const cleanOuterName = (group.outerName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
       const outerNameLines = cleanOuterName.split(/\r\n|\r|\n/);
       let outerNameHtml = '';
       outerNameLines.forEach(line => {
@@ -316,25 +312,17 @@
         let listToRender = item.type === 'combination' ? item.packs : [item];
         listToRender.forEach(pack => {
           
-          // ＝＝＝ 🔍 検証ポイント 2: パック名のログ出力 ＝＝＝
-          console.log("【2. パック 入力値】: [" + pack.packName + "]");
-          const cleanPackName = (pack.packName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
-          console.log("【2. パック 置換後】: [" + cleanPackName + "]");
-          // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-
+          // ★修正: 全角スペースの判定をUnicode(\u3000)で行い、確実に半角へ変換
+          const cleanPackName = (pack.packName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
           const itemNameHtml = `<div class="t-p-line-wrapper"><span class="t-p-item-name">${escapeHtml(cleanPackName)}</span></div>`;
           
           let cookingHtml = '';
           let cardStyleClass = 'single-card';
           if (item.type === 'combination') {
             cardStyleClass = 'comb-card';
-
-            // ＝＝＝ 🔍 検証ポイント 3: 組み合わせ料理名のログ出力 ＝＝＝
-            console.log("【3. 組合せ 入力値】: [" + item.groupName + "]");
-            const cleanGroupName = (item.groupName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
-            console.log("【3. 組合せ 置換後】: [" + cleanGroupName + "]");
-            // ＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-
+            
+            // ★修正: 全角スペースの判定をUnicode(\u3000)で行い、確実に半角へ変換
+            const cleanGroupName = (item.groupName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
             cookingHtml = `
               <div class="t-p-line-wrapper">
                 <div class="t-p-item-sub">
