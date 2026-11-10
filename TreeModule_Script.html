@@ -789,4 +789,125 @@
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) { const item = g.items.find(i => i.type === 'single' && i.id === itemId); if (item) { item[field] = val; t_updatePreviewOnly(); } }
   }
+
+  // --- ★追加: 一覧確認モーダル制御関数 ---
+  function t_openSummaryModal() {
+    const flexContainer = document.getElementById('t-modalPreviewFlex');
+    flexContainer.innerHTML = '';
+
+    if (t_treeData.length === 0) {
+      flexContainer.innerHTML = '<div style="padding:20px; color:#777;">作成中のラベルはありません。</div>';
+      document.getElementById('t-summaryModal').style.display = 'flex';
+      return;
+    }
+
+    t_treeData.forEach(group => {
+      const col = document.createElement('div');
+      col.className = 't-modal-set-column';
+
+      // 外袋ラベルの生成
+      const outerOpt = group.outerOption || "1";
+      let modalOuterSubHtml = "";
+      let modalOuterHeaderStyle = "";
+      if (outerOpt === "1") modalOuterSubHtml = '<span class="t-p-outer-cat">冷凍庫保管・前日冷蔵庫解凍</span>';
+      else if (outerOpt === "2") modalOuterSubHtml = '<span class="t-p-outer-cat">冷蔵庫保管</span>';
+      else if (outerOpt === "3") modalOuterSubHtml = '<span class="t-p-outer-cat">冷凍庫保管</span>';
+      else if (outerOpt === "4") modalOuterHeaderStyle = 'justify-content: center;';
+
+      // ★追加指示通りクリーニング
+      const cleanOuterName = (group.outerName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+      const outerNameLines = cleanOuterName.split(/\r\n|\r|\n/);
+      let modalOuterNameHtml = '';
+      outerNameLines.forEach(line => {
+        if (line.trim() !== '') modalOuterNameHtml += `<div class="t-p-line-wrapper"><span class="t-p-item-name" style="font-size:9.5pt;">${escapeHtml(line)}</span></div>`;
+      });
+
+      const showOuterOnPacks = group.showOuterOnPacks !== false;
+      const packHeaderStyle = showOuterOnPacks ? "" : "justify-content: center;";
+
+      let childCardsHtml = '';
+      
+      // 子パック群の生成（3階層データを展開）
+      group.items.forEach(item => {
+        let listToRender = item.type === 'combination' ? item.packs : [item];
+        
+        listToRender.forEach(pack => {
+          // ★追加指示通りクリーニング
+          const cleanPackName = (pack.packName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+          if (!cleanPackName && !item.groupName) return; // 未入力はスキップ
+
+          const itemNameHtml = `<div class="t-p-line-wrapper"><span class="t-p-item-name" style="font-size:10pt;">${escapeHtml(cleanPackName)}</span></div>`;
+          
+          let cookingHtml = '';
+          if (item.type === 'combination') {
+            const cleanGroupName = (item.groupName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+            cookingHtml = `
+              <div class="t-p-line-wrapper">
+                <div class="t-p-item-sub" style="font-size:7pt;">
+                  <span class="weight-light">[</span> 
+                  <span class="weight-bold">${escapeHtml(cleanGroupName)}</span> 
+                  <span class="weight-light">]</span>
+                </div>
+              </div>
+            `;
+          }
+
+          const hMode = pack.heatMode || 'range';
+          let heatingColor = '#2e7d32';
+          if (hMode === 'range' || hMode === 'yusen') heatingColor = '#b71c1c';
+          if (hMode === 'cold' || hMode === 'ryusui') heatingColor = '#0288d1';
+          const heatingText = t_computeHeatingText(pack);
+
+          childCardsHtml += `
+            <div style="display:flex; align-items:center; justify-content:flex-start; gap:12px;">
+              <div class="t-label-preview-card" style="width:190px; height:114px; margin-bottom:0;">
+                <div class="t-p-header" style="${packHeaderStyle}">
+                  ${t_svgLogoString}
+                  ${showOuterOnPacks ? `<div class="t-p-cat-wrapper"><span class="t-p-set-cat" style="font-size:7pt;">${escapeHtml(cleanOuterName)}</span></div>` : ''}
+                </div>
+                <div class="t-p-body-center">
+                  ${itemNameHtml}
+                  ${cookingHtml}
+                </div>
+                <div class="t-p-footer" style="height:21px;">
+                  <div class="t-p-green-line" style="background-color: ${heatingColor};"></div>
+                  <div class="t-p-footer-instruction" style="font-size:7pt; color: ${heatingColor};">${escapeHtml(heatingText)}</div>
+                </div>
+              </div>
+              <div class="t-preview-copies-badge" style="font-size:11px;">× ${pack.copies || 1}枚</div>
+            </div>
+          `;
+        });
+      });
+
+      // 列の組み立て
+      col.innerHTML = `
+        <div style="font-size:13px; font-weight:bold; color:#3d2314; border-bottom:1px dashed #dcd6ce; padding-bottom:6px;">
+          📁 ${escapeHtml(cleanOuterName) || '（未入力セット）'}
+        </div>
+        <div style="display:flex; align-items:center; justify-content:flex-start; gap:12px; margin-top:5px;">
+          <div class="t-label-preview-card outer-bag" style="width:190px; height:114px; margin-bottom:0;">
+            <div class="t-p-header" style="${modalOuterHeaderStyle}">
+              ${t_svgLogoString}
+              <div class="t-p-cat-wrapper">${modalOuterSubHtml}</div>
+            </div>
+            <div class="t-p-body-center">
+              ${modalOuterNameHtml}
+            </div>
+          </div>
+          <div class="t-preview-copies-badge" style="font-size:11px;">× ${group.setCopies || 1}枚</div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px; padding-left:18px; border-left:2px solid #b71c1c; margin-top:5px;">
+          ${childCardsHtml}
+        </div>
+      `;
+      flexContainer.appendChild(col);
+    });
+
+    document.getElementById('t-summaryModal').style.display = 'flex';
+  }
+
+  function t_closeSummaryModal() {
+    document.getElementById('t-summaryModal').style.display = 'none';
+  }
 </script>

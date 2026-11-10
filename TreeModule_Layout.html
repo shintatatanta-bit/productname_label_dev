@@ -17,3 +17,39 @@
     </div>
   </div>
 </div>
+
+<div class="t-modal-overlay" id="treeModalOverlay">
+  <div class="t-modal-container">
+    <div class="t-header">
+      <h2>🌳 ラベルツリー入力管理システム</h2>
+      <div style="display:flex; gap:10px;">
+        <!-- ★追加: 一覧確認ボタン -->
+        <button type="button" class="t-btn-main" style="background:#5e35b1; color:white;" onclick="t_openSummaryModal()">📋 作成中ラベル一覧を確認</button>
+        <button type="button" class="t-btn-main" style="background:#2e7d32; color:white;" onclick="applyTreeToSlots()">✔ 36面シートに反映して閉じる (未実装)</button>
+        <button type="button" class="t-btn-main" style="background:#555; color:white;" onclick="closeTreeModal()">✕ 閉じる</button>
+      </div>
+    </div>
+    <div class="t-body">
+      <div class="t-panel-left" id="t-treeInputPanel">
+        <!-- ツリー入力フォームがJSで生成されます -->
+      </div>
+      <div class="t-panel-right" id="t-treePreviewPanel">
+        <!-- プレビューがJSで生成されます -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ★追加: 一覧確認用モーダル -->
+<div class="t-modal-overlay" id="t-summaryModal" onclick="t_closeSummaryModal()" style="z-index: 4000;">
+  <div class="t-modal-box" onclick="event.stopPropagation()">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #dcd6ce; padding-bottom:10px;">
+      <h3 style="margin:0; color:#3d2314; font-size:16px;">📋 作成中ラベルプレビュー 一覧確認</h3>
+      <button class="t-btn-danger" style="padding: 6px 12px; font-size: 13px;" onclick="t_closeSummaryModal()">✕ 閉じる</button>
+    </div>
+    <div class="t-modal-preview-flex" id="t-modalPreviewFlex"></div>
+    <div style="text-align:right; margin-top:20px;">
+      <button class="t-btn-main" onclick="t_closeSummaryModal()">閉じる</button>
+    </div>
+  </div>
+</div>

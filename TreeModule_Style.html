@@ -108,4 +108,20 @@
   /* ステップ3専用スタイル（青ベースで視覚的に区別） */
   .t-step-section-3 { background: #f0f7ff; border: 2px solid #1a73e8; border-radius: 8px; padding: 14px; margin-top: 15px; }
   .t-step-banner.s3 { background: #1a73e8; color: #ffffff; }
+
+  /* ★追加: 一覧確認モーダル専用スタイル */
+  .t-modal-box {
+    background: #faf8f5; padding: 30px; border-radius: 12px;
+    width: 95vw; max-width: 1400px; max-height: 85vh;
+    overflow-y: auto; box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+    border: 1px solid #dcd6ce;
+  }
+  .t-modal-preview-flex {
+    display: flex; gap: 25px; overflow-x: auto; padding: 15px 0;
+  }
+  .t-modal-set-column {
+    background: #fff; border: 1px solid #dcd6ce; border-radius: 10px;
+    padding: 15px; min-width: 330px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;
+  }
 </style>
