@@ -46,6 +46,7 @@
 
     t_treeData.forEach((group) => {
       const outerOpt = group.outerOption || "1";
+      const showOuterOnPacks = group.showOuterOnPacks !== false; // パック反映フラグ（デフォルト true）
 
       let step1ItemsHtml = '';
       if (group.items.length === 0) {
@@ -60,10 +61,8 @@
                 <div style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px;">
                   <span style="color:#b71c1c; font-weight:bold;">〇</span>
                   <span style="font-size:11px; color:#555; width:55px;">パック名:</span>
-                  <!-- ★修正: oninputは元のまま、onblurを追加 -->
                   <input type="text" class="t-input-text" value="${p.packName}" placeholder="例: ハンバーグ" 
                     oninput="t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, this.value)"
-                    onblur="t_sanitizeField(this, ${group.outerId}, 'combPackName', ${item.groupId}, ${p.id})"
                     onfocus="t_highlightPreviewCard(${p.id})">
                   ${canDeletePack ? `<button class="t-btn-danger" onclick="t_deleteCombPackStep1(${group.outerId}, ${item.groupId}, ${p.id})">✕ 削除</button>` : `<span style="font-size:10px; color:#888;">(最低2)</span>`}
                 </div>
@@ -74,10 +73,8 @@
               <div class="t-comb-group-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                   <span style="font-size:12.5px; font-weight:bold; color:#3d2314;">🍳 組み合わせ料理名: 
-                    <!-- ★修正: oninputは元のまま、onblurを追加 -->
                     <input type="text" class="t-input-text" value="${item.groupName}" placeholder="例: ハンバーグデミグラスソース" style="width:240px; display:inline-block;" 
-                      oninput="t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, this.value)"
-                      onblur="t_sanitizeField(this, ${group.outerId}, 'groupName', ${item.groupId}, null)">
+                      oninput="t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, this.value)">
                   </span>
                   <div style="display:flex; gap:4px;">
                     <button class="t-btn-main" onclick="t_addPackToCombStep1(${group.outerId}, ${item.groupId})">＋ パック追加</button>
@@ -95,10 +92,8 @@
                 <div style="display:flex; align-items:center; gap:8px; flex:1;">
                   <span style="color:#555; font-weight:bold;">・</span>
                   <span style="font-size:11px; color:#555; width:55px;">単体料理:</span>
-                  <!-- ★修正: oninputは元のまま、onblurを追加 -->
                   <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" 
                     oninput="t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, this.value)"
-                    onblur="t_sanitizeField(this, ${group.outerId}, 'singleName', ${item.id}, null)"
                     onfocus="t_highlightPreviewCard(${item.id})">
                 </div>
                 <button class="t-btn-danger" onclick="t_deleteTreeItemStep1(${group.outerId}, ${item.id})">削除</button>
@@ -127,20 +122,16 @@
                   </div>
                 `;
               } else if (hMode === 'custom') {
-                // ★修正: oninputは元のまま、onblurを追加
-                heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${pack.heatCustom || ''}" placeholder="自由入力" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatCustom', this.value)" onblur="t_sanitizeField(this, ${group.outerId}, 'heatCustom', ${item.groupId}, ${pack.id})">`;
+                heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${pack.heatCustom || ''}" placeholder="自由入力" oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'heatCustom', this.value)">`;
               }
 
+              // ★修正: ステップ2のパック名を <div> に変更（入力不可・表示専用）し ID を付与
               packsDetailHtml += `
                 <div class="t-tree-node-row" data-link-pack="${pack.id}">
                   <div class="t-input-group">
                     <span style="font-size:12px; font-weight:bold; color:#b71c1c; width:15px;">〇</span>
                     <label>パック</label>
-                    <!-- ★修正: oninputは元のまま、onblurを追加 -->
-                    <input type="text" class="t-input-text" value="${pack.packName}" placeholder="例: ハンバーグ" 
-                      oninput="t_updatePackDetail(${group.outerId}, ${item.groupId}, ${pack.id}, 'packName', this.value)" 
-                      onblur="t_sanitizeField(this, ${group.outerId}, 'packNameDetail', ${item.groupId}, ${pack.id})"
-                      onfocus="t_highlightPreviewCard(${pack.id})">
+                    <div class="t-input-text" style="background:#f8f9fa; color:#555; cursor:default; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;" id="t-step2-pack-${pack.id}">${escapeHtml(pack.packName) || '（未入力）'}</div>
                     
                     <label>温め</label>
                     <div style="display:flex; gap:2px; flex:1;">
@@ -157,9 +148,10 @@
                 </div>
               `;
             });
+            // ★修正: ステップ2の組み合わせ名を <span> に変更し ID を付与
             step2DetailsHtml += `
               <div style="background:#fffdf9; border:1px solid #d4a373; border-radius:6px; padding:8px; margin-bottom:8px;">
-                <div style="font-size:12px; font-weight:bold; color:#3d2314; margin-bottom:6px;">🍳 組合せ: ${item.groupName}</div>
+                <div style="font-size:12px; font-weight:bold; color:#3d2314; margin-bottom:6px;">🍳 組合せ: <span id="t-step2-group-${item.groupId}">${escapeHtml(item.groupName) || '（未入力）'}</span></div>
                 ${packsDetailHtml}
               </div>
             `;
@@ -175,20 +167,16 @@
                 </div>
               `;
             } else if (hMode === 'custom') {
-              // ★修正: oninputは元のまま、onblurを追加
-              heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${item.heatCustom || ''}" placeholder="自由入力" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatCustom', this.value)" onblur="t_sanitizeField(this, ${group.outerId}, 'singleHeatCustom', ${item.id}, null)">`;
+              heatSubInputHtml = `<input type="text" class="t-input-text" style="width:90px;" value="${item.heatCustom || ''}" placeholder="自由入力" oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'heatCustom', this.value)">`;
             }
 
+            // ★修正: ステップ2の単体料理名を <div> に変更（入力不可・表示専用）し ID を付与
             step2DetailsHtml += `
               <div class="t-tree-node-row" data-link-pack="${item.id}">
                 <div class="t-input-group">
                   <span style="font-size:12px; font-weight:bold; color:#555; width:15px;">・</span>
                   <label>単体</label>
-                  <!-- ★修正: oninputは元のまま、onblurを追加 -->
-                  <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" 
-                    oninput="t_updateSingleItemDetail(${group.outerId}, ${item.id}, 'packName', this.value)" 
-                    onblur="t_sanitizeField(this, ${group.outerId}, 'singleNameDetail', ${item.id}, null)"
-                    onfocus="t_highlightPreviewCard(${item.id})">
+                  <div class="t-input-text" style="background:#f8f9fa; color:#555; cursor:default; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;" id="t-step2-single-${item.id}">${escapeHtml(item.packName) || '（未入力）'}</div>
                   
                   <label>温め</label>
                   <div style="display:flex; gap:2px; flex:1;">
@@ -211,12 +199,9 @@
       htmlLeft += `
         <div class="t-tree-set-box" id="t-set-group-${group.outerId}">
           <div class="t-tree-set-header">
-            <div class="t-input-group">
+            <div class="t-input-group" style="flex-wrap: wrap;">
               <strong style="color:#3d2314; font-size:13px; white-space:nowrap;">📦 外袋ラベル（親）:</strong>
-              <!-- ★修正: oninputは元のまま、onblurを追加 -->
-              <input type="text" class="t-input-text" value="${group.outerName}" placeholder="例: 魚アレルギー対応 朝食" 
-                oninput="t_updateOuter(${group.outerId}, 'outerName', this.value)"
-                onblur="t_sanitizeField(this, ${group.outerId}, 'outerName', null, null)">
+              <input type="text" class="t-input-text" value="${group.outerName}" placeholder="例: 魚アレルギー対応 朝食" oninput="t_updateOuter(${group.outerId}, 'outerName', this.value)">
               
               <div class="t-outer-option-wrap">
                 <span style="font-size:11px; color:#555; font-weight:bold;">右上の表示:</span>
@@ -225,6 +210,15 @@
                   <div class="t-btn-outer-choice ${outerOpt==='2'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '2')">冷蔵保管</div>
                   <div class="t-btn-outer-choice ${outerOpt==='3'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '3')">冷凍保管</div>
                   <div class="t-btn-outer-choice ${outerOpt==='4'?'active':''}" onclick="t_setOuterOption(${group.outerId}, '4')">無し</div>
+                </div>
+              </div>
+
+              <!-- ★追加: 中身の右上に外袋名を反映するかどうかのトグル -->
+              <div class="t-outer-option-wrap">
+                <span style="font-size:11px; color:#555; font-weight:bold;">中身の右上に外袋名:</span>
+                <div style="display:flex; gap:4px;">
+                  <div class="t-btn-outer-choice ${showOuterOnPacks ? 'active' : ''}" onclick="t_setShowOuterOnPacks(${group.outerId}, true)">表示する</div>
+                  <div class="t-btn-outer-choice ${!showOuterOnPacks ? 'active' : ''}" onclick="t_setShowOuterOnPacks(${group.outerId}, false)">無し</div>
                 </div>
               </div>
 
@@ -291,6 +285,7 @@
     }
 
     t_treeData.forEach((group) => {
+      // 外袋のオプション設定
       const outerOpt = group.outerOption || "1";
       let outerSubTextHtml = "";
       let outerHeaderStyle = "";
@@ -299,8 +294,12 @@
       else if (outerOpt === "3") outerSubTextHtml = '<span class="t-p-outer-cat">冷凍庫保管</span>';
       else if (outerOpt === "4") outerHeaderStyle = 'justify-content: center;';
 
-      // ★修正: 全角スペースの判定をUnicode(\u3000)で行い、確実に半角へ変換
-      const cleanOuterName = (group.outerName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+      // パック右上の表示可否オプション
+      const showOuterOnPacks = group.showOuterOnPacks !== false; // デフォルトは true
+      const packHeaderStyle = showOuterOnPacks ? "" : "justify-content: center;";
+
+      // ★修正: 外袋名の全角スペース等をクリーニング
+      const cleanOuterName = (group.outerName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
       const outerNameLines = cleanOuterName.split(/\r\n|\r|\n/);
       let outerNameHtml = '';
       outerNameLines.forEach(line => {
@@ -311,18 +310,16 @@
       group.items.forEach(item => {
         let listToRender = item.type === 'combination' ? item.packs : [item];
         listToRender.forEach(pack => {
-          
-          // ★修正: 全角スペースの判定をUnicode(\u3000)で行い、確実に半角へ変換
-          const cleanPackName = (pack.packName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+          // ★修正: パック名の全角スペース等をクリーニング
+          const cleanPackName = (pack.packName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
           const itemNameHtml = `<div class="t-p-line-wrapper"><span class="t-p-item-name">${escapeHtml(cleanPackName)}</span></div>`;
           
           let cookingHtml = '';
           let cardStyleClass = 'single-card';
           if (item.type === 'combination') {
             cardStyleClass = 'comb-card';
-            
-            // ★修正: 全角スペースの判定をUnicode(\u3000)で行い、確実に半角へ変換
-            const cleanGroupName = (item.groupName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+            // ★修正: 組み合わせ料理名の全角スペース等をクリーニング
+            const cleanGroupName = (item.groupName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
             cookingHtml = `
               <div class="t-p-line-wrapper">
                 <div class="t-p-item-sub">
@@ -340,12 +337,13 @@
           if (hMode === 'range' || hMode === 'yusen') heatingColor = '#b71c1c'; 
           if (hMode === 'cold') heatingColor = '#0288d1';   
 
+          // ★修正: パックラベル側のヘッダーに packHeaderStyle を適用し、右上に cleanOuterName を使用
           childCardsHtml += `
             <div class="t-preview-child-row">
               <div class="t-label-preview-card ${cardStyleClass}" data-preview-pack="${pack.id}">
-                <div class="t-p-header" style="${outerHeaderStyle}">
+                <div class="t-p-header" style="${packHeaderStyle}">
                   ${t_svgLogoString}
-                  ${outerOpt !== "4" ? `<div class="t-p-cat-wrapper"><span class="t-p-set-cat">${escapeHtml(group.outerName || '')}</span></div>` : ''}
+                  ${showOuterOnPacks ? `<div class="t-p-cat-wrapper"><span class="t-p-set-cat">${escapeHtml(cleanOuterName)}</span></div>` : ''}
                 </div>
                 <div class="t-p-body-center">
                   ${itemNameHtml}
@@ -670,15 +668,34 @@
   function t_onFieldInput(outerId, type, id1, id2, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (!g) return;
+
     if (type === 'groupName') {
       const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
-      if (item) item.groupName = val;
+      if (item) {
+        item.groupName = val;
+        // ステップ2の該当箇所にリアルタイム反映
+        const step2El = document.getElementById(`t-step2-group-${id1}`);
+        if (step2El) step2El.textContent = val || '（未入力）';
+      }
     } else if (type === 'combPackName') {
       const item = g.items.find(i => i.type === 'combination' && i.groupId === id1);
-      if (item) { const p = item.packs.find(x => x.id === id2); if (p) p.packName = val; }
+      if (item) {
+        const p = item.packs.find(x => x.id === id2);
+        if (p) {
+          p.packName = val;
+          // ステップ2の該当箇所にリアルタイム反映
+          const step2El = document.getElementById(`t-step2-pack-${id2}`);
+          if (step2El) step2El.textContent = val || '（未入力）';
+        }
+      }
     } else if (type === 'singleName') {
       const item = g.items.find(i => i.type === 'single' && i.id === id1);
-      if (item) item.packName = val;
+      if (item) {
+        item.packName = val;
+        // ステップ2の該当箇所にリアルタイム反映
+        const step2El = document.getElementById(`t-step2-single-${id1}`);
+        if (step2El) step2El.textContent = val || '（未入力）';
+      }
     }
     t_updatePreviewOnly();
   }
@@ -691,6 +708,15 @@
   function t_setOuterOption(outerId, val) {
     const g = t_treeData.find(x => x.outerId === outerId);
     if (g) { g.outerOption = val; t_render(); }
+  }
+
+  // ★新規追加: パックラベルの右上に外袋名を反映させるかどうかのトグル
+  function t_setShowOuterOnPacks(outerId, isShow) {
+    const g = t_treeData.find(x => x.outerId === outerId);
+    if (g) {
+      g.showOuterOnPacks = isShow;
+      t_render();
+    }
   }
   
   function t_updatePackDetail(outerId, groupId, packId, field, val) {
