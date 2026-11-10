@@ -61,8 +61,9 @@
                 <div style="display:flex; align-items:center; gap:8px; padding:4px 0; font-size:12.5px;">
                   <span style="color:#b71c1c; font-weight:bold;">〇</span>
                   <span style="font-size:11px; color:#555; width:55px;">パック名:</span>
+                  <!-- ★修正: t_onFieldInput を直接呼び出し、this.value を渡す -->
                   <input type="text" class="t-input-text" value="${p.packName}" placeholder="例: ハンバーグ" 
-                    oninput="t_handleInput(this, val => t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, val))"
+                    oninput="t_onFieldInput(${group.outerId}, 'combPackName', ${item.groupId}, ${p.id}, this.value)"
                     onfocus="t_highlightPreviewCard(${p.id})">
                   ${canDeletePack ? `<button class="t-btn-danger" onclick="t_deleteCombPackStep1(${group.outerId}, ${item.groupId}, ${p.id})">✕ 削除</button>` : `<span style="font-size:10px; color:#888;">(最低2)</span>`}
                 </div>
@@ -73,8 +74,9 @@
               <div class="t-comb-group-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                   <span style="font-size:12.5px; font-weight:bold; color:#3d2314;">🍳 組み合わせ料理名: 
+                    <!-- ★修正: t_onFieldInput を直接呼び出し、this.value を渡す -->
                     <input type="text" class="t-input-text" value="${item.groupName}" placeholder="例: ハンバーグデミグラスソース" style="width:240px; display:inline-block;" 
-                      oninput="t_handleInput(this, val => t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, val))">
+                      oninput="t_onFieldInput(${group.outerId}, 'groupName', ${item.groupId}, null, this.value)">
                   </span>
                   <div style="display:flex; gap:4px;">
                     <button class="t-btn-main" onclick="t_addPackToCombStep1(${group.outerId}, ${item.groupId})">＋ パック追加</button>
@@ -92,8 +94,9 @@
                 <div style="display:flex; align-items:center; gap:8px; flex:1;">
                   <span style="color:#555; font-weight:bold;">・</span>
                   <span style="font-size:11px; color:#555; width:55px;">単体料理:</span>
+                  <!-- ★修正: t_onFieldInput を直接呼び出し、this.value を渡す -->
                   <input type="text" class="t-input-text" value="${item.packName}" placeholder="例: 白ご飯" 
-                    oninput="t_handleInput(this, val => t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, val))"
+                    oninput="t_onFieldInput(${group.outerId}, 'singleName', ${item.id}, null, this.value)"
                     onfocus="t_highlightPreviewCard(${item.id})">
                 </div>
                 <button class="t-btn-danger" onclick="t_deleteTreeItemStep1(${group.outerId}, ${item.id})">削除</button>
