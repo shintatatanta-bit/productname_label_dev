@@ -298,8 +298,8 @@
       const showOuterOnPacks = group.showOuterOnPacks !== false; // デフォルトは true
       const packHeaderStyle = showOuterOnPacks ? "" : "justify-content: center;";
 
-      // ★修正: 外袋名の全角スペース等をクリーニング
-      const cleanOuterName = (group.outerName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
+      // ★確実な修正: \u3000 を使用して全角スペースを捕捉
+      const cleanOuterName = (group.outerName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
       const outerNameLines = cleanOuterName.split(/\r\n|\r|\n/);
       let outerNameHtml = '';
       outerNameLines.forEach(line => {
@@ -310,16 +310,16 @@
       group.items.forEach(item => {
         let listToRender = item.type === 'combination' ? item.packs : [item];
         listToRender.forEach(pack => {
-          // ★修正: パック名の全角スペース等をクリーニング
-          const cleanPackName = (pack.packName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
+          // ★確実な修正: \u3000 を使用
+          const cleanPackName = (pack.packName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
           const itemNameHtml = `<div class="t-p-line-wrapper"><span class="t-p-item-name">${escapeHtml(cleanPackName)}</span></div>`;
           
           let cookingHtml = '';
           let cardStyleClass = 'single-card';
           if (item.type === 'combination') {
             cardStyleClass = 'comb-card';
-            // ★修正: 組み合わせ料理名の全角スペース等をクリーニング
-            const cleanGroupName = (item.groupName || '').replace(/ /g, ' ').replace(/ +/g, ' ').trim();
+            // ★確実な修正: \u3000 を使用
+            const cleanGroupName = (item.groupName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
             cookingHtml = `
               <div class="t-p-line-wrapper">
                 <div class="t-p-item-sub">
@@ -337,7 +337,7 @@
           if (hMode === 'range' || hMode === 'yusen') heatingColor = '#b71c1c'; 
           if (hMode === 'cold') heatingColor = '#0288d1';   
 
-          // ★修正: パックラベル側のヘッダーに packHeaderStyle を適用し、右上に cleanOuterName を使用
+          // パックラベル側のヘッダー
           childCardsHtml += `
             <div class="t-preview-child-row">
               <div class="t-label-preview-card ${cardStyleClass}" data-preview-pack="${pack.id}">
