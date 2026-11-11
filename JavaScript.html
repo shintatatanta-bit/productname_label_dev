@@ -664,147 +664,172 @@
     function renderAllSlots() {
       const container = document.getElementById('sheetsContainer');
       container.innerHTML = '';
-      const sheet = document.createElement('div');
-      sheet.className = 'sheet-a4';
-      const grid = document.createElement('div');
-      grid.className = 'label-grid';
-
-      for (let i = 0; i < 36; i++) {
-        const cell = document.createElement('div');
-        const data = slotsData[i];
-        const hasData = Boolean(data && ((data.products && data.products.some(p => p.trim() !== "")) || (data.categoryText && data.categoryText.trim() !== "")));
-
-        let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
-        if (i === editingSlotIndex) cellClass += ' active-editing';
-        cell.className = cellClass;
-        cell.dataset.slotIndex = i;
-        cell.draggable = hasData;
-
-        cell.ondragstart = function(e) {
-          draggedSlotIndex = i;
-          isDraggingActive = true;
-          cell.classList.add('is-dragging');
-          e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'slotMove', index: i }));
-          e.dataTransfer.effectAllowed = 'copyMove';
-          document.getElementById('customDragBadge').style.display = 'inline-flex';
-        };
-
-        cell.ondragend = function(e) {
-          cell.classList.remove('is-dragging');
-          document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
-          draggedSlotIndex = null;
-          setTimeout(() => { isDraggingActive = false; }, 100);
-          document.getElementById('customDragBadge').style.display = 'none';
-        };
-
-        cell.ondragover = function(e) {
-          e.preventDefault();
-          e.dataTransfer.dropEffect = e.ctrlKey ? 'copy' : 'move';
-          cell.classList.add('drag-over');
-        };
-
-        cell.ondragleave = function() { cell.classList.remove('drag-over'); };
-
-        cell.ondrop = function(e) {
-          e.preventDefault();
-          cell.classList.remove('drag-over');
-
-          const rawData = e.dataTransfer.getData('text/plain');
-          if (!rawData) return;
-          console.log('プレビュー枠ドロップ検知 - 生データ:', rawData);
-
-          let parsed = null;
-          try { 
-            parsed = JSON.parse(rawData); 
-          } catch(err) { 
-            parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; 
-          }
-
-          console.log('パース後データタイプ:', parsed.type);
-
-          // 1. ラベルストックからのドロップ処理
-          if (parsed.type === 'labelStockItem') {
-            const stockIndex = parsed.stockIndex;
-            const stockItem = labelStockItems[stockIndex];
-            console.log('取得したラベルストックアイテム:', stockItem);
-            if (stockItem) {
-              slotsData[i] = JSON.parse(JSON.stringify(stockItem));
-              updateUsageCount();
-              renderAllSlots();
-              openEditPanel(i);
-            }
-            return;
-          }
-          
-          // 2. 料理名ストックからのドロップ処理
-          if (parsed.type === 'stockItem') {
-            const stockName = parsed.value;
-            console.log('料理名ストックからのドロップ検知:', stockName);
-            
-            // 枠が空、または有効な品目がまだ入っていない場合は、そのまま品目1として登録
-            if (!slotsData[i] || !slotsData[i].products || slotsData[i].products.every(p => !p || p.trim() === '')) {
-              slotsData[i] = {
-                categoryText: "",
-                products: [stockName],
-                subProducts: [""],
-                productsAlt: [""],
-                fontScale: "normal",
-                customFontPt: 10.0,
-                marginPreset: "normal",
-                customMarginY: 0.55,
-                fontWeight: "700",
-                heatingType: "microwave",
-                methodMin: "2",
-                methodSec: "",
-                methodText: "レンジ 600W で 2分温め",
-                methodType: "warm"
-              };
-              updateUsageCount();
-              renderAllSlots();
-              openEditPanel(i);
-            } else {
-              // すでに品目が入っている場合は、結合か新規追加かを選択するモーダルを起動
-              openStockDropChoiceModal(i, stockName);
-            }
-            return;
-          }
-
-          // 3. ラベル枠同士の移動（スロット移動・コピー）処理
-          if (parsed.type === 'slotMove') {
-            const sourceIdx = parsed.index;
-            if (sourceIdx !== null && sourceIdx !== i) {
-              if (e.ctrlKey) {
-                if (slotsData[sourceIdx]) slotsData[i] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
-              } else {
-                const temp = slotsData[i];
-                slotsData[i] = slotsData[sourceIdx];
-                slotsData[sourceIdx] = temp;
-                if (editingSlotIndex === sourceIdx) editingSlotIndex = i;
-                else if (editingSlotIndex === i) editingSlotIndex = sourceIdx;
-              }
-              updateUsageCount();
-              renderAllSlots();
-              if (editingSlotIndex !== null) openEditPanel(editingSlotIndex);
-            }
-            return;
-          }
-        };
-
-        cell.onclick = function() {
-          if (!isDraggingActive) openEditPanel(i);
-        };
-
-        let cellHtml = `<span class="slot-num-badge">#${i + 1}</span>`;
-        if (hasData) {
-          cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${i})">✕</button>`;
-          cellHtml += buildLabelDesignHtml(data);
-        }
-        cell.innerHTML = cellHtml;
-        grid.appendChild(cell);
+      
+      // ★変更1: slotsDataの長さを常に36の倍数に保つ（空き枠をnullで埋める）
+      while (slotsData.length % 36 !== 0) {
+        slotsData.push(null);
       }
-      sheet.appendChild(grid);
-      container.appendChild(sheet);
-      applyZoom(false, false); // ★ 再描画時はサイズ維持のみ行い、スクロール位置は動かさない
+      // もし配列が空なら、最低1シート分（36枠）を確保する
+      if (slotsData.length === 0) {
+        slotsData = Array(36).fill(null);
+      }
+
+      // 必要なA4シートの数を算出
+      const totalSheets = slotsData.length / 36;
+
+      // ★変更2: 必要なシート数だけループして、A4シートのDOMを複数生成する
+      for (let page = 0; page < totalSheets; page++) {
+        const sheet = document.createElement('div');
+        sheet.className = 'sheet-a4';
+        sheet.style.marginBottom = '30px'; // 画面上でシート同士を区切る隙間
+
+        const grid = document.createElement('div');
+        grid.className = 'label-grid';
+
+        // 1シートにつき36枠のセルを生成
+        for (let i = 0; i < 36; i++) {
+          const globalIndex = page * 36 + i; // 0〜35, 36〜71, 72〜107... という通し番号
+          const data = slotsData[globalIndex];
+          
+          // データが入力されているかの判定
+          const hasData = Boolean(data && ((data.products && data.products.some(p => p.trim() !== "")) || (data.categoryText && data.categoryText.trim() !== "")));
+
+          let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
+          if (globalIndex === editingSlotIndex) cellClass += ' active-editing';
+          
+          const cell = document.createElement('div');
+          cell.className = cellClass;
+          cell.dataset.slotIndex = globalIndex;
+          cell.draggable = hasData;
+
+          // -- ドラッグ＆ドロップ系のイベント --
+          cell.ondragstart = function(e) {
+            draggedSlotIndex = globalIndex;
+            isDraggingActive = true;
+            cell.classList.add('is-dragging');
+            e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'slotMove', index: globalIndex }));
+            e.dataTransfer.effectAllowed = 'copyMove';
+            document.getElementById('customDragBadge').style.display = 'inline-flex';
+          };
+          
+          cell.ondragend = function(e) {
+            cell.classList.remove('is-dragging');
+            document.querySelectorAll('.label-cell').forEach(c => c.classList.remove('drag-over'));
+            draggedSlotIndex = null;
+            setTimeout(() => { isDraggingActive = false; }, 100);
+            document.getElementById('customDragBadge').style.display = 'none';
+          };
+          
+          cell.ondragover = function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = e.ctrlKey ? 'copy' : 'move';
+            cell.classList.add('drag-over');
+          };
+          
+          cell.ondragleave = function() { cell.classList.remove('drag-over'); };
+          
+          cell.ondrop = function(e) {
+            e.preventDefault();
+            cell.classList.remove('drag-over');
+
+            const rawData = e.dataTransfer.getData('text/plain');
+            if (!rawData) return;
+            
+            let parsed = null;
+            try { 
+              parsed = JSON.parse(rawData); 
+            } catch(err) { 
+              parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; 
+            }
+
+            // ラベルストックからのドロップ
+            if (parsed.type === 'labelStockItem') {
+              const stockIndex = parsed.stockIndex;
+              const stockItem = labelStockItems[stockIndex];
+              if (stockItem) {
+                slotsData[globalIndex] = JSON.parse(JSON.stringify(stockItem));
+                updateUsageCount();
+                renderAllSlots();
+                openEditPanel(globalIndex);
+              }
+              return;
+            }
+            
+            // 料理名ストックからのドロップ
+            if (parsed.type === 'stockItem') {
+              const stockName = parsed.value;
+              if (!slotsData[globalIndex] || !slotsData[globalIndex].products || slotsData[globalIndex].products.every(p => !p || p.trim() === '')) {
+                slotsData[globalIndex] = {
+                  categoryText: "",
+                  products: [stockName],
+                  subProducts: [""],
+                  productsAlt: [""],
+                  fontScale: "normal",
+                  customFontPt: 10.0,
+                  marginPreset: "normal",
+                  customMarginY: 0.55,
+                  fontWeight: "700",
+                  heatingType: "microwave",
+                  methodMin: "2",
+                  methodSec: "",
+                  methodText: "レンジ 600W で 2分温め",
+                  methodType: "warm"
+                };
+                updateUsageCount();
+                renderAllSlots();
+                openEditPanel(globalIndex);
+              } else {
+                openStockDropChoiceModal(globalIndex, stockName);
+              }
+              return;
+            }
+
+            // セル間の移動・コピー
+            if (parsed.type === 'slotMove') {
+              const sourceIdx = parsed.index;
+              if (sourceIdx !== null && sourceIdx !== globalIndex) {
+                if (e.ctrlKey) {
+                  // コピー
+                  if (slotsData[sourceIdx]) {
+                    slotsData[globalIndex] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
+                  }
+                } else {
+                  // 移動（スワップ）
+                  const temp = slotsData[globalIndex];
+                  slotsData[globalIndex] = slotsData[sourceIdx];
+                  slotsData[sourceIdx] = temp;
+                  if (editingSlotIndex === sourceIdx) editingSlotIndex = globalIndex;
+                  else if (editingSlotIndex === globalIndex) editingSlotIndex = sourceIdx;
+                }
+                updateUsageCount();
+                renderAllSlots();
+                if (editingSlotIndex !== null) openEditPanel(editingSlotIndex);
+              }
+              return;
+            }
+          };
+
+          cell.onclick = function() {
+            if (!isDraggingActive) openEditPanel(globalIndex);
+          };
+
+          // セルの中身を描画
+          let cellHtml = `<span class="slot-num-badge">#${globalIndex + 1}</span>`;
+          if (hasData) {
+            cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${globalIndex})">✕</button>`;
+            cellHtml += buildLabelDesignHtml(data);
+          }
+          cell.innerHTML = cellHtml;
+          grid.appendChild(cell);
+        }
+        
+        // グリッドをシートに追加し、シートをコンテナに追加
+        sheet.appendChild(grid);
+        container.appendChild(sheet);
+      }
+
+      // ズームと長体の再計算
+      applyZoom(false, false); 
       setTimeout(autoFitLongLines, 10);
     }
 
