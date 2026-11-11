@@ -184,7 +184,7 @@ function getOrCreateDraftSheet() {
 }
 
 /**
- * 一時保存データの一覧を取得（作業者名を含む）
+ * 一時保存データの一覧を取得（複数列のチャンク結合対応）
  */
 function getDraftListFromSpreadsheet() {
   const sheet = getOrCreateDraftSheet();
@@ -198,31 +198,34 @@ function getDraftListFromSpreadsheet() {
       ? Utilities.formatDate(vals[r][2], 'Asia/Tokyo', 'MM/dd HH:mm')
       : String(vals[r][2] || '');
     const count = Number(vals[r][3] || 0);
-    const jsonStr = String(vals[r][4] || '');
+    
+    // E列(インデックス4)以降のすべてのデータを配列として取得
+    const jsonChunks = [];
+    for (let c = 4; c < vals[r].length; c++) {
+      const chunkStr = String(vals[r][c] || '').trim();
+      if (chunkStr) jsonChunks.push(chunkStr);
+    }
 
-    if (!title || !jsonStr) continue;
+    if (!title || jsonChunks.length === 0) continue;
+    
     list.push({
       title: title,
       worker: worker,
       updatedAt: updatedAt,
       count: count,
-      jsonStr: jsonStr
+      jsonChunks: jsonChunks // 分割されたデータの配列
     });
   }
-  // 新しいものが上に来るよう逆順にする
   return list.reverse();
 }
 
 /**
- * 作業途中の36枠データをスプレッドシートへ保存
- * 挙動B: 保存名が既存と一致すれば上書き、保存名が変更されていれば別名として新規行に追加
+ * 複数シート分のデータをE列以降に分割して保存
  */
-function saveDraftToSpreadsheet(title, worker, jsonStr, usedCount) {
+function saveDraftToSpreadsheet(title, worker, jsonChunks, usedCount) {
   const cleanTitle = String(title || '').trim();
   const cleanWorker = String(worker || '').trim() || '未設定';
-  if (!cleanTitle) {
-    throw new Error('保存名が空です。');
-  }
+  if (!cleanTitle) throw new Error('保存名が空です。');
 
   const sheet = getOrCreateDraftSheet();
   const vals = sheet.getDataRange().getValues();
@@ -231,17 +234,25 @@ function saveDraftToSpreadsheet(title, worker, jsonStr, usedCount) {
   let targetRow = -1;
   for (let r = 1; r < vals.length; r++) {
     if (String(vals[r][0] || '').trim() === cleanTitle) {
-      targetRow = r + 1; // 1始まりの行番号
+      targetRow = r + 1;
       break;
     }
   }
 
   if (targetRow > 0) {
-    // 保存名が同じ場合は既存の行を上書き更新（B列:作業者名〜E列:JSON）
-    sheet.getRange(targetRow, 2, 1, 4).setValues([[cleanWorker, nowStr, usedCount, jsonStr]]);
+    // 既存行を更新する場合、古いE列以降のデータを一旦クリア
+    const maxCol = sheet.getLastColumn();
+    if (maxCol >= 5) {
+      sheet.getRange(targetRow, 5, 1, maxCol - 4).clearContent();
+    }
+    // B〜D列の基本情報を更新
+    sheet.getRange(targetRow, 2, 1, 3).setValues([[cleanWorker, nowStr, usedCount]]);
+    // E列以降に新しいチャンクデータを展開
+    sheet.getRange(targetRow, 5, 1, jsonChunks.length).setValues([jsonChunks]);
   } else {
-    // 保存名が新しい場合は元のデータを残して新規行として追加（挙動B）
-    sheet.appendRow([cleanTitle, cleanWorker, nowStr, usedCount, jsonStr]);
+    // 新規行として追加
+    const rowData = [cleanTitle, cleanWorker, nowStr, usedCount, ...jsonChunks];
+    sheet.appendRow(rowData);
   }
 
   return getDraftListFromSpreadsheet();

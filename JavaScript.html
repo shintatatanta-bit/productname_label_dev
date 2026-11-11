@@ -186,105 +186,123 @@
       executeSaveDraft(cleanTitle, cleanWorker, false);
     }
 
+    // --- 1. 保存処理（36枠ごとに分割してGASへ渡す） ---
     function executeSaveDraft(cleanTitle, cleanWorker, isAutoSave = false) {
-      // ★修正: 空の枠（null）や未入力のデータを削ぎ落とし、有効なスロットのみをマップ形式で圧縮保存する
-      const compressedSlots = {};
+      const chunkedMaps = []; // ページごとのデータを格納する配列
+      let usedCount = 0;
+
       slotsData.forEach((d, idx) => {
         if (d && ((d.products && d.products.some(p => p.trim() !== "")) || (d.categoryText && d.categoryText.trim() !== ""))) {
-          compressedSlots[idx] = d;
+          const page = Math.floor(idx / 36);
+          if (!chunkedMaps[page]) chunkedMaps[page] = {};
+          chunkedMaps[page][idx] = d;
+          usedCount++;
         }
       });
 
-      const saveDataObj = {
-        slotsMap: compressedSlots,
-        stocks: stockItems,
-        labelStocks: labelStockItems
-      };
-      const jsonStr = JSON.stringify(saveDataObj);
-      if (isAutoSave && jsonStr === lastSavedJsonStr) return;
+      if (chunkedMaps.length === 0) chunkedMaps[0] = {}; // 空でも1ページ目は作成
+
+      const jsonChunks = [];
+      for (let i = 0; i < chunkedMaps.length; i++) {
+        let chunkObj = { slotsMap: chunkedMaps[i] || {} };
+        // 最初のシートのデータにのみ、ストック情報を含める（容量節約）
+        if (i === 0) {
+          chunkObj.stocks = stockItems;
+          chunkObj.labelStocks = labelStockItems;
+        }
+        jsonChunks.push(JSON.stringify(chunkObj));
+      }
+
+      // オートセーブ用の比較（配列全体を文字列化して比較）
+      const fullJsonStr = JSON.stringify(jsonChunks);
+      if (isAutoSave && fullJsonStr === lastSavedJsonStr) return;
 
       google.script.run
         .withSuccessHandler(function(updatedList) {
           savedDraftList = updatedList || [];
           currentDraftTitle = cleanTitle;
           currentWorkerName = cleanWorker;
-          lastSavedJsonStr = jsonStr;
+          lastSavedJsonStr = fullJsonStr;
           populateDraftDropdown();
           updateSaveStatusText('✓ 保存済', '#137333');
           if (!isAutoSave) alert('保存しました。');
         })
         .withFailureHandler(err => alert('保存エラー: ' + err))
-        .saveDraftToSpreadsheet(cleanTitle, cleanWorker, jsonStr, slotsData.filter(Boolean).length);
+        .saveDraftToSpreadsheet(cleanTitle, cleanWorker, jsonChunks, usedCount);
     }
 
+    // --- 2. 読込処理（複数セルのデータを結合して復元） ---
     function loadSelectedWorkDraft(idxStr) {
       if (idxStr === "") return;
       const draft = savedDraftList[Number(idxStr)];
       if (!draft) return;
 
       try {
-        const parsed = JSON.parse(draft.jsonStr);
-        let parsedStocks = Array.isArray(parsed.stocks) ? parsed.stocks : [];
-        let parsedLabelStocks = Array.isArray(parsed.labelStocks) ? parsed.labelStocks : [];
+        const combinedMap = {};
+        let parsedStocks = [];
+        let parsedLabelStocks = [];
 
-        let parsedSlots = Array(36).fill(null);
+        // 旧フォーマット（jsonStr）と新フォーマット（jsonChunks）の両対応
+        const chunks = draft.jsonChunks && draft.jsonChunks.length > 0 ? draft.jsonChunks : [draft.jsonStr];
 
-        // ★修正: 新しい圧縮マップ形式（slotsMap）と、従来の配列形式（slots または配列直下）の両方に対応する互換処理
-        if (parsed.slotsMap) {
-          Object.keys(parsed.slotsMap).forEach(idxStrKey => {
-            const idx = parseInt(idxStrKey, 10);
-            const item = parsed.slotsMap[idxStrKey];
-            if (idx >= 0 && idx < 36 && item && typeof item === 'object') {
-              let prods = Array.isArray(item.products) ? item.products : [item.product || ""];
-              parsedSlots[idx] = {
-                categoryText: item.categoryText || "",
-                products: prods.map(p => String(p || "")),
-                subProducts: Array.isArray(item.subProducts) ? item.subProducts : prods.map(() => ""),
-                productsAlt: Array.isArray(item.productsAlt) ? item.productsAlt : prods.map(() => ""),
-                fontScale: item.fontScale || "normal",
-                customFontPt: item.customFontPt !== undefined ? item.customFontPt : 10.0,
-                marginPreset: item.marginPreset || "normal",
-                customMarginY: item.customMarginY !== undefined ? item.customMarginY : 0.55,
-                fontWeight: item.fontWeight || "700",
-                heatingType: item.heatingType || "microwave",
-                methodMin: item.methodMin !== undefined ? item.methodMin : "2",
-                methodSec: item.methodSec !== undefined ? item.methodSec : "",
-                methodText: item.methodText || "レンジ 600W で 2分温め",
-                methodType: item.methodType || "warm"
-              };
-            }
-          });
-        } else {
-          let rawSlots = Array.isArray(parsed) ? parsed : (parsed.slots || []);
-          rawSlots.forEach((item, idx) => {
-            if (idx < 36 && item && typeof item === 'object') {
-              let prods = Array.isArray(item.products) ? item.products : [item.product || ""];
-              parsedSlots[idx] = {
-                categoryText: item.categoryText || "",
-                products: prods.map(p => String(p || "")),
-                subProducts: Array.isArray(item.subProducts) ? item.subProducts : prods.map(() => ""),
-                productsAlt: Array.isArray(item.productsAlt) ? item.productsAlt : prods.map(() => ""),
-                fontScale: item.fontScale || "normal",
-                customFontPt: item.customFontPt !== undefined ? item.customFontPt : 10.0,
-                marginPreset: item.marginPreset || "normal",
-                customMarginY: item.customMarginY !== undefined ? item.customMarginY : 0.55,
-                fontWeight: item.fontWeight || "700",
-                heatingType: item.heatingType || "microwave",
-                methodMin: item.methodMin !== undefined ? item.methodMin : "2",
-                methodSec: item.methodSec !== undefined ? item.methodSec : "",
-                methodText: item.methodText || "レンジ 600W で 2分温め",
-                methodType: item.methodType || "warm"
-              };
-            }
-          });
-        }
+        chunks.forEach((chunkStr, chunkIdx) => {
+          if (!chunkStr) return;
+          const parsed = JSON.parse(chunkStr);
+          
+          if (chunkIdx === 0) {
+            parsedStocks = Array.isArray(parsed.stocks) ? parsed.stocks : [];
+            parsedLabelStocks = Array.isArray(parsed.labelStocks) ? parsed.labelStocks : [];
+          }
+
+          if (parsed.slotsMap) {
+            Object.assign(combinedMap, parsed.slotsMap);
+          } else if (Array.isArray(parsed) || Array.isArray(parsed.slots)) {
+            // 旧配列フォーマットのフォールバック
+            const rawSlots = Array.isArray(parsed) ? parsed : (parsed.slots || []);
+            rawSlots.forEach((item, idx) => {
+              if (item) combinedMap[idx] = item;
+            });
+          }
+        });
+
+        // 結合したデータの最大インデックスから、必要な配列長（36の倍数）を算出
+        const keys = Object.keys(combinedMap).map(Number);
+        const maxIndex = keys.length > 0 ? Math.max(35, ...keys) : 35;
+        const requiredLength = Math.ceil((maxIndex + 1) / 36) * 36;
+        
+        let parsedSlots = Array(requiredLength).fill(null);
+
+        Object.keys(combinedMap).forEach(idxStrKey => {
+          const idx = parseInt(idxStrKey, 10);
+          const item = combinedMap[idxStrKey];
+          if (idx >= 0 && item && typeof item === 'object') {
+            let prods = Array.isArray(item.products) ? item.products : [item.product || ""];
+            parsedSlots[idx] = {
+              labelType: item.labelType || "main",
+              categoryText: item.categoryText || "",
+              products: prods.map(p => String(p || "")),
+              subProducts: Array.isArray(item.subProducts) ? item.subProducts : prods.map(() => ""),
+              productsAlt: Array.isArray(item.productsAlt) ? item.productsAlt : prods.map(() => ""),
+              fontScale: item.fontScale || "normal",
+              customFontPt: item.customFontPt !== undefined ? item.customFontPt : 10.0,
+              marginPreset: item.marginPreset || "normal",
+              customMarginY: item.customMarginY !== undefined ? item.customMarginY : 0.55,
+              fontWeight: item.fontWeight || "700",
+              heatingType: item.heatingType || "microwave",
+              methodMin: item.methodMin !== undefined ? item.methodMin : "2",
+              methodSec: item.methodSec !== undefined ? item.methodSec : "",
+              methodText: item.methodText || "レンジ 600W で 2分温め",
+              methodType: item.methodType || "warm"
+            };
+          }
+        });
 
         slotsData = parsedSlots;
         stockItems = parsedStocks;
         labelStockItems = parsedLabelStocks;
         currentDraftTitle = draft.title;
         currentWorkerName = draft.worker || '未設定';
-        lastSavedJsonStr = draft.jsonStr;
+        lastSavedJsonStr = JSON.stringify(chunks);
 
         closeEditPanel();
         updateUsageCount();
