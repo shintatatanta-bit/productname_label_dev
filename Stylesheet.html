@@ -916,7 +916,18 @@
         height: 297.0mm !important;
         padding: 5.5mm 5.0mm !important;
         transform: none !important; /* ★重要: applyZoomで付与されたscale縮小を確実に無効化 */
+        
+        /* ★追加: シートごとに確実に改ページさせる */
+        page-break-after: always; 
+        break-after: page;        
       }
+      
+      /* ★追加: 最後のシートの後には余分な空白ページを作らないための制御 */
+      .sheet-a4:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+      
       .label-cell { border: none !important; cursor: default !important; }
       .label-cell.empty-cell { background: transparent !important; }
       .label-cell.active-editing {
