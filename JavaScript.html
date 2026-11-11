@@ -1279,24 +1279,32 @@ function setLabelType(type) {
     function applyZoom(updateSlider = true, focusSelected = true) {
       const container = document.getElementById('sheetsContainer');
       if (!container) return;
-      const sheet = container.querySelector('.sheet-a4');
       
-      // A4シート(210mm x 297mm)の実際の描画ピクセル寸法を取得（未描画時は標準値 794 x 1123）
-      const baseWidth = sheet ? sheet.offsetWidth : 794;
-      const baseHeight = sheet ? sheet.offsetHeight : 1123;
+      // 画面内にあるすべてのA4シート要素を取得する
+      const sheets = container.querySelectorAll('.sheet-a4');
+      if (sheets.length === 0) return;
+
+      // 基準となる1枚目のシートからサイズを取得
+      const firstSheet = sheets[0];
+      const baseWidth = firstSheet.offsetWidth || 794;
+      const baseHeight = firstSheet.offsetHeight || 1123;
       
-      // 外側のコンテナに「拡大後の実寸サイズ」を設定
+      // コンテナ全体のサイズを「シート数 × 縦の高さ」に合わせて拡張する
       container.style.width = Math.round(baseWidth * currentZoom) + 'px';
-      container.style.height = Math.round(baseHeight * currentZoom) + 'px';
+      container.style.height = Math.round((baseHeight * totalSheetsHeight()) * currentZoom) + 'px'; // 修正: 全シートの総高さを考慮
       container.style.transform = 'none';
       container.style.marginLeft = 'auto';
       container.style.marginRight = 'auto';
 
-      // 内側のA4シート自体を「左上起点(0, 0)」で拡大縮小する
-      if (sheet) {
+      // ★重要: すべてのシート（1P目も2P目以降も）に対して、同一のスケールと変形基点を一括適用する
+      sheets.forEach((sheet, idx) => {
         sheet.style.transformOrigin = 'top left';
         sheet.style.transform = `scale(${currentZoom.toFixed(3)})`;
-      }
+        // 2枚目以降のシートが重ならないよう、縦方向に適切なマージン（隙間）を持たせる
+        if (idx > 0) {
+          sheet.style.marginTop = '20px';
+        }
+      });
       
       document.getElementById('lblZoomVal').innerText = Math.round(currentZoom * 100) + '%';
 
@@ -1305,10 +1313,17 @@ function setLabelType(type) {
         if (slider) slider.value = currentZoom;
       }
 
-      // ★ ズーム変更時、選択中のラベルがあればそのラベルが中央に来るように即座にスクロールを追従させる
       if (focusSelected && editingSlotIndex !== null) {
         scrollToEditingSlot(editingSlotIndex, false);
       }
+    }
+
+    // ヘルパー: 全シートの合計高さを計算する関数
+    function totalSheetsHeight() {
+      const container = document.getElementById('sheetsContainer');
+      if (!container) return 1;
+      const count = container.querySelectorAll('.sheet-a4').length;
+      return Math.max(1, count);
     }
 
     function changeZoom(delta) { 
