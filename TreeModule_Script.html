@@ -21,8 +21,118 @@
     document.getElementById('treeModalOverlay').style.display = 'none';
   }
 
+  // --- ★修正: 36面スロットへの自動展開ロジック ---
   function applyTreeToSlots() {
-    alert("【将来の連携予定】\nここで作成したツリーデータを36面スロットに自動展開するロジックを実装します。");
+    if (t_treeData.length === 0) {
+      alert("展開するツリーデータがありません。");
+      return;
+    }
+
+    if (!confirm("現在の36面のラベルをすべてクリアし、ツリーの内容で上書き展開しますか？\n※36枚を超える分は展開されません。")) {
+      return;
+    }
+
+    // グローバル変数 slotsData をクリア
+    slotsData = Array(36).fill(null);
+    let currentSlotIndex = 0;
+
+    // ヘルパー: スロットが埋まっていたら終了する
+    const addSlot = (dataObj) => {
+      if (currentSlotIndex >= 36) return false;
+      slotsData[currentSlotIndex] = dataObj;
+      currentSlotIndex++;
+      return true;
+    };
+
+    let isOverflow = false;
+
+    // ツリーデータを走査してスロット用データに変換
+    for (const group of t_treeData) {
+      // 1. 外袋ラベルの展開
+      const outerCopies = Number(group.setCopies) || 1;
+      const cleanOuterName = (group.outerName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+      
+      let outerSubText = "冷凍庫保管・前日冷蔵庫解凍";
+      if (group.outerOption === "2") outerSubText = "冷蔵庫保管";
+      else if (group.outerOption === "3") outerSubText = "冷凍庫保管";
+      else if (group.outerOption === "4") outerSubText = "";
+
+      for (let i = 0; i < outerCopies; i++) {
+        if (!addSlot({
+          labelType: 'outer',
+          categoryText: outerSubText, // 外袋の場合は右上のテキストとして使用
+          products: [cleanOuterName],
+          subProducts: [""],
+          productsAlt: [""],
+          fontScale: "normal",
+          customFontPt: 10.0,
+          marginPreset: "normal",
+          customMarginY: 0.55,
+          fontWeight: "700",
+          heatingType: "cold", // 外袋は温め表示なし
+          methodMin: "",
+          methodSec: "",
+          methodText: "",
+          methodType: "cold"
+        })) { isOverflow = true; break; }
+      }
+      if (isOverflow) break;
+
+      // 2. 子パックラベルの展開
+      for (const item of group.items) {
+        const listToRender = item.type === 'combination' ? item.packs : [item];
+        
+        for (const pack of listToRender) {
+          const packCopies = Number(pack.copies) || 1;
+          const cleanPackName = (pack.packName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim();
+          if (!cleanPackName && !item.groupName) continue;
+
+          // 親カテゴリー（外袋名）を右上に表示するかどうか
+          const showOuterOnPacks = group.showOuterOnPacks !== false;
+          const packCategoryText = showOuterOnPacks ? cleanOuterName : "";
+          
+          // 組み合わせの場合はサブテキストを設定
+          const subText = item.type === 'combination' 
+            ? (item.groupName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim() 
+            : "";
+
+          for (let i = 0; i < packCopies; i++) {
+            if (!addSlot({
+              labelType: 'main',
+              categoryText: packCategoryText,
+              products: [cleanPackName],
+              subProducts: [subText],
+              productsAlt: [""],
+              fontScale: "normal",
+              customFontPt: 10.0,
+              marginPreset: "normal",
+              customMarginY: 0.55,
+              fontWeight: "700",
+              heatingType: pack.heatMode || "range",
+              methodMin: pack.heatMin || "",
+              methodSec: pack.heatSec || "",
+              methodText: t_computeHeatingText(pack), // ツリー側で生成した温め方テキスト
+              methodType: (pack.heatMode === 'cold' || pack.heatMode === 'ryusui') ? 'cold' : 'warm'
+            })) { isOverflow = true; break; }
+          }
+          if (isOverflow) break;
+        }
+        if (isOverflow) break;
+      }
+      if (isOverflow) break;
+    }
+
+    // 展開後、裏側の36面UIを更新してモーダルを閉じる
+    updateUsageCount();
+    renderAllSlots();
+    closeTreeModal();
+
+    if (isOverflow) {
+      // 少し遅らせてアラートを出す（モーダルが閉じるのを待つため）
+      setTimeout(() => {
+        alert("⚠️ 36枚の枠を超過したため、一部のラベルが展開されませんでした。");
+      }, 100);
+    }
   }
 
   // --- ツリー描画 ---
