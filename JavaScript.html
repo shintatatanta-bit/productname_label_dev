@@ -82,6 +82,19 @@
       }, 50);
     };
 
+    // windowオブジェクトに直接紐付けることで、外部コンソールや内部処理から確実に参照できるようにするテスト
+window.testSlotsDataCheck = function() {
+  slotsData[0] = {
+    labelType: 'main',
+    categoryText: 'テストカテゴリ',
+    products: ['テスト商品名1', 'テスト商品名2'],
+    subProducts: ['親料理名テスト', ''],
+    methodText: 'レンジ 600W で 2分温め'
+  };
+  renderAllSlots();
+  alert("テストデータを流し込んでrenderAllSlotsを実行しました。");
+};
+
     function loadSpreadsheetMasters() {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
