@@ -1660,4 +1660,10 @@ window.testSlotsDataCheck = function() {
         behavior: useSmooth ? 'smooth' : 'auto'
       });
     }
+
+    // 内部からwindowオブジェクトへ強制的に紐付けるデバッグ用コード
+window.debugGetSlotsData = function() {
+  console.log("【内部から取得したslotsData】", slotsData);
+  return slotsData;
+};
 </script>
