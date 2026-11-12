@@ -562,19 +562,8 @@
 
     function buildLabelDesignHtml(data) {
       const validProds = (data.products || []).filter(p => p.trim() !== "");
-      const typo = getEffectiveFontSettings(data);
-      const mainWeight = typo.fontWeight;
       const labelType = data.labelType || 'main';
-
       const categoryText = data.categoryText || ""; 
-      let catTransform = 'none';
-      if (categoryText) {
-        const maxNormalChars = 17;
-        if (categoryText.length > maxNormalChars) {
-          const scaleVal = Math.max(0.45, maxNormalChars / categoryText.length);
-          catTransform = `scaleX(${scaleVal.toFixed(3)})`;
-        }
-      }
 
       // ──────────────────────────────────────────
       // ▼▼ 分岐A: 外袋ラベルの場合 ▼▼
@@ -595,28 +584,15 @@
         return `
           <div class="design-card" data-label-type="outer">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.982 85.039" style="width:100%; height:100%; display:block; position:absolute; top:0; left:0;">
-              <defs>
-                <style>
-                  .o-cls-1 { fill: #4c4298; stroke: #4c4298; }
-                  .o-cls-1, .o-cls-2, .o-cls-3, .o-cls-4, .o-cls-5, .o-cls-6, .o-cls-7, .o-cls-8 { stroke-linecap: round; stroke-miterlimit: 10; }
-                  .o-cls-2 { fill: #f5e94a; stroke: #f5e94a; }
-                  .o-cls-9 { fill: #fff; }
-                  .o-cls-3 { fill: #497535; stroke: #497535; }
-                  .o-cls-10 { font-size: 10px; letter-spacing: .05em; font-family: YuGothic-Bold, 'Yu Gothic'; font-weight: 700; fill: #231815; }
-                  .o-cls-11 { font-size: 8px; letter-spacing: .075em; font-family: YuGothic-Bold, 'Yu Gothic'; font-weight: 700; fill: #231815; }
-                  .o-cls-4 { fill: #ed8a1c; stroke: #ed8a1c; }
-                  .o-cls-5 { fill: #ecc2da; stroke: #ecc2da; }
-                  .o-cls-6 { fill: #e72e13; stroke: #e72e13; }
-                  .o-cls-7 { fill: #9e4724; stroke: #9e4724; }
-                  .o-cls-8 { stroke: #231815; stroke-width: .5px; }
-                </style>
-              </defs>
-              <rect class="o-cls-9" width="141.732" height="85.039" rx="6.112" ry="6.112"/>
+              <!-- 背景の白枠 -->
+              <rect fill="#ffffff" width="141.732" height="85.039" rx="6.112" ry="6.112"/>
               
-              <text id="dynamicMainText" class="o-cls-10" transform="translate(11.445 27.592)">
+              <!-- メイン品名 -->
+              <text id="dynamicMainText" font-size="10px" letter-spacing="0.05em" font-family="YuGothic-Bold, 'Yu Gothic'" font-weight="700" fill="#231815" transform="translate(11.445 27.592)">
                 ${outerTextHtml}
               </text>
 
+              <!-- 右上のカラーバーアイコン群（黒ロゴ） -->
               <g fill="#231815">
                 <path d="M105.947,13.731h-.781v-.067q0-1.515,0-3.029c-.001-.323-.036-.641-.153-.946-.111-.288-.284-.525-.579-.655-.433-.19-.959-.09-1.304.242-.314.303-.467.673-.467,1.104q-.002,1.638,0,3.275v.074h-.784c0-.024,0-.047,0-.069,0-1.085.002-2.17,0-3.255-.002-.289-.048-.572-.173-.837-.161-.342-.421-.563-.808-.617-.363-.05-.682.055-.957.287-.354.299-.532.686-.563,1.141-.004.057-.004.114-.004.171q0,1.552,0,3.104v.077h-.776c-.022-1.771.031-3.542-.04-5.314h.687c.017.287.033.571.05.855.044.021.063-.001.082-.034.172-.29.386-.544.689-.705.557-.295,1.128-.339,1.697-.033.332.179.545.467.683.811,0,.004,0,.008.003.01.012.016.024.031.037.046.015-.012.034-.022.045-.038.092-.129.175-.267.277-.389.535-.643,1.401-.768,2.012-.535.454.173.746.504.924.94.126.308.183.63.195.96.008.238.008.478.008.717q.001,1.316,0,2.633V13.731Z"/>
                 <path d="M118.408,13.788c-.521-.017-1.01-.128-1.449-.418-.486-.323-.796-.778-.976-1.325-.154-.464-.195-.941-.144-1.426.05-.481.189-.932.458-1.337.393-.591.948-.932,1.647-1.038.484-.073.962-.044,1.425.123.667.24,1.12.707,1.393,1.354.21.497.274,1.018.232,1.553-.039.508-.179.985-.459,1.415-.37.566-.894.907-1.556,1.031C118.791,13.755,118.599,13.766,118.408,13.788ZM120.187,11.109c-.003-.331-.035-.647-.119-.956-.112-.415-.296-.788-.614-1.087-.507-.477-1.294-.563-1.892-.204-.421.252-.671.636-.795,1.098-.139.514-.157,1.04-.075,1.566.063.401.205.776.437,1.112.467.674,1.207.829,1.841.615.465-.157.776-.485.978-.923C120.128,11.939,120.184,11.524,120.187,11.109Z"/>
@@ -627,67 +603,57 @@
                 <path d="M122.424,5.792c.258.001.469.222.467.491-.002.264-.215.483-.47.483-.266,0-.485-.221-.483-.49C121.939,6.005,122.154,5.791,122.424,5.792Z"/>
               </g>
 
-              <text class="o-cls-11" transform="translate(11.445 77.012)">
+              <!-- 下部サブテキスト -->
+              <text font-size="8px" letter-spacing="0.075em" font-family="YuGothic-Bold, 'Yu Gothic'" font-weight="700" fill="#231815" transform="translate(11.445 77.012)">
                 <tspan x="0" y="0">${escapeHtml(headerSubText)}</tspan>
               </text>
 
-              <g>
+              <!-- 装飾ライン群 -->
+              <g stroke-linecap="round" stroke-miterlimit="10">
                 <g>
-                  <line class="o-cls-7" x1="43.455" y1="62.197" x2="39.977" y2="65.675"/>
-                  <line class="o-cls-5" x1="38.7" y1="62.197" x2="35.222" y2="65.675"/>
-                  <line class="o-cls-4" x1="33.945" y1="62.197" x2="30.467" y2="65.675"/>
-                  <line class="o-cls-1" x1="29.189" y1="62.197" x2="25.711" y2="65.675"/>
-                  <line class="o-cls-2" x1="24.434" y1="62.197" x2="20.956" y2="65.675"/>
-                  <line class="o-cls-3" x1="19.679" y1="62.197" x2="16.201" y2="65.675"/>
-                  <line class="o-cls-6" x1="14.923" y1="62.197" x2="11.445" y2="65.675"/>
+                  <line stroke="#9e4724" fill="#9e4724" x1="43.455" y1="62.197" x2="39.977" y2="65.675"/>
+                  <line stroke="#ecc2da" fill="#ecc2da" x1="38.7" y1="62.197" x2="35.222" y2="65.675"/>
+                  <line stroke="#ed8a1c" fill="#ed8a1c" x1="33.945" y1="62.197" x2="30.467" y2="65.675"/>
+                  <line stroke="#4c4298" fill="#4c4298" x1="29.189" y1="62.197" x2="25.711" y2="65.675"/>
+                  <line stroke="#f5e94a" fill="#f5e94a" x1="24.434" y1="62.197" x2="20.956" y2="65.675"/>
+                  <line stroke="#497535" fill="#497535" x1="19.679" y1="62.197" x2="16.201" y2="65.675"/>
+                  <line stroke="#e72e13" fill="#e72e13" x1="14.923" y1="62.197" x2="11.445" y2="65.675"/>
                 </g>
                 <g>
-                  <line class="o-cls-7" x1="76.023" y1="62.197" x2="72.545" y2="65.675"/>
-                  <line class="o-cls-5" x1="71.268" y1="62.197" x2="67.79" y2="65.675"/>
-                  <line class="o-cls-4" x1="66.512" y1="62.197" x2="63.034" y2="65.675"/>
-                  <line class="o-cls-1" x1="61.757" y1="62.197" x2="58.279" y2="65.675"/>
-                  <line class="o-cls-2" x1="57.002" y1="62.197" x2="53.524" y2="65.675"/>
-                  <line class="o-cls-3" x1="52.246" y1="62.197" x2="48.768" y2="65.675"/>
-                  <line class="o-cls-6" x1="47.491" y1="62.197" x2="44.013" y2="65.675"/>
+                  <line stroke="#9e4724" fill="#9e4724" x1="76.023" y1="62.197" x2="72.545" y2="65.675"/>
+                  <line stroke="#ecc2da" fill="#ecc2da" x1="71.268" y1="62.197" x2="67.79" y2="65.675"/>
+                  <line stroke="#ed8a1c" fill="#ed8a1c" x1="66.512" y1="62.197" x2="63.034" y2="65.675"/>
+                  <line stroke="#4c4298" fill="#4c4298" x1="61.757" y1="62.197" x2="58.279" y2="65.675"/>
+                  <line stroke="#f5e94a" fill="#f5e94a" x1="57.002" y1="62.197" x2="53.524" y2="65.675"/>
+                  <line stroke="#497535" fill="#497535" x1="52.246" y1="62.197" x2="48.768" y2="65.675"/>
+                  <line stroke="#e72e13" fill="#e72e13" x1="47.491" y1="62.197" x2="44.013" y2="65.675"/>
                 </g>
-                <line class="o-cls-2" x1="89.57" y1="62.197" x2="86.092" y2="65.675"/>
-                <line class="o-cls-3" x1="84.814" y1="62.197" x2="81.336" y2="65.675"/>
-                <line class="o-cls-6" x1="80.059" y1="62.197" x2="76.581" y2="65.675"/>
+                <line stroke="#f5e94a" fill="#f5e94a" x1="89.57" y1="62.197" x2="86.092" y2="65.675"/>
+                <line stroke="#497535" fill="#497535" x1="84.814" y1="62.197" x2="81.336" y2="65.675"/>
+                <line stroke="#e72e13" fill="#e72e13" x1="80.059" y1="62.197" x2="76.581" y2="65.675"/>
               </g>
-              <line class="o-cls-8" x1="92.632" y1="11.144" x2=".758" y2="11.144"/>
-              <line class="o-cls-8" x1="141.732" y1="11.144" x2="128.843" y2="11.144"/>
+              <line stroke="#231815" stroke-width="0.5" x1="92.632" y1="11.144" x2="0.758" y2="11.144"/>
+              <line stroke="#231815" stroke-width="0.5" x1="141.732" y1="11.144" x2="128.843" y2="11.144"/>
             </svg>
           </div>
         `;
       }
 
       // ──────────────────────────────────────────
-      // ▼▼ 分岐B: 本体ラベルの場合（モック準拠SVG版） ▼▼
+      // ▼▼ 分岐B: 本体ラベルの場合 ▼▼
       // ──────────────────────────────────────────
       const subProdText = (data.subProducts && data.subProducts[0]) ? data.subProducts[0] : '';
       
       return `
         <div class="design-card" data-label-type="main">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.96 85.04" style="width:100%; height:100%; display:block; position:absolute; top:0; left:0;">
-            <defs>
-              <style>
-                .m-cls-1 { font-size: 7px; fill: #4c4298; }
-                .m-cls-2 { fill: none; stroke: #4c4298; stroke-linecap: round; stroke-miterlimit: 10; }
-                .m-cls-5 { font-size: 10px; font-family: YuGothic-Bold, 'Yu Gothic'; font-weight: 700; fill: #231815; }
-                .m-cls-12 { font-size: 6px; font-family: YuGothic-Medium, 'Yu Gothic'; font-weight: 500; fill: #231815; stroke: #231815; stroke-width: .25px; stroke-miterlimit: 10; }
-                .m-cls-14 { font-family: YuGothic-Light, 'Yu Gothic'; font-weight: 300; fill: #231815; }
-                .m-cls-15 { font-size: 6px; font-family: YuGothic-Bold, 'Yu Gothic'; font-weight: 700; fill: #231815; }
-                .m-cls-4 { font-family: YuGothic-Bold, 'Yu Gothic'; font-weight: 700; fill: #ed8a1c; }
-              </style>
-            </defs>
-            <rect fill="#fff" width="141.73" height="85.04" rx="6.11" ry="6.11"/>
-            <line class="m-cls-2" x1="141.46" y1="65.12" x2="10.18" y2="65.12"/>
+            <!-- 背景の白枠 -->
+            <rect fill="#ffffff" width="141.73" height="85.04" rx="6.11" ry="6.11"/>
             
-            <!-- 温め方 -->
-            <text class="m-cls-1" transform="translate(95.26 72.62)"><tspan x="0" y="0">${escapeHtml(data.methodText || '')}</tspan></text>
-            
-            <!-- カテゴリ名 -->
-            <text class="m-cls-12" transform="translate(11.28 26.42)"><tspan x="0" y="0">${escapeHtml(categoryText)}</tspan></text>
+            <!-- 温め方・カテゴリ名 -->
+            <line stroke="#4c4298" stroke-linecap="round" stroke-miterlimit="10" fill="none" x1="141.46" y1="65.12" x2="10.18" y2="65.12"/>
+            <text font-size="7px" fill="#4c4298" font-family="YuGothic-Bold, 'Yu Gothic'" font-weight="700" transform="translate(95.26 72.62)"><tspan x="0" y="0">${escapeHtml(data.methodText || '')}</tspan></text>
+            <text font-size="6px" fill="#231815" stroke="#231815" stroke-width="0.25" stroke-miterlimit="10" font-family="YuGothic-Medium, 'Yu Gothic'" font-weight="500" transform="translate(11.28 26.42)"><tspan x="0" y="0">${escapeHtml(categoryText)}</tspan></text>
             
             <!-- ロゴアイコン群 -->
             <g fill="#231815">
@@ -699,25 +665,25 @@
               <path d="M53.5,15.58h-.79v-5.58h.79V15.58Z"/>
               <path d="M53.11,7.68c.26,0,.47.22.47.49,0,.26-.22.48-.47.48-.27,0-.49-.22-.49-.49C52.62,7.89,52.84,7.68,53.11,7.68Z"/>
             </g>
-            <g>
-              <line stroke="#9e4724" stroke-linecap="round" stroke-miterlimit="10" x1="78.91" y1="11.27" x2="75.43" y2="14.75"/>
-              <line stroke="#ecc2da" stroke-linecap="round" stroke-miterlimit="10" x1="74.15" y1="11.27" x2="70.68" y2="14.75"/>
-              <line stroke="#ed8a1c" stroke-linecap="round" stroke-miterlimit="10" x1="69.4" y1="11.27" x2="65.92" y2="14.75"/>
-              <line stroke="#4c4298" stroke-linecap="round" stroke-miterlimit="10" x1="64.64" y1="11.27" x2="61.17" y2="14.75"/>
-              <line stroke="#f5e94a" stroke-linecap="round" stroke-miterlimit="10" x1="24.27" y1="11.27" x2="20.79" y2="14.75"/>
-              <line stroke="#497535" stroke-linecap="round" stroke-miterlimit="10" x1="19.51" y1="11.27" x2="16.04" y2="14.75"/>
-              <line stroke="#e72e13" stroke-linecap="round" stroke-miterlimit="10" x1="14.76" y1="11.27" x2="11.28" y2="14.75"/>
+            <g stroke-linecap="round" stroke-miterlimit="10">
+              <line stroke="#9e4724" fill="#9e4724" x1="78.91" y1="11.27" x2="75.43" y2="14.75"/>
+              <line stroke="#ecc2da" fill="#ecc2da" x1="74.15" y1="11.27" x2="70.68" y2="14.75"/>
+              <line stroke="#ed8a1c" fill="#ed8a1c" x1="69.4" y1="11.27" x2="65.92" y2="14.75"/>
+              <line stroke="#4c4298" fill="none" x1="64.64" y1="11.27" x2="61.17" y2="14.75"/>
+              <line stroke="#f5e94a" fill="#f5e94a" x1="24.27" y1="11.27" x2="20.79" y2="14.75"/>
+              <line stroke="#497535" fill="#497535" x1="19.51" y1="11.27" x2="16.04" y2="14.75"/>
+              <line stroke="#e72e13" fill="#e72e13" x1="14.76" y1="11.27" x2="11.28" y2="14.75"/>
             </g>
             
             <!-- メイン品名・サブ品名描画領域 -->
             <g id="dynamicContentGroup">
-              <text id="dynamicMainText" class="m-cls-5" transform="translate(11.28 45.69)">
+              <text id="dynamicMainText" font-size="10px" font-family="YuGothic-Bold, 'Yu Gothic'" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
                 ${validProds.map((p, idx) => `<tspan x="0" dy="${idx === 0 ? 0 : 13}">${escapeHtml(p)}</tspan>`).join('')}
               </text>
-              <text id="dynamicSubText" class="m-cls-15" transform="translate(11.28 56.17)">
-                <tspan class="m-cls-14" x="0" y="0">[ </tspan>
-                <tspan class="m-cls-4" id="subTextContent" x="4.5" y="0">${escapeHtml(subProdText)}</tspan>
-                <tspan class="m-cls-14" id="subTextBracket" x="110" y="0"> ]</tspan>
+              <text id="dynamicSubText" font-size="6px" fill="#231815" transform="translate(11.28 56.17)">
+                <tspan font-family="YuGothic-Light, 'Yu Gothic'" font-weight="300" x="0" y="0">[ </tspan>
+                <tspan font-family="YuGothic-Bold, 'Yu Gothic'" font-weight="700" fill="#ed8a1c" id="subTextContent" x="4.5" y="0">${escapeHtml(subProdText)}</tspan>
+                <tspan font-family="YuGothic-Light, 'Yu Gothic'" font-weight="300" id="subTextBracket" x="110" y="0"> ]</tspan>
               </text>
             </g>
           </svg>
