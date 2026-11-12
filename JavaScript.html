@@ -1,6 +1,5 @@
 <script>
     let currentZoom = 1.0;
-    let isUniformStretch = false; // ★追加: 長体モード用のグローバル変数
     let editingSlotIndex = null;
     let draggedSlotIndex = null;
     let isDraggingActive = false;
@@ -10,7 +9,7 @@
 
     let slotsData = Array(36).fill(null);
     let stockItems = [];
-    let labelStockItems = []; 
+    let labelStockItems = []; // ★ 一時保管ラベル用の配列
     let singleMasterItems = [];
     let setMasterPresets = [];
     let savedDraftList = [];
@@ -44,6 +43,7 @@
       const activeEl = document.querySelector('.label-cell.active-editing');
       if (activeEl) activeEl.classList.remove('active-editing');
 
+      // ★修正: 現在のズーム倍率を退避し、印刷前に一時的に等倍(1.0)へ戻して長体を正確に再計算させる
       const savedZoom = currentZoom;
       currentZoom = 1.0;
       applyZoom(false, false);
@@ -60,10 +60,12 @@
       const originalTitle = document.title;
       document.title = fileName;
 
+      // DOMの等倍レンダリングを確実に反映させてから印刷ダイアログを起動
       setTimeout(() => {
         window.print();
         setTimeout(() => {
           document.title = originalTitle;
+          // 印刷ダイアログ終了後、元のズーム倍率へ復元
           currentZoom = savedZoom;
           applyZoom(true, false);
           autoFitLongLines();
@@ -78,22 +80,9 @@
       renderAllSlots();
       startAutoSaveTimer();
       setTimeout(() => {
-        setZoom(0.8); 
+        setZoom(0.8); // ★ 初期表示の拡大率を 80% (0.8) に設定
       }, 50);
     };
-
-    // windowオブジェクトに直接紐付けることで、外部コンソールや内部処理から確実に参照できるようにするテスト
-window.testSlotsDataCheck = function() {
-  slotsData[0] = {
-    labelType: 'main',
-    categoryText: 'テストカテゴリ',
-    products: ['テスト商品名1', 'テスト商品名2'],
-    subProducts: ['親料理名テスト', ''],
-    methodText: 'レンジ 600W で 2分温め'
-  };
-  renderAllSlots();
-  alert("テストデータを流し込んでrenderAllSlotsを実行しました。");
-};
 
     function loadSpreadsheetMasters() {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
@@ -197,8 +186,9 @@ window.testSlotsDataCheck = function() {
       executeSaveDraft(cleanTitle, cleanWorker, false);
     }
 
+    // --- 1. 保存処理（36枠ごとに分割してGASへ渡す） ---
     function executeSaveDraft(cleanTitle, cleanWorker, isAutoSave = false) {
-      const chunkedMaps = [];
+      const chunkedMaps = []; // ページごとのデータを格納する配列
       let usedCount = 0;
 
       slotsData.forEach((d, idx) => {
@@ -210,11 +200,12 @@ window.testSlotsDataCheck = function() {
         }
       });
 
-      if (chunkedMaps.length === 0) chunkedMaps[0] = {}; 
+      if (chunkedMaps.length === 0) chunkedMaps[0] = {}; // 空でも1ページ目は作成
 
       const jsonChunks = [];
       for (let i = 0; i < chunkedMaps.length; i++) {
         let chunkObj = { slotsMap: chunkedMaps[i] || {} };
+        // 最初のシートのデータにのみ、ストック情報を含める（容量節約）
         if (i === 0) {
           chunkObj.stocks = stockItems;
           chunkObj.labelStocks = labelStockItems;
@@ -222,6 +213,7 @@ window.testSlotsDataCheck = function() {
         jsonChunks.push(JSON.stringify(chunkObj));
       }
 
+      // オートセーブ用の比較（配列全体を文字列化して比較）
       const fullJsonStr = JSON.stringify(jsonChunks);
       if (isAutoSave && fullJsonStr === lastSavedJsonStr) return;
 
@@ -239,6 +231,7 @@ window.testSlotsDataCheck = function() {
         .saveDraftToSpreadsheet(cleanTitle, cleanWorker, jsonChunks, usedCount);
     }
 
+    // --- 2. 読込処理（複数セルのデータを結合して復元） ---
     function loadSelectedWorkDraft(idxStr) {
       if (idxStr === "") return;
       const draft = savedDraftList[Number(idxStr)];
@@ -249,6 +242,7 @@ window.testSlotsDataCheck = function() {
         let parsedStocks = [];
         let parsedLabelStocks = [];
 
+        // 旧フォーマット（jsonStr）と新フォーマット（jsonChunks）の両対応
         const chunks = draft.jsonChunks && draft.jsonChunks.length > 0 ? draft.jsonChunks : [draft.jsonStr];
 
         chunks.forEach((chunkStr, chunkIdx) => {
@@ -263,6 +257,7 @@ window.testSlotsDataCheck = function() {
           if (parsed.slotsMap) {
             Object.assign(combinedMap, parsed.slotsMap);
           } else if (Array.isArray(parsed) || Array.isArray(parsed.slots)) {
+            // 旧配列フォーマットのフォールバック
             const rawSlots = Array.isArray(parsed) ? parsed : (parsed.slots || []);
             rawSlots.forEach((item, idx) => {
               if (item) combinedMap[idx] = item;
@@ -270,6 +265,7 @@ window.testSlotsDataCheck = function() {
           }
         });
 
+        // 結合したデータの最大インデックスから、必要な配列長（36の倍数）を算出
         const keys = Object.keys(combinedMap).map(Number);
         const maxIndex = keys.length > 0 ? Math.max(35, ...keys) : 35;
         const requiredLength = Math.ceil((maxIndex + 1) / 36) * 36;
@@ -390,8 +386,9 @@ window.testSlotsDataCheck = function() {
         data.methodText = '別紙資料参照';
       } else if (methodKey === 'custom') {
         data.methodType = 'warm';
-        data.methodText = ''; 
+        data.methodText = ''; // ★ 自由入力の場合は枠内の文字を空欄にする
       } else {
+        // microwave, boil, water
         data.methodType = 'warm';
         rebuildMethodTextFromState(data);
       }
@@ -406,16 +403,31 @@ window.testSlotsDataCheck = function() {
       if (!data) return;
 
       const methodKey = data.heatingType || 'microwave';
-      const btnColorClasses = { microwave: 'warm-2', boil: 'warm-2', water: 'water', cold: 'cold', doc: 'doc', custom: 'custom' };
+      
+      // 各ボタンに紐付く固有の配色クラス定義
+      const btnColorClasses = {
+        microwave: 'warm-2',
+        boil: 'warm-2',
+        water: 'water',
+        cold: 'cold',
+        doc: 'doc',
+        custom: 'custom'
+      };
 
+      // 各ボタンのクラスを正しく再構築（配色クラスを維持しつつ active を切り替え）
       ['microwave', 'boil', 'water', 'cold', 'doc', 'custom'].forEach(k => {
         const btn = document.getElementById(`mBtn_${k}`);
         if (btn) {
           const colorClass = btnColorClasses[k];
-          btn.className = (k === methodKey) ? `btn-method-choice ${colorClass} active` : `btn-method-choice ${colorClass}`;
+          if (k === methodKey) {
+            btn.className = `btn-method-choice ${colorClass} active`;
+          } else {
+            btn.className = `btn-method-choice ${colorClass}`;
+          }
         }
       });
 
+      // ★ 時間入力欄の表示制御（cold, doc, custom の場合は非表示、それ以外は表示）
       const timeWrap = document.getElementById('methodTimeInputWrap');
       if (timeWrap) {
         timeWrap.style.display = (methodKey === 'cold' || methodKey === 'doc' || methodKey === 'custom') ? 'none' : 'flex';
@@ -456,6 +468,8 @@ window.testSlotsDataCheck = function() {
       renderAllSlots();
     }
 
+
+
     function buildDurationString(minStr, secStr) {
       const m = parseInt(minStr, 10) || 0;
       const s = parseInt(secStr, 10) || 0;
@@ -466,11 +480,15 @@ window.testSlotsDataCheck = function() {
       return ja;
     }
 
+    
+
     function onCustomMethodInput(val) {
       if (editingSlotIndex === null) return;
       slotsData[editingSlotIndex].methodText = val;
       renderAllSlots();
     }
+
+    
 
     function toggleMethodLanguage() {
       if (editingSlotIndex === null) return;
@@ -542,349 +560,156 @@ window.testSlotsDataCheck = function() {
       return { fontSizePt: data.customFontPt || 10.0, marginY: data.customMarginY || 0.55, fontWeight: data.fontWeight || '700' };
     }
 
-    // ★修正: 長体モード切り替え関数
-    function toggleStretchMode() {
-      isUniformStretch = !isUniformStretch;
-      const btn = document.getElementById('btnToggleStretchMode');
-      const label = document.getElementById('modeBtnLabel');
-      const desc = document.getElementById('modeDesc');
-      if (btn && label && desc) {
-        if (isUniformStretch) {
-          btn.classList.add('active');
-          label.textContent = "長体モード：一番高い長体比率に全行統一（ON）";
-          desc.textContent = "現在：最も文字数が多い行の圧縮率（細長さ）に合わせて、短い行も同じ比率で長体化しています。";
-        } else {
-          btn.classList.remove('active');
-          label.textContent = "長体モード：個別調整（標準）";
-          desc.textContent = "現在：各行が個別に長体化されます。ボタンを押すと、全行の長体比率を「最も細長い行」に統一して美しく揃えます。";
-        }
-      }
-      renderAllSlots(); 
-    }
-
     function buildLabelDesignHtml(data) {
-      const labelType = data.labelType || 'main';
+      const validProds = (data.products || []).filter(p => p.trim() !== "");
+      const typo = getEffectiveFontSettings(data);
+      const mainWeight = typo.fontWeight;
+      const labelType = data.labelType || 'main'; // 種別判定（デフォルトはmain）
 
-      if (labelType === 'outer') {
-        // ==========================================
-        // 外袋ラベル (outer) 用 SVG生成
-        // ==========================================
-        const validLines = [];
-        (data.products || []).forEach(p => {
-          if (p.trim()) {
-            p.split(/\r\n|\r|\n/).forEach(line => {
-              if (line.trim()) validLines.push(line.trim());
-            });
-          }
-        });
-
-        let startY = 0;
-        if (validLines.length === 1) startY = 11;
-        else if (validLines.length === 2) startY = 6;
-        else startY = 0;
-
-        let tspanHtml = '';
-        validLines.forEach((lineText, idx) => {
-          const yPos = startY + (idx * 13);
-          tspanHtml += `<tspan x="0" y="${yPos}" class="dynamic-outer-tspan">${escapeHtml(lineText)}</tspan>`;
-        });
-
-        const subText = data.categoryText || "冷凍庫保管・前日冷蔵庫解凍";
-
-        return `
-          <div class="design-card" data-label-type="outer" style="padding:0; background:none !important;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.982 85.039" style="width:100%; height:100%;">
-              <defs>
-                <style>
-                  .o-cls-1{fill:#4c4298;stroke:#4c4298;} .o-cls-1,.o-cls-2,.o-cls-3,.o-cls-4,.o-cls-5,.o-cls-6,.o-cls-7,.o-cls-8{stroke-linecap:round;stroke-miterlimit:10;}
-                  .o-cls-2{fill:#f5e94a;stroke:#f5e94a;} .o-cls-9{fill:#fff;} .o-cls-3{fill:#497535;stroke:#497535;}
-                  .o-cls-10{font-size:10px;font-family:YuGothic-Bold,'Yu Gothic';font-weight:700;fill:#231815;}
-                  .o-cls-11{font-size:8px;letter-spacing:.075em;font-family:YuGothic-Bold,'Yu Gothic';font-weight:700;fill:#231815;}
-                  .o-cls-4{fill:#ed8a1c;stroke:#ed8a1c;} .o-cls-5{fill:#ecc2da;stroke:#ecc2da;} .o-cls-6{fill:#e72e13;stroke:#e72e13;}
-                  .o-cls-7{fill:#9e4724;stroke:#9e4724;} .o-cls-8{stroke:#231815;stroke-width:.5px;fill:#231815;}
-                </style>
-              </defs>
-              <rect class="o-cls-9" width="141.732" height="85.039" rx="6.112" ry="6.112"/>
-              <text class="o-cls-10" transform="translate(11.445 27.592)">${tspanHtml}</text>
-              <g fill="#231815">
-                <path d="M105.947,13.731h-.781v-.067q0-1.515,0-3.029c-.001-.323-.036-.641-.153-.946-.111-.288-.284-.525-.579-.655-.433-.19-.959-.09-1.304.242-.314.303-.467.673-.467,1.104q-.002,1.638,0,3.275v.074h-.784c0-.024,0-.047,0-.069,0-1.085.002-2.17,0-3.255-.002-.289-.048-.572-.173-.837-.161-.342-.421-.563-.808-.617-.363-.05-.682.055-.957.287-.354.299-.532.686-.563,1.141-.004.057-.004.114-.004.171q0,1.552,0,3.104v.077h-.776c-.022-1.771.031-3.542-.04-5.314h.687c.017.287.033.571.05.855.044.021.063-.001.082-.034.172-.29.386-.544.689-.705.557-.295,1.128-.339,1.697-.033.332.179.545.467.683.811,0,.004,0,.008.003.01.012.016.024.031.037.046.015-.012.034-.022.045-.038.092-.129.175-.267.277-.389.535-.643,1.401-.768,2.012-.535.454.173.746.504.924.94.126.308.183.63.195.96.008.238.008.478.008.717q.001,1.316,0,2.633V13.731Z"/>
-                <path d="M118.408,13.788c-.521-.017-1.01-.128-1.449-.418-.486-.323-.796-.778-.976-1.325-.154-.464-.195-.941-.144-1.426.05-.481.189-.932.458-1.337.393-.591.948-.932,1.647-1.038.484-.073.962-.044,1.425.123.667.24,1.12.707,1.393,1.354.21.497.274,1.018.232,1.553-.039.508-.179.985-.459,1.415-.37.566-.894.907-1.556,1.031C118.791,13.755,118.599,13.766,118.408,13.788ZM120.187,11.109c-.003-.331-.035-.647-.119-.956-.112-.415-.296-.788-.614-1.087-.507-.477-1.294-.563-1.892-.204-.421.252-.671.636-.795,1.098-.139.514-.157,1.04-.075,1.566.063.401.205.776.437,1.112.467.674,1.207.829,1.841.615.465-.157.776-.485.978-.923C120.128,11.939,120.184,11.524,120.187,11.109Z"/>
-                <path d="M111.826,12.845c.092.071.183.14.281.216-.079.105-.153.21-.235.31-.129.158-.275.299-.465.384-.155.069-.317.088-.483.059-.18-.032-.313-.134-.393-.296-.056-.115-.096-.239-.145-.363-.026.013-.057.03-.089.048-.339.187-.681.367-1.053.48-.487.148-.979.18-1.467.016-.462-.154-.802-.447-.934-.93-.133-.49-.022-.939.293-1.336.26-.327.607-.534.991-.683.357-.139.729-.223,1.106-.277.375-.053.753-.089,1.13-.133.019-.002.038-.005.063-.008,0-.05.002-.1,0-.149-.007-.186-.012-.371-.024-.557-.018-.288-.178-.487-.414-.633-.179-.11-.377-.159-.584-.177-.271-.024-.541-.014-.802.075-.042.015-.083.032-.123.052-.222.108-.342.284-.367.532-.012.122-.029.247-.07.362-.107.305-.496.421-.759.233-.172-.123-.215-.301-.186-.5.04-.264.197-.458.398-.619.273-.218.589-.347.925-.426.596-.138,1.189-.136,1.778.04.251.075.483.189.671.376.193.191.307.422.322.694.021.367.042.734.047,1.102.007.646,0,1.293.003,1.94,0,.116.006.232.022.347.022.157.149.212.284.125.05-.032.093-.076.132-.121C111.731,12.971,111.776,12.908,111.826,12.845ZM110.428,10.716c-.029,0-.052-.003-.074,0-.328.046-.657.083-.982.141-.341.062-.663.182-.957.369-.519.33-.689.826-.579,1.35.086.408.383.688.789.747.23.033.455-.006.676-.071.388-.114.737-.309,1.081-.515.037-.022.047-.047.047-.088q-.002-.935,0-1.87V10.716Z"/>
-                <path d="M115.346,12.665c.078.094.148.178.221.265-.272.299-.537.603-.919.763-.32.133-.65.136-.976.026-.321-.108-.51-.35-.619-.661-.1-.283-.127-.578-.128-.875q-.003-1.603,0-3.206c0-.023,0-.046,0-.074h-.838v-.33c.162-.038.322-.066.476-.116.187-.06.361-.161.473-.322.141-.203.263-.421.319-.67.05-.218.076-.438.087-.66,0-.019.003-.038.006-.063.106.011.209.021.317.033v1.779h1.656v.346h-1.651c0,.025-.003.046-.003.066q0,1.58,0,3.16c0,.194.018.387.076.573.098.315.284.468.598.482.177.009.346-.037.487-.141.139-.101.262-.223.391-.336C115.329,12.696,115.334,12.682,115.346,12.665Z"/>
-                <path d="M124.079,6.161h.825v.077q0,3.25.002,6.5c0,.087.021.177.052.258.039.099.125.144.233.139.048-.002.096-.006.153-.011.036.202.072.406.111.622-.081.018-.159.039-.238.052-.163.026-.328.027-.49-.008-.308-.065-.497-.261-.575-.558-.041-.155-.07-.319-.07-.48q-.007-3.264-.003-6.529V6.161Z"/>
-                <path d="M122.817,13.691h-.792v-5.581h.792V13.691Z"/>
-                <path d="M122.424,5.792c.258.001.469.222.467.491-.002.264-.215.483-.47.483-.266,0-.485-.221-.483-.49C121.939,6.005,122.154,5.791,122.424,5.792Z"/>
-              </g>
-              <text class="o-cls-11" transform="translate(11.445 77.012)"><tspan x="0" y="0">${escapeHtml(subText)}</tspan></text>
-              <g>
-                <g>
-                  <line class="o-cls-7" x1="43.455" y1="62.197" x2="39.977" y2="65.675"/>
-                  <line class="o-cls-5" x1="38.7" y1="62.197" x2="35.222" y2="65.675"/>
-                  <line class="o-cls-4" x1="33.945" y1="62.197" x2="30.467" y2="65.675"/>
-                  <line class="o-cls-1" x1="29.189" y1="62.197" x2="25.711" y2="65.675"/>
-                  <line class="o-cls-2" x1="24.434" y1="62.197" x2="20.956" y2="65.675"/>
-                  <line class="o-cls-3" x1="19.679" y1="62.197" x2="16.201" y2="65.675"/>
-                  <line class="o-cls-6" x1="14.923" y1="62.197" x2="11.445" y2="65.675"/>
-                </g>
-                <g>
-                  <line class="o-cls-7" x1="76.023" y1="62.197" x2="72.545" y2="65.675"/>
-                  <line class="o-cls-5" x1="71.268" y1="62.197" x2="67.79" y2="65.675"/>
-                  <line class="o-cls-4" x1="66.512" y1="62.197" x2="63.034" y2="65.675"/>
-                  <line class="o-cls-1" x1="61.757" y1="62.197" x2="58.279" y2="65.675"/>
-                  <line class="o-cls-2" x1="57.002" y1="62.197" x2="53.524" y2="65.675"/>
-                  <line class="o-cls-3" x1="52.246" y1="62.197" x2="48.768" y2="65.675"/>
-                  <line class="o-cls-6" x1="47.491" y1="62.197" x2="44.013" y2="65.675"/>
-                </g>
-                <line class="o-cls-2" x1="89.57" y1="62.197" x2="86.092" y2="65.675"/>
-                <line class="o-cls-3" x1="84.814" y1="62.197" x2="81.336" y2="65.675"/>
-                <line class="o-cls-6" x1="80.059" y1="62.197" x2="76.581" y2="65.675"/>
-              </g>
-              <line class="o-cls-8" x1="92.632" y1="11.144" x2=".758" y2="11.144"/>
-              <line class="o-cls-8" x1="141.732" y1="11.144" x2="128.843" y2="11.144"/>
-            </svg>
-          </div>
-        `;
-      } else {
-        // ==========================================
-        // 本体パックラベル (main) 用 SVG生成
-        // ==========================================
-        const validProds = (data.products || []).filter(p => p.trim() !== "");
-        const linesToDraw = [];
-        let currentY = 0;
-        const gapMainToSub = 9.5; 
-        const gapItemToItem = 14.0;
-
-        validProds.forEach((mText, idx) => {
-          const sText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
-          if (mText || sText) {
-            if (mText) {
-              mText.split(/\r\n|\r|\n/).forEach(line => {
-                if (line.trim()) {
-                  linesToDraw.push({ type: 'main', text: line.trim(), y: currentY });
-                  currentY += gapMainToSub; 
-                }
-              });
-              if (!sText) currentY += (gapItemToItem - gapMainToSub + 4);
-            }
-            if (sText) {
-              linesToDraw.push({ type: 'sub', text: sText, y: currentY });
-              currentY += gapItemToItem;
-            }
-          }
-        });
-
-        let totalGroupHeight = 0;
-        if (linesToDraw.length > 0) {
-          totalGroupHeight = currentY - (linesToDraw[linesToDraw.length-1].type === 'sub' ? gapItemToItem : (gapItemToItem - gapMainToSub + 4));
+      let linesHtml = '';
+      const categoryText = data.categoryText || ""; 
+      let catTransform = 'none';
+      if (categoryText) {
+        const maxNormalChars = 17;
+        if (categoryText.length > maxNormalChars) {
+          const scaleVal = Math.max(0.45, maxNormalChars / categoryText.length);
+          catTransform = `scaleX(${scaleVal.toFixed(3)})`;
         }
-        const startY = 48 - (totalGroupHeight / 2);
+      }
 
-        let dynamicGroupHtml = '';
-        linesToDraw.apply = linesToDraw.forEach; // safe iteration helper
-        linesToDraw.forEach(item => {
-          const absY = startY + item.y;
-          if (item.type === 'main') {
-            dynamicGroupHtml += `<text class="m-cls-5" transform="translate(11.28 ${absY})"><tspan class="dynamic-main-tspan" x="0" y="0">${escapeHtml(item.text)}</tspan></text>`;
-          } else {
-            dynamicGroupHtml += `
-              <text class="m-cls-15" transform="translate(11.28 ${absY})">
-                <tspan class="m-cls-14" x="0" y="0">[ </tspan>
-                <tspan class="m-cls-4 dynamic-sub-main-tspan" x="4.5" y="0">${escapeHtml(item.text)}</tspan>
-                <tspan class="m-cls-14 dynamic-sub-bracket-tspan" x="110" y="0"> ]</tspan>
-              </text>
-            `;
+      // 共通のSVGロゴ
+      const svgLogo = `
+        <svg class="header-logo-svg" viewBox="0 0 279.1858 83.4017" xmlns="http://www.w3.org/2000/svg">
+          <path d="M76.7013,82.3988h-8.1092v-.6897c0-10.482.0116-20.964-.0067-31.446-.0059-3.3459-.3646-6.6518-1.5813-9.8114-1.1515-2.9903-2.9451-5.4554-6.013-6.8012-4.4946-1.9715-9.9481-.9397-13.5275,2.5128-3.2622,3.1465-4.8511,6.9807-4.8557,11.4524-.0116,11.3339-.0038,22.6678-.0038,34.0017v.7634h-8.128c0-.2496,0-.4849,0-.7202,0-11.2598.0163-22.5197-.0109-33.7794-.0073-3.0016-.489-5.9387-1.7886-8.6909-1.6742-3.5455-4.3634-5.8469-8.3857-6.4026-3.7666-.5204-7.0827.5726-9.9327,2.9781-3.6753,3.102-5.5275,7.1167-5.8473,11.8416-.0399.5902-.0395,1.1837-.0396,1.7757-.0022,10.7413-.0016,21.4825-.0016,32.2238v.7919H.4228c-.2386-18.3832.321-36.7584-.4228-55.151h7.1329c.1735,2.9712.3456,5.9198.5179,8.8703.4533.2151.6505-.0148.8522-.3545,1.784-3.005,4.0081-5.6444,7.1534-7.3111,5.7796-3.0625,11.709-3.5243,17.6087-.3457,3.454,1.8609,5.6639,4.848,7.0892,8.4201.0137.0343.0131.0775.0344.105.1249.1607.2544.3179.3824.4762.1577-.1308.3524-.2359.4673-.3965.9618-1.3446,1.8196-2.7715,2.8756-4.039,5.5585-6.6718,14.5465-7.9675,20.8849-5.5528,4.7115,1.795,7.7411,5.226,9.5921,9.755,1.3055,3.1943,1.8978,6.5408,2.0217,9.9632.0898,2.478.0827,4.9601.085,7.4404.0088,9.1115.0035,18.2229.0035,27.3344v.786Z"/>
+          <path d="M206.0447,82.9916c-5.4057-.1707-10.49-1.3246-15.039-4.3413-5.046-3.3462-8.2636-8.0675-10.1399-13.7497-1.5905-4.8169-2.0155-9.7648-1.4924-14.8013.5183-4.9906,1.9625-9.6744,4.7553-13.8755,4.0819-6.1403,9.846-9.673,17.1021-10.7741,5.0204-.7618,9.982-.4611,14.7835,1.2702,6.928,2.498,11.631,7.3455,14.4644,14.0627,2.176,5.1585,2.8367,10.5632,2.4095,16.1173-.4059,5.2762-1.8578,10.2264-4.7693,14.6827-3.8413,5.8794-9.2756,9.4197-16.1525,10.7084-1.9491.3653-3.9463.4741-5.9215.7005ZM224.504,55.1873c-.0245-3.435-.3628-6.7155-1.2303-9.9272-1.1612-4.2995-3.0741-8.1776-6.3696-11.2746-5.2718-4.9542-13.4318-5.8453-19.642-2.1216-4.3677,2.6189-6.9621,6.6012-8.2562,11.3908-1.4419,5.3363-1.6251,10.8043-.7705,16.2628.6516,4.162,2.1188,8.0475,4.5348,11.5414,4.8395,6.9989,12.524,8.5981,19.1048,6.3808,4.8247-1.6256,8.0544-5.0352,10.1501-9.5826,1.8685-4.0544,2.4531-8.368,2.479-12.67Z"/>
+          <path d="M137.7213,73.2031c.9598.7371,1.8961,1.4561,2.9207,2.243-.8211,1.0884-1.5921,2.1837-2.4394,3.2166-1.3467,1.6418-2.8578,3.1082-4.834,3.9921-1.603.717-3.2819.9147-5.008.6064-1.8697-.334-3.2518-1.3901-4.0764-3.0719-.5862-1.1956-1.0009-2.4752-1.5131-3.77-.2615.1424-.5916.3205-.9202.5015-3.5186,1.9388-7.0736,3.8063-10.9348,4.9835-5.0522,1.5403-10.1521,1.8691-15.2251.1702-4.7947-1.6057-8.3264-4.6474-9.6886-9.6558-1.3846-5.0908-.2338-9.7533,3.0355-13.8642,2.7027-3.3984,6.3036-5.5454,10.2918-7.096,3.7037-1.44,7.5639-2.3113,11.4804-2.8709,3.8932-.5563,7.8131-.9261,11.7212-1.3786.199-.023.3971-.0543.6639-.0912,0-.5193.0168-1.0327-.003-1.5447-.0745-1.9258-.1313-3.8529-.2497-5.7761-.1845-2.9963-1.8507-5.0589-4.3036-6.5718-1.8494-1.1407-3.9115-1.651-6.0522-1.8406-2.8216-.2499-5.6181-.1396-8.3314.7844-.4355.1483-.8627.33-1.2767.5313-2.3063,1.1216-3.5457,2.9536-3.8026,5.5206-.127,1.2687-.3071,2.5706-.7287,3.7637-1.1181,3.1648-5.1467,4.3695-7.8767,2.4137-1.7847-1.2785-2.2408-3.12-1.9317-5.1823.4119-2.7486,2.0402-4.7578,4.1316-6.4312,2.8298-2.2642,6.1073-3.6045,9.6017-4.4163,6.1779-1.4352,12.3424-1.4167,18.4494.4074,2.6054.7782,5.0113,1.9611,6.9696,3.9054,2.0006,1.9863,3.1852,4.3851,3.3437,7.2085.2138,3.8083.4362,7.6204.48,11.4328.077,6.7116.0109,13.4247.0315,20.1371.0037,1.201.0631,2.4119.2283,3.6.2271,1.6326,1.5543,2.2068,2.9556,1.3044.5138-.3309.9572-.7945,1.3689-1.2547.5328-.5955,1.0016-1.2482,1.5219-1.9065ZM123.2156,51.105c-.3049,0-.5453-.0282-.7772.0042-3.3977.475-6.8121.8592-10.1862,1.4663-3.5371.6365-6.8825,1.8811-9.9376,3.8267-5.3839,3.4287-7.1508,8.5723-6.0039,14.0102.893,4.2338,3.9717,7.1452,8.1898,7.7572,2.3799.3453,4.723-.0686,7.0157-.7406,4.0252-1.1798,7.6465-3.2068,11.2159-5.3463.3808-.2282.4942-.4809.4932-.9109-.014-6.471-.0097-12.942-.0097-19.413v-.6538Z"/>
+          <path d="M174.2555,71.3361c.8121.9742,1.5395,1.8468,2.2943,2.7524-2.825,3.1082-5.5731,6.2627-9.5347,7.9174-3.3194,1.3865-6.7464,1.417-10.1321.2748-3.335-1.1251-5.2944-3.6378-6.4288-6.8677-1.0321-2.9385-1.3145-5.9967-1.3205-9.0789-.0218-11.0937-.0086-22.1875-.0086-33.2813,0-.2375,0-.4751,0-.7693h-8.6903v-3.4176c1.6776-.3997,3.3409-.6913,4.9338-1.2022,1.942-.6228,3.7462-1.6754,4.9092-3.3444,1.4704-2.1101,2.7309-4.3776,3.3161-6.9537.5139-2.2624.789-4.5461.8976-6.8567.0092-.1966.0378-.3923.0634-.6481,1.1055.112,2.169.2198,3.2979.3342v18.4755h17.183v3.5841h-17.1313c-.0139.2643-.0348.4765-.0348.6888-.0015,10.933-.0088,21.866.0054,32.799.0026,2.012.1827,4.0121.7853,5.9503,1.0142,3.2625,2.9471,4.8504,6.2046,5.0055,1.8383.0875,3.5884-.3916,5.0596-1.4678,1.4336-1.0488,2.7118-2.3103,4.0526-3.4849.1016-.089.1582-.2292.2782-.4095Z"/>
+          <path d="M264.9051,3.8299h8.562v.7971c0,22.49-.0062,44.9799.0227,67.4699.0011.8964.2225,1.8361.545,2.6775.3949,1.0301,1.2906,1.4969,2.4123,1.4442.5003-.0235.9996-.0699,1.5861-.1122.3731,2.0889.752,4.2104,1.1526,6.4531-.8418.1863-1.6463.4066-2.4651.5368-1.6985.2699-3.4047.2798-5.0933-.0803-3.192-.6807-5.1582-2.7132-5.9684-5.7882-.4256-1.6153-.7194-3.3191-.7228-4.9837-.0463-22.5904-.0311-45.1808-.0311-67.7713v-.6429Z"/>
+          <path d="M251.8078,81.9916h-8.2243V24.0555h8.2243v57.936Z"/>
+          <path d="M247.7311,0c2.6766.0081,4.8596,2.304,4.8428,5.0934-.0165,2.739-2.2279,5.0117-4.8808,5.0159-2.7627.0044-5.0277-2.2928-5.0122-5.0835C242.6965,2.2123,244.928-.0084,247.7311,0Z"/>
+        </svg>
+      `;
+
+      // ──────────────────────────────────────────
+      // ▼▼ 分岐A: 外袋ラベルの場合 ▼▼
+      // ──────────────────────────────────────────
+      if (labelType === 'outer') {
+        validProds.forEach((p, idx) => {
+          if (idx > 0) {
+            // 品名と品名の間には「×」を挿入
+            linesHtml += `<div style="font-size: 8pt; color: #555555; margin: ${typo.marginY}mm 0;">×</div>`;
           }
+          const textLines = p.split(/\r\n|\r|\n/);
+          textLines.forEach(line => {
+            linesHtml += `
+              <div class="product-subline-wrapper">
+                <span class="card-product-line item-name" style="font-size:${typo.fontSizePt}pt; font-weight:${mainWeight}; color: #2b2b2b;">${escapeHtml(line.trim())}</span>
+              </div>
+            `;
+          });
         });
 
-        const catText = data.categoryText || "";
-        const methodText = data.methodText || "";
+        // サブテキストが空ならデフォルト文言を表示
+        const headerSubText = categoryText || "冷凍庫保管・前日冷蔵庫解凍";
 
         return `
-          <div class="design-card" data-label-type="main" style="width:50mm; height:30mm; padding:0; margin:0; background:#ffffff !important; position:relative; overflow:hidden;">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.96 85.04" style="width:100%; height:100%; display:block; position:absolute; top:0; left:0;">
-              <defs>
-                <style>
-                  .m-cls-1{font-size:7px;} .m-cls-1,.m-cls-2{fill:#4c4298;} .m-cls-1,.m-cls-3,.m-cls-4,.m-cls-5{font-family:YuGothic-Bold,'Yu Gothic';font-weight:700;}
-                  .m-cls-2{stroke:#4c4298;} .m-cls-2,.m-cls-6,.m-cls-7,.m-cls-8,.m-cls-9,.m-cls-10,.m-cls-11{stroke-linecap:round;}
-                  .m-cls-2,.m-cls-6,.m-cls-7,.m-cls-8,.m-cls-9,.m-cls-10,.m-cls-11,.m-cls-12{stroke-miterlimit:10;} .m-cls-6{fill:#f5e94a;stroke:#f5e94a;}
-                  .m-cls-3{letter-spacing:.25em;} .m-cls-13{fill:#fff;} .m-cls-7{fill:#497535;stroke:#497535;}
-                  .m-cls-14{font-family:YuGothic-Light,'Yu Gothic';font-weight:300;} .m-cls-15,.m-cls-5,.m-cls-12{fill:#231815;}
-                  .m-cls-15,.m-cls-12{font-size:6px;} .m-cls-8{fill:#ed8a1c;stroke:#ed8a1c;} .m-cls-9{fill:#ecc2da;stroke:#ecc2da;}
-                  .m-cls-10{fill:#e72e13;stroke:#e72e13;} .m-cls-11{fill:#9e4724;stroke:#9e4724;} .m-cls-5{font-size:10px;}
-                  .m-cls-16{letter-spacing:.25em;} .m-cls-12{font-family:YuGothic-Medium,'Yu Gothic';font-weight:500;stroke:#231815;stroke-width:.25px;}
-                </style>
-              </defs>
-              <rect class="m-cls-13" width="141.73" height="85.04" rx="6.11" ry="6.11"/>
-              <line class="m-cls-2" x1="141.46" y1="65.12" x2="10.18" y2="65.12"/>
-              <text class="m-cls-1" transform="translate(95.26 72.62)"><tspan x="0" y="0">${escapeHtml(methodText)}</tspan></text>
-              <text class="m-cls-12" transform="translate(11.28 26.42)"><tspan x="0" y="0">${escapeHtml(catText)}</tspan></text>
-              <g fill="#231815">
-                <path d="M36.63,15.62h-.78v-.07q0-1.51,0-3.03c0-.32-.03-.64-.15-.94-.11-.29-.29-.53-.58-.66-.43-.19-.96-.09-1.3.24-.32.31-.47.67-.47,1.11q0,1.63,0,3.27v.08h-.79s0-.05,0-.07c0-1.09,0-2.17,0-3.26,0-.29-.04-.57-.17-.84-.16-.34-.42-.56-.81-.61-.36-.05-.68.05-.95.28-.36.3-.54.69-.57,1.14,0,.06,0,.12,0,.18q0,1.55,0,3.1v.08h-.78c-.02-1.77.03-3.54-.04-5.32h.69c.02.29.03.57.05.86.04.02.06,0,.08-.04.17-.29.39-.54.69-.7.56-.3,1.13-.34,1.7-.03.33.18.54.46.68.81,0,0,0,0,0,0,.02.02.03.04.04.05.02,0,.04-.02.05-.03.09-.13.17-.27.27-.39.54-.65,1.4-.77,2.02-.54.45.17.74.5.92.94.13.31.18.63.19.96.01.24.01.48.01.72q0,1.31,0,2.63V15.62Z"/>
-                <path d="M49.09,15.67c-.52-.01-1.01-.12-1.45-.41-.48-.33-.79-.78-.97-1.33-.16-.46-.2-.94-.15-1.42.05-.49.19-.94.46-1.34.4-.59.95-.93,1.65-1.04.48-.07.96-.04,1.42.12.67.24,1.12.71,1.4,1.36.21.49.27,1.02.23,1.55-.04.51-.18.99-.46,1.41-.37.57-.89.91-1.56,1.04C49.48,15.64,49.28,15.65,49.09,15.67ZM50.87,13c0-.34-.03-.65-.12-.96-.11-.42-.29-.79-.61-1.09-.51-.47-1.29-.56-1.89-.2-.42.25-.67.63-.8,1.1-.14.51-.15,1.04-.07,1.56.06.4.2.78.43,1.11.47.68,1.21.83,1.85.62.46-.16.77-.49.97-.92C50.81,13.83,50.87,13.41,50.87,13Z"/>
-                <path d="M42.51,14.73c.09.07.18.14.28.22-.08.1-.15.21-.23.31-.13.15-.28.3-.47.38-.15.07-.31.09-.48.06-.18-.03-.31-.13-.39-.3-.06-.11-.1-.23-.15-.36-.02.01-.06.03-.09.05-.34.19-.68.37-1.05.48-.49.15-.98.18-1.47.02-.46-.16-.8-.45-.93-.93-.13-.5-.02-.94.29-1.34.26-.33.61-.53.99-.68.36-.14.73-.23,1.11-.28.37-.05.75-.09,1.13-.13.02,0,.04,0,.06-.01,0-.05,0-.1,0-.15,0-.19-.01-.37-.02-.56-.02-.29-.18-.48-.42-.63-.18-.11-.37-.16-.58-.18-.27-.02-.54-.01-.8.08-.04.01-.09.03-.13.05-.22.11-.34.28-.36.53-.01.12-.03.25-.07.36-.11.31-.5.42-.76.24-.17-.13-.22-.3-.19-.5.04-.27.2-.46.4-.62.27-.22.59-.35.93-.43.59-.14,1.18-.14,1.77.04.25.08.49.19.67.38.2.19.31.42.33.69.02.37.04.74.04,1.1.01.65,0,1.3,0,1.94,0,.12.01.24.03.35.02.16.15.21.28.13.05-.04.1-.08.13-.13C42.42,14.86,42.46,14.79,42.51,14.73ZM41.11,12.6s-.05,0-.07,0c-.33.05-.66.09-.98.14-.34.06-.67.18-.96.37-.52.33-.69.83-.58,1.35.09.41.38.69.79.75.23.03.46,0,.68-.07.38-.12.73-.31,1.08-.52.03-.02.04-.04.04-.08q0-.94,0-1.88V12.6Z"/>
-                <path d="M46.03,14.55c.08.09.15.18.22.27-.27.3-.53.6-.92.76-.32.13-.65.14-.97.03-.32-.11-.51-.36-.62-.67-.1-.28-.13-.57-.13-.87q0-1.6,0-3.21s0-.04,0-.07h-.84v-.33c.16-.04.32-.07.48-.12.19-.06.36-.16.47-.32.14-.2.26-.42.32-.67.05-.22.08-.44.09-.66,0-.02,0-.04,0-.06.11,0,.21.02.32.03v1.78h1.66v.35h-1.65s0,.04,0,.06q0,1.58,0,3.16c0,.2.01.39.07.58.1.31.28.46.6.48.17,0,.34-.04.48-.14.14-.1.27-.23.39-.34C46.01,14.58,46.02,14.57,46.03,14.55Z"/>
-                <path d="M54.76,8.05h.83v.07q0,3.25,0,6.5c0,.09.02.18.05.26.04.1.13.15.24.14.04,0,.09,0,.15,0,.04.19.07.4.11.61-.08.02-.16.04-.24.05-.16.03-.33.03-.49,0-.31-.07-.49-.27-.57-.56-.04-.16-.07-.32-.07-.48q0-3.27,0-6.53V8.05Z"/>
-                <path d="M53.5,15.58h-.79v-5.58h.79V15.58Z"/>
-                <path d="M53.11,7.68c.26,0,.47.22.47.49,0,.26-.22.48-.47.48-.27,0-.49-.22-.49-.49C52.62,7.89,52.84,7.68,53.11,7.68Z"/>
-              </g>
-              <g>
-                <line class="m-cls-11" x1="78.91" y1="11.27" x2="75.43" y2="14.75"/>
-                <line class="m-cls-9" x1="74.15" y1="11.27" x2="70.68" y2="14.75"/>
-                <line class="m-cls-8" x1="69.4" y1="11.27" x2="65.92" y2="14.75"/>
-                <line class="m-cls-2" x1="64.64" y1="11.27" x2="61.17" y2="14.75"/>
-                <line class="m-cls-6" x1="24.27" y1="11.27" x2="20.79" y2="14.75"/>
-                <line class="m-cls-7" x1="19.51" y1="11.27" x2="16.04" y2="14.75"/>
-                <line class="m-cls-10" x1="14.76" y1="11.27" x2="11.28" y2="14.75"/>
-              </g>
-              <g id="dynamicContentGroup">${dynamicGroupHtml}</g>
-            </svg>
+          <div class="design-card">
+            <div class="label-header">
+              ${svgLogo}
+              <span class="header-sub" style="transform: ${catTransform}; color: #0288d1;">${escapeHtml(headerSubText)}</span>
+            </div>
+            <div class="body-content-center" style="height: 24.2mm;">
+              ${linesHtml}
+            </div>
           </div>
         `;
       }
-    }
 
-    function autoFitLongLines() {
-      // --- パック本体ラベルの長体処理 ---
-      document.querySelectorAll('.design-card[data-label-type="main"]').forEach(card => {
-        const svg = card.querySelector('svg');
-        if (!svg) return;
-        
-        let minRatio = 1.0;
-        const items = [];
-        
-        svg.querySelectorAll('.dynamic-main-tspan').forEach(tspan => {
-          tspan.style.letterSpacing = "0";
-          tspan.removeAttribute("textLength");
-          tspan.removeAttribute("lengthAdjust");
-          
-          const w = tspan.getComputedTextLength();
-          const text = tspan.textContent;
-          items.push({ type: 'main', el: tspan, w: w, text: text });
-          
-          if (text.length > 11 && w > 118) {
-            const ratio = 118 / w;
-            if (ratio < minRatio) minRatio = ratio;
-          }
-        });
-        
-        svg.querySelectorAll('.dynamic-sub-main-tspan').forEach(tspan => {
-          tspan.style.letterSpacing = "0";
-          tspan.removeAttribute("textLength");
-          tspan.removeAttribute("lengthAdjust");
-          
-          const w = tspan.getComputedTextLength();
-          const text = tspan.textContent;
-          const bracket = tspan.nextElementSibling;
-          items.push({ type: 'sub', el: tspan, bracket: bracket, w: w, text: text });
-          
-          if (text.length > 16 && w > 110) {
-            const ratio = 110 / w;
-            if (ratio < minRatio) minRatio = ratio;
-          }
-        });
-        
-        items.forEach(item => {
-          const limit = item.type === 'main' ? 118 : 110;
-          const charLimit = item.type === 'main' ? 11 : 16;
-          let currentWidth = item.w;
-          
-          if (isUniformStretch) {
-            if (minRatio < 1.0) {
-              currentWidth = item.w * minRatio;
-              item.el.setAttribute("textLength", currentWidth.toFixed(2));
-              item.el.setAttribute("lengthAdjust", "spacingAndGlyphs");
-              item.el.style.letterSpacing = "0";
-            } else {
-              item.el.style.letterSpacing = ""; 
-            }
-          } else {
-            if (item.text.length > charLimit) {
-              currentWidth = limit;
-              item.el.setAttribute("textLength", limit);
-              item.el.setAttribute("lengthAdjust", "spacingAndGlyphs");
-              item.el.style.letterSpacing = "0";
-            } else {
-              item.el.style.letterSpacing = "";
-            }
-          }
-          
-          if (item.type === 'sub' && item.bracket) {
-            item.bracket.setAttribute("x", (4.5 + currentWidth + 2.0).toFixed(2));
-          }
-        });
+      // ──────────────────────────────────────────
+      // ▼▼ 分岐B: 本体ラベルの場合 (これまでの処理) ▼▼
+      // ──────────────────────────────────────────
+      validProds.forEach((p, idx) => {
+        const mainText = p;
+        const subText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
+        let subLinesHtml = '';
+
+        if (mainText) {
+          const textLines = mainText.split(/\r\n|\r|\n/);
+          textLines.forEach(line => {
+            subLinesHtml += `
+              <div class="product-subline-wrapper">
+                <span class="card-product-line item-name" style="font-size:${typo.fontSizePt}pt; font-weight:${mainWeight};">${escapeHtml(line.trim())}</span>
+              </div>
+            `;
+          });
+        }
+        if (subText) {
+          const subFontSize = Math.max(5.0, typo.fontSizePt * 0.7);
+          subLinesHtml += `
+            <div class="product-subline-wrapper">
+              <div class="card-product-line item-sub" style="font-size:${subFontSize.toFixed(1)}pt;">
+                <span class="weight-light">[</span> 
+                <span class="weight-bold">${escapeHtml(subText)}</span> 
+                <span class="weight-light">]</span>
+              </div>
+            </div>
+          `;
+        }
+        if (subLinesHtml) {
+          linesHtml += `<div class="product-group-block" style="margin:${typo.marginY}mm 0;">${subLinesHtml}</div>`;
+        }
       });
-      
-      // --- 外袋ラベルの長体処理 ---
-      document.querySelectorAll('.design-card[data-label-type="outer"]').forEach(card => {
-        const svg = card.querySelector('svg');
-        if (!svg) return;
-        
-        let minRatio = 1.0;
-        const items = [];
-        
-        svg.querySelectorAll('.dynamic-outer-tspan').forEach(tspan => {
-          tspan.style.letterSpacing = "0";
-          tspan.removeAttribute("textLength");
-          tspan.removeAttribute("lengthAdjust");
+
+      return `
+        <div class="design-card">
+          <div class="label-header">
+            ${svgLogo}
+            <span class="header-sub" style="transform: ${catTransform};">${escapeHtml(categoryText)}</span>
+          </div>
           
-          const w = tspan.getComputedTextLength();
-          const text = tspan.textContent;
-          items.push({ el: tspan, w: w, text: text });
-          
-          if (text.length > 11 && w > 115) {
-            const ratio = 115 / w;
-            if (ratio < minRatio) minRatio = ratio;
-          }
-        });
-        
-        items.forEach(item => {
-          if (isUniformStretch) {
-            if (minRatio < 1.0) {
-              const currentWidth = item.w * minRatio;
-              item.el.setAttribute("textLength", currentWidth.toFixed(2));
-              item.el.setAttribute("lengthAdjust", "spacingAndGlyphs");
-              item.el.style.letterSpacing = "0";
-            } else {
-              item.el.style.letterSpacing = "";
-            }
-          } else {
-            if (item.text.length > 11) {
-              item.el.setAttribute("textLength", 115);
-              item.el.setAttribute("lengthAdjust", "spacingAndGlyphs");
-              item.el.style.letterSpacing = "0";
-            } else {
-              item.el.style.letterSpacing = "";
-            }
-          }
-        });
-      });
+          <div class="body-content-center">
+            ${linesHtml}
+          </div>
+
+          <div class="body-footer">
+            <div class="green-line"></div>
+            <div class="footer-instruction">${escapeHtml(data.methodText)}</div>
+          </div>
+        </div>
+      `;
     }
 
     function renderAllSlots() {
       const container = document.getElementById('sheetsContainer');
       container.innerHTML = '';
       
+      // ★変更1: slotsDataの長さを常に36の倍数に保つ（空き枠をnullで埋める）
       while (slotsData.length % 36 !== 0) {
         slotsData.push(null);
       }
+      // もし配列が空なら、最低1シート分（36枠）を確保する
       if (slotsData.length === 0) {
         slotsData = Array(36).fill(null);
       }
 
+      // 必要なA4シートの数を算出
       const totalSheets = slotsData.length / 36;
 
+      // ★変更2: 必要なシート数だけループして、A4シートのDOMを複数生成する
       for (let page = 0; page < totalSheets; page++) {
         const sheet = document.createElement('div');
         sheet.className = 'sheet-a4';
-        sheet.style.marginBottom = '30px'; 
+        sheet.style.marginBottom = '30px'; // 画面上でシート同士を区切る隙間
 
         const grid = document.createElement('div');
         grid.className = 'label-grid';
 
+        // 1シートにつき36枠のセルを生成
         for (let i = 0; i < 36; i++) {
-          const globalIndex = page * 36 + i; 
+          const globalIndex = page * 36 + i; // 0〜35, 36〜71, 72〜107... という通し番号
           const data = slotsData[globalIndex];
           
+          // データが入力されているかの判定
           const hasData = Boolean(data && ((data.products && data.products.some(p => p.trim() !== "")) || (data.categoryText && data.categoryText.trim() !== "")));
 
           let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
@@ -895,6 +720,7 @@ window.testSlotsDataCheck = function() {
           cell.dataset.slotIndex = globalIndex;
           cell.draggable = hasData;
 
+          // -- ドラッグ＆ドロップ系のイベント --
           cell.ondragstart = function(e) {
             draggedSlotIndex = globalIndex;
             isDraggingActive = true;
@@ -934,6 +760,7 @@ window.testSlotsDataCheck = function() {
               parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; 
             }
 
+            // ラベルストックからのドロップ
             if (parsed.type === 'labelStockItem') {
               const stockIndex = parsed.stockIndex;
               const stockItem = labelStockItems[stockIndex];
@@ -946,6 +773,7 @@ window.testSlotsDataCheck = function() {
               return;
             }
             
+            // 料理名ストックからのドロップ
             if (parsed.type === 'stockItem') {
               const stockName = parsed.value;
               if (!slotsData[globalIndex] || !slotsData[globalIndex].products || slotsData[globalIndex].products.every(p => !p || p.trim() === '')) {
@@ -974,14 +802,17 @@ window.testSlotsDataCheck = function() {
               return;
             }
 
+            // セル間の移動・コピー
             if (parsed.type === 'slotMove') {
               const sourceIdx = parsed.index;
               if (sourceIdx !== null && sourceIdx !== globalIndex) {
                 if (e.ctrlKey) {
+                  // コピー
                   if (slotsData[sourceIdx]) {
                     slotsData[globalIndex] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
                   }
                 } else {
+                  // 移動（スワップ）
                   const temp = slotsData[globalIndex];
                   slotsData[globalIndex] = slotsData[sourceIdx];
                   slotsData[sourceIdx] = temp;
@@ -1000,6 +831,7 @@ window.testSlotsDataCheck = function() {
             if (!isDraggingActive) openEditPanel(globalIndex);
           };
 
+          // セルの中身を描画
           let cellHtml = `<span class="slot-num-badge">#${globalIndex + 1}</span>`;
           if (hasData) {
             cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${globalIndex})">✕</button>`;
@@ -1009,12 +841,31 @@ window.testSlotsDataCheck = function() {
           grid.appendChild(cell);
         }
         
+        // グリッドをシートに追加し、シートをコンテナに追加
         sheet.appendChild(grid);
         container.appendChild(sheet);
       }
 
+      // ズームと長体の再計算
       applyZoom(false, false); 
       setTimeout(autoFitLongLines, 10);
+    }
+
+    function autoFitLongLines() {
+      document.querySelectorAll('.design-card').forEach(card => {
+        const topBox = card.querySelector('.card-top-box');
+        if (!topBox) return;
+        const containerWidth = Math.max(50, topBox.clientWidth - 26);
+        topBox.querySelectorAll('.product-subline-wrapper').forEach(wrap => {
+          const span = wrap.querySelector('.card-product-line');
+          if (!span) return;
+          span.style.transform = 'none';
+          const w = span.scrollWidth;
+          if (w > containerWidth && containerWidth > 0) {
+            span.style.transform = `scaleX(${(containerWidth / w).toFixed(3)})`;
+          }
+        });
+      });
     }
 
     function openActualSizeModal() {
@@ -1052,6 +903,7 @@ window.testSlotsDataCheck = function() {
       document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
       document.getElementById('inputCategoryText').value = data.categoryText || '';
 
+      // ▼▼ ここを追加: ボタンのアクティブ状態を反映 ▼▼
       const labelType = data.labelType || 'main';
       document.getElementById('btnType_main').className = (labelType === 'main') ? 'btn-choice active' : 'btn-choice';
       document.getElementById('btnType_outer').className = (labelType === 'outer') ? 'btn-choice active' : 'btn-choice';
@@ -1063,6 +915,7 @@ window.testSlotsDataCheck = function() {
       updateMethodUI();
       renderAllSlots();
 
+      // ★追加：選択したラベル枠に向かってプレビューを自動スクロール・フォーカスする
       scrollToEditingSlot(slotIdx);
     }
 
@@ -1111,7 +964,7 @@ window.testSlotsDataCheck = function() {
       renderAllSlots();
     }
 
-    function setLabelType(type) {
+function setLabelType(type) {
       if (editingSlotIndex === null) return;
       slotsData[editingSlotIndex].labelType = type;
       document.getElementById('btnType_main').className = (type === 'main') ? 'btn-choice active' : 'btn-choice';
@@ -1264,6 +1117,7 @@ window.testSlotsDataCheck = function() {
       container.innerHTML = html;
     }
 
+    // --- ラベルストック関連の完全実装 ---
     function switchStockTab(tabName) {
       document.getElementById('btnTabMaster').classList.toggle('active', tabName === 'master');
       document.getElementById('btnTabLabel').classList.toggle('active', tabName === 'label');
@@ -1273,6 +1127,7 @@ window.testSlotsDataCheck = function() {
     }
 
     function clearAllLabels() {
+      console.log('=== clearAllLabels 実行開始 ===');
       if (!confirm('本当にすべてのラベルをクリアしますか？')) {
         return;
       }
@@ -1283,6 +1138,7 @@ window.testSlotsDataCheck = function() {
         slotsData = Array(36).fill(null);
         updateUsageCount();
         renderAllSlots();
+        console.log('すべてのラベル枠をクリアしました。');
       } catch (err) {
         console.error('clearAllLabels 実行時エラー:', err);
       }
@@ -1312,6 +1168,7 @@ window.testSlotsDataCheck = function() {
       });
       container.innerHTML = html;
 
+      // --- ホバー1秒タイマーのバインド処理 ---
       const popup = document.getElementById('globalHoverPreviewPopup');
       let hoverTimer = null;
 
@@ -1321,11 +1178,14 @@ window.testSlotsDataCheck = function() {
           const itemData = labelStockItems[idx];
           if (!itemData) return;
 
+          // 既存のタイマーがあればクリア
           if (hoverTimer) clearTimeout(hoverTimer);
 
+          // 1秒（1000ms）後にポップアップを表示
           hoverTimer = setTimeout(() => {
             popup.innerHTML = buildLabelDesignHtml(itemData);
             
+            // マウスカーソルの位置、またはカードの近傍にポップアップを表示
             const rect = card.getBoundingClientRect();
             popup.style.left = (rect.right + 10) + 'px';
             popup.style.top = rect.top + 'px';
@@ -1334,6 +1194,7 @@ window.testSlotsDataCheck = function() {
         });
 
         card.addEventListener('mouseleave', function() {
+          // マウスが外れたらタイマーを即座にキャンセルし、ポップアップを隠す
           if (hoverTimer) clearTimeout(hoverTimer);
           popup.style.display = 'none';
         });
@@ -1342,42 +1203,60 @@ window.testSlotsDataCheck = function() {
 
     function handleLabelStockDrop(e) {
       e.preventDefault();
+      console.log('=== handleLabelStockDrop 実行開始 ===');
       try {
         const raw = e.dataTransfer.getData('text/plain');
-        if (!raw) return;
+        console.log('受信した生データ:', raw);
+        if (!raw) {
+          console.warn('データが空です');
+          return;
+        }
 
         let parsed = null;
         try {
           parsed = JSON.parse(raw);
         } catch (jsonErr) {
+          console.warn('JSONパース失敗、数値として処理します:', raw);
           parsed = { type: 'slotMove', index: parseInt(raw, 10) };
         }
 
+        console.log('パース結果:', parsed);
+
+        // プレビューのラベル枠（スロット）からドラッグされた場合
         if (parsed.type === 'slotMove') {
           const sourceIndex = parsed.index;
           const slotData = slotsData[sourceIndex];
           if (slotData) {
+            // 複製データを作成
             const newStockItem = JSON.parse(JSON.stringify(slotData));
 
+            // ★ 同一のラベルがすでにラベルストック内に存在するかチェック
             const isAlreadyExists = labelStockItems.some(item => {
               return JSON.stringify(item) === JSON.stringify(newStockItem);
             });
 
             if (isAlreadyExists) {
               alert('このラベルはすでにラベルストックに登録されています。');
-              return; 
+              return; // 登録を中断
             }
 
+            // 1. ラベルストックに複製を追加
             labelStockItems.push(newStockItem);
+            
+            // 2. 元のプレビュー枠をクリア（削除）
             slotsData[sourceIndex] = null;
             
+            // 3. 編集パネルが開いていた枠であれば閉じる
             if (editingSlotIndex === sourceIndex) {
               closeEditPanel();
             }
             
+            // 4. 画面全体（使用数・プレビュー・ストック一覧）を更新
             updateUsageCount();
             renderAllSlots();
             renderLabelStockList();
+            
+            // 5. 自動でラベルストックタブに切り替える
             switchStockTab('label');
           }
         }
@@ -1391,6 +1270,7 @@ window.testSlotsDataCheck = function() {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    // ▼ 修正後の完全復元されたズーム関数群
     function onZoomSliderInput(val) {
       currentZoom = parseFloat(val);
       applyZoom(false);
@@ -1400,22 +1280,27 @@ window.testSlotsDataCheck = function() {
       const container = document.getElementById('sheetsContainer');
       if (!container) return;
       
+      // 画面内にあるすべてのA4シート要素を取得する
       const sheets = container.querySelectorAll('.sheet-a4');
       if (sheets.length === 0) return;
 
+      // 基準となる1枚目のシートからサイズを取得
       const firstSheet = sheets[0];
       const baseWidth = firstSheet.offsetWidth || 794;
       const baseHeight = firstSheet.offsetHeight || 1123;
       
+      // コンテナ全体のサイズを「シート数 × 縦の高さ」に合わせて拡張する
       container.style.width = Math.round(baseWidth * currentZoom) + 'px';
-      container.style.height = Math.round((baseHeight * totalSheetsHeight()) * currentZoom) + 'px'; 
+      container.style.height = Math.round((baseHeight * totalSheetsHeight()) * currentZoom) + 'px'; // 修正: 全シートの総高さを考慮
       container.style.transform = 'none';
       container.style.marginLeft = 'auto';
       container.style.marginRight = 'auto';
 
+      // ★重要: すべてのシート（1P目も2P目以降も）に対して、同一のスケールと変形基点を一括適用する
       sheets.forEach((sheet, idx) => {
         sheet.style.transformOrigin = 'top left';
         sheet.style.transform = `scale(${currentZoom.toFixed(3)})`;
+        // 2枚目以降のシートが重ならないよう、縦方向に適切なマージン（隙間）を持たせる
         if (idx > 0) {
           sheet.style.marginTop = '20px';
         }
@@ -1433,6 +1318,7 @@ window.testSlotsDataCheck = function() {
       }
     }
 
+    // ヘルパー: 全シートの合計高さを計算する関数
     function totalSheetsHeight() {
       const container = document.getElementById('sheetsContainer');
       if (!container) return 1;
@@ -1478,6 +1364,20 @@ window.testSlotsDataCheck = function() {
       renderAllSlots();
     }
 
+    let hoverPreviewTimer = null;
+
+    // --- ラベルストックのホバー拡大プレビュー関連の処理 ---
+    document.addEventListener('mouseover', function(e) {
+      const card = e.target.closest('.label-stock-card');
+      if (!card) return;
+
+      // どのインデックスのラベルか、HTML要素のデータ属性等から特定するか、
+      // あるいは要素自身からインデックスを逆引きできるようにします。
+      // ここでは簡易的に、親コンテナ内の何番目かを特定してデータを取得します。
+    });
+
+    // より確実に紐付けるため、renderLabelStockList 内でカード生成時に mouseenter / mouseleave をバインドします。
+  
     let pendingDropData = null;
 
     function openStockDropChoiceModal(slotIndex, stockName) {
@@ -1487,6 +1387,7 @@ window.testSlotsDataCheck = function() {
       const container = document.getElementById('dropChoiceButtonsContainer');
       let html = '';
 
+      // ① 既存のすべての有効な品目（品名1〜4）それぞれに対して結合ボタンを生成
       products.forEach((prod, idx) => {
         if (prod && prod.trim() !== "") {
           html += `
@@ -1497,10 +1398,12 @@ window.testSlotsDataCheck = function() {
         }
       });
 
+      // 空の枠があるか、または配列長が4未満かをチェック
       const emptyIdx = products.findIndex(p => !p || p.trim() === "");
       const canAddNewRow = (emptyIdx !== -1) || (products.length < 4);
       const nextRowNum = (emptyIdx !== -1) ? (emptyIdx + 1) : (products.length + 1);
 
+      // ② 新たな品名として独立して追加する選択肢（最大4品まで）
       if (canAddNewRow) {
         html += `
           <button type="button" class="btn-main" style="background:#e6f4ea; color:#137333; border:1.5px solid #ceead6; padding:10px; justify-content:flex-start; font-size:12.5px;" onclick="executeStockDropChoice('newRow')">
@@ -1524,17 +1427,20 @@ window.testSlotsDataCheck = function() {
       const data = slotsData[slotIndex];
 
       if (mode === 'combine') {
+        // ① 指定されたインデックス（targetIdx: 品名1〜4）の後ろに結合
         if (data.products && data.products[targetIdx] !== undefined) {
           const currentBase = data.products[targetIdx].trim();
           data.products[targetIdx] = currentBase ? `${currentBase} ${stockName}` : stockName;
         }
       } else if (mode === 'newRow') {
+        // ② 新たな品名（空き行があればそこへ、なければ末尾）として追加
         if (!data.products) data.products = [];
         if (!data.subProducts) data.subProducts = [];
         if (!data.productsAlt) data.productsAlt = [];
         
         const emptyIdx = data.products.findIndex(p => !p || p.trim() === "");
         if (emptyIdx !== -1) {
+          // 既存の空行（例：「2品」ボタンを押して空になっている品名2など）があればそこへ格納
           data.products[emptyIdx] = stockName;
           if (data.subProducts[emptyIdx] === undefined) data.subProducts[emptyIdx] = "";
           if (data.productsAlt[emptyIdx] === undefined) data.productsAlt[emptyIdx] = "";
@@ -1572,23 +1478,36 @@ window.testSlotsDataCheck = function() {
     }
 
     function clearAllLabelStock() {
+      console.log('=== clearAllLabelStock 実行開始 ===');
+      
+      // 確認ダイアログを表示
       if (!confirm('すべての保管ラベルを削除しますか？')) {
+        console.log('クリア操作がキャンセルされました。');
         return;
       }
+
       try {
+        // 1. ホバープレビューの強制非表示
         const popup = document.getElementById('globalHoverPreviewPopup');
         if (popup) {
           popup.style.display = 'none';
         }
+
+        // 2. 配列の初期化
         labelStockItems = [];
+        console.log('labelStockItems を空にしました:', labelStockItems);
+
+        // 3. リストの再描画
         renderLabelStockList();
+        console.log('ラベルストックリストの再描画が完了しました。');
+
       } catch (err) {
         console.error('clearAllLabelStock 実行時エラー:', err);
         alert('クリア処理中にエラーが発生しました: ' + err.message);
       }
     }
 
-    function copyToRemainingEmptySlots() {
+function copyToRemainingEmptySlots() {
       if (editingSlotIndex === null) {
         alert('コピー元のラベル枠が選択されていません。');
         return;
@@ -1599,6 +1518,7 @@ window.testSlotsDataCheck = function() {
         return;
       }
 
+      // 空白枠の数をカウント
       const emptyCount = slotsData.filter(d => !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim())).length;
       if (emptyCount === 0) {
         alert('コピー先の空白枠がありません。');
@@ -1609,6 +1529,7 @@ window.testSlotsDataCheck = function() {
         return;
       }
 
+      // 36枠を走査し、データが入っていない（空白の）枠にのみ複製を代入
       for (let i = 0; i < 36; i++) {
         const d = slotsData[i];
         const isEmpty = !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim());
@@ -1632,25 +1553,33 @@ window.testSlotsDataCheck = function() {
       const baseWidth = sheet ? sheet.offsetWidth : 794;
       const baseHeight = sheet ? sheet.offsetHeight : 1123;
 
+      // 36面グリッド上の「列(0〜3)」と「段(0〜8)」を算出
       const col = slotIdx % 4;
       const row = Math.floor(slotIdx / 4);
 
+      // A4シート(210mm x 297mm)に対する実際のピクセル比率
       const pxPerMmX = baseWidth / 210.0;
       const pxPerMmY = baseHeight / 297.0;
 
+      // シート左上(0,0)から、対象ラベルの「中心点」までの物理座標(mm)
+      // 左余白:5mm + (列 × 幅50mm) + 半分25mm
+      // 上余白:5.5mm + (段 × [高30mm + 間隔2mm]) + 半分15mm
       const cellCenterMmX = 5.0 + (col * 50.0) + 25.0;
       const cellCenterMmY = 5.5 + (row * 32.0) + 15.0;
 
+      // 現在のズーム倍率を掛けた、シート左上からの正確なピクセル中心座標
       const targetCenterX = (cellCenterMmX * pxPerMmX) * currentZoom;
       const targetCenterY = (cellCenterMmY * pxPerMmY) * currentZoom;
 
+      // .preview-outer の padding（左: 60px, 上: 20px）と margin:auto 分の余白を正確に算出
       const scaledSheetWidth = baseWidth * currentZoom;
-      const innerAvailableWidth = outerArea.clientWidth - 120; 
+      const innerAvailableWidth = outerArea.clientWidth - 120; // 左右padding(60px×2)を引いた幅
       const autoMarginLeft = scaledSheetWidth < innerAvailableWidth ? (innerAvailableWidth - scaledSheetWidth) / 2 : 0;
 
       const sheetStartX = 60 + autoMarginLeft;
-      const sheetStartY = 20; 
+      const sheetStartY = 20; // 上padding(20px)
 
+      // 表示領域（outerArea）の真ん中にラベルの中心が来るようにスクロール位置を算出
       const scrollLeft = sheetStartX + targetCenterX - (outerArea.clientWidth / 2);
       const scrollTop = sheetStartY + targetCenterY - (outerArea.clientHeight / 2);
 
@@ -1660,10 +1589,5 @@ window.testSlotsDataCheck = function() {
         behavior: useSmooth ? 'smooth' : 'auto'
       });
     }
-
-    // 内部からwindowオブジェクトへ強制的に紐付けるデバッグ用コード
-window.debugGetSlotsData = function() {
-  console.log("【内部から取得したslotsData】", slotsData);
-  return slotsData;
-};
-</script>
+    
+  </script>

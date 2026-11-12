@@ -304,4 +304,3 @@ function addNewSingleMasterItem(itemData) {
   // 追加後の最新マスタデータを取得して返却（画面側の即時同期用）
   return getMasterDataFromSpreadsheet();
 }
-
