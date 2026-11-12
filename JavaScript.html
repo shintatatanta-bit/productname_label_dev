@@ -1,8 +1,4 @@
 <script>
-    // ★スクリプトタグの中に正しく配置する
-    alert("JavaScriptの読み込みテスト：OK");
-    console.log("【デバッグ】最新のJavaScriptが正常に読み込まれています。タイムスタンプ:", new Date().getTime());
-
     let currentZoom = 1.0;
     let isUniformStretch = false; // ★追加: 長体モード用のグローバル変数
     let editingSlotIndex = null;
@@ -553,7 +549,6 @@
       renderAllSlots(); 
     }
 
-    // ★修正: クラス名の衝突を避けるための名前空間化SVG生成関数
     function buildLabelDesignHtml(data) {
       const labelType = data.labelType || 'main';
 
@@ -638,7 +633,7 @@
         `;
       } else {
         // ==========================================
-        // 本体パックラベル (main) 用 SVG生成（モックテンプレート統合版）
+        // 本体パックラベル (main) 用 SVG生成
         // ==========================================
         const validProds = (data.products || []).filter(p => p.trim() !== "");
         const linesToDraw = [];
@@ -646,7 +641,6 @@
         const gapMainToSub = 9.5; 
         const gapItemToItem = 14.0;
 
-        // 本番の products（品名1〜4）と subProducts（親料理名）を走査
         validProds.forEach((mText, idx) => {
           const sText = (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx].trim() : "";
           if (mText || sText) {
@@ -673,6 +667,7 @@
         const startY = 48 - (totalGroupHeight / 2);
 
         let dynamicGroupHtml = '';
+        linesToDraw.apply = linesToDraw.forEach; // safe iteration helper
         linesToDraw.forEach(item => {
           const absY = startY + item.y;
           if (item.type === 'main') {
@@ -733,7 +728,7 @@
           </div>
         `;
       }
-      }
+    }
 
     function autoFitLongLines() {
       // --- パック本体ラベルの長体処理 ---
