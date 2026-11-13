@@ -762,41 +762,18 @@
         else if (lines.length === 2) startY = 26;
         else startY = 20;
 
-        const maxAllowedLength = 93; // 全角11文字分の基準ピクセル幅
-
-        // ▼ 半角を0.5文字、全角を1.0文字として視覚的長さを計算するヘルパー関数
-        function getVisualLength(str) {
-          let len = 0;
-          for (let i = 0; i < str.length; i++) {
-            const code = str.charCodeAt(i);
-            // 半角英数字・記号（ASCII範囲）の場合は0.5文字分として加算
-            if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-              len += 0.5;
-            } else {
-              len += 1.0;
-            }
-          }
-          return len;
-        }
-
+        // ピクセル計測で動的制御するため、プレーンなtspanとして出力
         lines.forEach((lineText, idx) => {
-          let attrStr = '';
-          const visualLen = getVisualLength(lineText);
-          
-          // 視覚的な長さが「11.0文字」を超える場合（半角換算で22文字超、全角換算で11文字超）に長体を適用
-          if (visualLen > 11.0) {
-            attrStr = ` textLength="${maxAllowedLength}" lengthAdjust="spacingAndGlyphs"`;
-          }
-          outerTextHtml += `<tspan x="0" y="${startY + (idx * lineHeight)}" ${attrStr}>${escapeHtml(lineText)}</tspan>`;
+          outerTextHtml += `<tspan class="outer-subline" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
         });
 
         return `
-          <div class="design-card" data-label-type="outer">
+          <div class="design-card" data-label-type="outer" data-is-outer="true"> <!-- ★ data-is-outer="true" を追加 -->
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.982 85.039" width="100%" height="100%" style="display:block; position:absolute; top:0; left:0;">
               <rect fill="#ffffff" width="141.732" height="85.039" rx="6.112" ry="6.112"></rect>
               
-              <!-- 外袋用 動的メインテキスト（14文字長体対応） -->
-              <text class="dynamic-main-text" font-size="10px" letter-spacing="0.05em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 0)">
+              <!-- 外袋用 動的メインテキスト（ピクセル自動フィット対象） -->
+              <text font-size="10px" letter-spacing="0.05em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 0)">
                 ${outerTextHtml}
               </text>
               
@@ -811,13 +788,14 @@
                 <path d="M53.11,7.68c.26,0,.47.22.47.49,0,.26-.22.48-.47.48-.27,0-.49-.22-.49-.49C52.62,7.89,52.84,7.68,53.11,7.68Z"></path>
               </g>
 
-              <!-- 下部サブテキスト（無しなら空欄、それ以外は保管方法を表示） -->
+              <!-- 下部サブテキスト -->
               <text class="cls-11" font-size="8px" letter-spacing="0.075em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 77.012)">
                 <tspan x="0" y="0">${escapeHtml(headerSubText)}</tspan>
               </text>
 
               <!-- カラーバー・線 -->
               <g stroke-linecap="round" stroke-miterlimit="10">
+                <!-- 既存のカラーバーSVG線群 -->
                 <g>
                   <line stroke="#9e4724" fill="none" x1="43.455" y1="62.197" x2="39.977" y2="65.675"></line>
                   <line stroke="#ecc2da" fill="none" x1="38.7" y1="62.197" x2="35.222" y2="65.675"></line>
@@ -919,16 +897,14 @@
         
         if (isOuter) {
           // --- 外袋ラベル専用：SVGネイティブ属性による一括長体制御 ---
-          const maxAllowedWidth = 110; // 外袋ラベルで綺麗に収まる最大ピクセル幅の基準
+          const maxAllowedWidth = 95; // 全角11文字分が綺麗に収まる基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
           let maxWidth = 0;
           const lineData = [];
 
-          // 1. 各行の自然なピクセル幅を正確に計測し、カード内の最大幅を特定する
           sublines.forEach(span => {
-            // 一度属性をクリアして初期状態の自然な幅を測る
             span.removeAttribute('textLength');
             span.removeAttribute('lengthAdjust');
             
@@ -940,7 +916,7 @@
             }
           });
 
-          // 2. 最大幅が許容幅（110px）を超える場合、全行を「同じ比率（統一された長体率）」で縮める
+          // 最も長い行が許容幅を超える場合、全行を同じ比率で一括圧縮
           if (maxWidth > maxAllowedWidth) {
             const uniformScale = maxAllowedWidth / maxWidth;
             lineData.forEach(item => {
@@ -949,7 +925,6 @@
               item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
             });
           } else {
-            // 許容幅内の場合は長体なし（標準表示）
             lineData.forEach(item => {
               item.span.removeAttribute('textLength');
               item.span.removeAttribute('lengthAdjust');
