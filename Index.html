@@ -177,15 +177,6 @@
           <button type="button" class="btn-choice" id="btnType_outer" onclick="setLabelType('outer')">外袋ラベル</button>
         </div>
       </div>
-
-      <!-- 外袋テキスト入力枠の直下に配置するトグルスイッチ -->
-<div id="outerUniformToggleContainer" style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 6px 10px; border-radius: 6px; border: 1px solid #e0e0e0;">
-  <span style="font-size: 11.5px; font-weight: bold; color: #333;">全行の長体比率を最も長い行に統一する</span>
-  <label style="position: relative; display: inline-block; width: 36px; height: 20px; cursor: pointer;">
-    <input type="checkbox" id="chkOuterUniform" onchange="toggleOuterUniformFit(this.checked)" style="opacity: 0; width: 0; height: 0;">
-    <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 20px; box-sizing: border-box;"></span>
-  </label>
-</div>
       
       <div class="master-call-bar">
         <span style="font-size:11px; font-weight:bold; color:#1a73e8;">📁 セット一括呼出:</span>
@@ -216,6 +207,15 @@
                     oninput="onOuterTextInput(this.value)"
                     style="width:100% !important; padding:8px 10px; font-size:12.5px; font-weight:bold; resize:vertical; min-height:65px; line-height:1.4; box-sizing:border-box;"></textarea>
         </div>
+
+ <!-- 外袋テキスト入力枠の直下に配置するトグルスイッチ -->
+<div id="outerUniformToggleContainer" style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 6px 10px; border-radius: 6px; border: 1px solid #e0e0e0;">
+  <span style="font-size: 11.5px; font-weight: bold; color: #333;">全行の長体比率を最も長い行に統一する</span>
+  <label style="position: relative; display: inline-block; width: 36px; height: 20px; cursor: pointer;">
+    <input type="checkbox" id="chkOuterUniform" onchange="toggleOuterUniformFit(this.checked)" style="opacity: 0; width: 0; height: 0;">
+    <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 20px; box-sizing: border-box;"></span>
+  </label>
+</div>
 
         <!-- ② 保管方法選択ボタン（4パターン） -->
         <div>
