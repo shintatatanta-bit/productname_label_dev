@@ -189,15 +189,14 @@
         </div>
       </div>
       
-<!-- セット一括呼出（外袋選択時は非表示にするためidを付与） -->
-      <div class="master-call-bar" id="masterCallBarWrapper">
+      <div class="master-call-bar">
         <span style="font-size:11px; font-weight:bold; color:#1a73e8;">📁 セット一括呼出:</span>
         <select class="select-master-preset" id="selSetPresets" onchange="applySetPresetToCurrentSlot(this.value)">
           <option value="">-- セットを選択 --</option>
         </select>
       </div>
 
-      <!-- セット名（カテゴリ名）入力枠（外袋選択時は非表示にするためidを付与） -->
+      <!-- セット名（カテゴリ名）入力枠（本体用・共通） -->
       <div id="categoryInputWrapper" style="margin-top: 6px; width: 100%; display: flex; flex-direction: column;">
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">セット名（カテゴリ名）:</label>
         <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="width: 100% !important; min-height: 32px; padding: 6px 10px; font-size: 12.5px; box-sizing: border-box;">
@@ -208,11 +207,11 @@
       <!-- ========================================== -->
       <div id="outerLabelInputsGroup" style="display: none; flex-direction: column; gap: 12px; margin-top: 8px; border-top: 2px dashed #dadce0; padding-top: 10px;">
         
-        <!-- ① セット名の自由入力枠（改行対応） -->
+        <!-- ① セット名の自由入力枠（改行対応・1行14文字長体想定） -->
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="font-size:11px; font-weight:bold; color:#1a73e8;">📦 外袋セット名（自由入力 / 改行可）:</label>
-            <span style="font-size:10px; color:#5f6368;">1行最大13文字</span>
+            <span style="font-size:10px; color:#5f6368;">1行最大14文字</span>
           </div>
           <textarea id="inputOuterText" rows="3" class="input-prod-text" 
                     placeholder="例: VEGANコースメニューセット&#10;メイン＆デザート" 
@@ -220,25 +219,14 @@
                     style="width:100% !important; padding:8px 10px; font-size:12.5px; font-weight:bold; resize:vertical; min-height:65px; line-height:1.4; box-sizing:border-box;"></textarea>
         </div>
 
-        <!-- ★要望3: 長体モード切替UIを外袋セット名の下に配置 -->
-        <div class="mode-switch-box" id="outerModeSwitchBox" style="margin: 0;">
-          <button type="button" id="btnToggleStretchMode" class="btn-toggle-mode" onclick="toggleStretchMode()">
-            <span id="modeIcon">📐</span>
-            <span id="modeBtnLabel">長体モード：個別調整（標準）</span>
-          </button>
-          <div id="modeDesc" class="mode-status-text">
-            現在：各行が個別に長体化されます。ボタンを押すと、全行の長体比率を「最も細長い行」に統一して美しく揃えます。
-          </div>
-        </div>
-
-        <!-- ② 保管方法選択ボタン（4パターン・1行に1つ） -->
+        <!-- ② 保管方法選択ボタン（4パターン） -->
         <div>
-          <label style="font-size:11px; font-weight:bold; color:#1a73e8; margin-bottom:6px; display:block;">❄️ 保管・解凍方法:</label>
-          <div class="outer-method-grid">
-            <button type="button" class="outer-method-btn active" id="outerMethod_default" onclick="selectOuterMethod('冷凍庫保管・前日冷蔵庫解凍')">冷凍庫保管・前日冷蔵庫解凍</button>
-            <button type="button" class="outer-method-btn" id="outerMethod_freezer" onclick="selectOuterMethod('冷凍庫保管')">冷凍庫保管</button>
-            <button type="button" class="outer-method-btn" id="outerMethod_fridge" onclick="selectOuterMethod('冷蔵庫保管')">冷蔵庫保管</button>
-            <button type="button" class="outer-method-btn" id="outerMethod_none" onclick="selectOuterMethod('無し')">無し</button>
+          <label style="font-size:11px; font-weight:bold; color:#1a73e8; margin-bottom:4px; display:block;">❄️ 保管・解凍方法:</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <button type="button" class="btn-method-choice warm-2 active" id="outerMethod_default" onclick="selectOuterMethod('冷凍庫保管・前日冷蔵庫解凍')">冷凍庫保管・前日冷蔵庫解凍</button>
+            <button type="button" class="btn-method-choice warm-2" id="outerMethod_freezer" onclick="selectOuterMethod('冷凍庫保管')">冷凍庫保管</button>
+            <button type="button" class="btn-method-choice cold" id="outerMethod_fridge" onclick="selectOuterMethod('冷蔵庫保管')">冷蔵庫保管</button>
+            <button type="button" class="btn-method-choice doc" id="outerMethod_none" onclick="selectOuterMethod('無し')">無し</button>
           </div>
         </div>
 
