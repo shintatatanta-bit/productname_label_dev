@@ -897,13 +897,14 @@
         
         if (isOuter) {
           // --- 外袋ラベル専用：SVGネイティブ属性による一括長体制御 ---
-          const maxAllowedWidth = 95; // 全角11文字分が綺麗に収まる基準ピクセル幅
+          const maxAllowedWidth = 114; // ★ 全角12文字分の基準ピクセル幅に変更
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
           let maxWidth = 0;
           const lineData = [];
 
+          // 1. 各行の自然なピクセル幅を正確に計測し、カード内の最大幅を特定する
           sublines.forEach(span => {
             span.removeAttribute('textLength');
             span.removeAttribute('lengthAdjust');
@@ -916,7 +917,7 @@
             }
           });
 
-          // 最も長い行が許容幅を超える場合、全行を同じ比率で一括圧縮
+          // 2. 最も長い行が全角12文字分（114px）を超える場合、全行を同じ比率で一括圧縮
           if (maxWidth > maxAllowedWidth) {
             const uniformScale = maxAllowedWidth / maxWidth;
             lineData.forEach(item => {
@@ -925,6 +926,7 @@
               item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
             });
           } else {
+            // 12文字以内の場合は長体なし（標準表示）
             lineData.forEach(item => {
               item.span.removeAttribute('textLength');
               item.span.removeAttribute('lengthAdjust');
