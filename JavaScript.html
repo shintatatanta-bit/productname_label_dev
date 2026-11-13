@@ -897,7 +897,7 @@
         
         if (isOuter) {
           // --- 外袋ラベル専用：全角11文字まで等倍、12文字目から11文字分の幅（93px）に固定 ---
-          const maxAllowedLength = 93; // 全角11文字分の基準ピクセル幅
+          const maxAllowedLength = 100; // 全角11文字分の基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
