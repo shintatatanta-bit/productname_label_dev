@@ -1194,4 +1194,31 @@
       transform: scale(1.5); /* 縮小版を1.5倍に拡大表示 */
       transform-origin: center center;
     }
+
+    /* 外袋の保管・解凍方法ボタンを横幅いっぱいに1行1つずつ配置 */
+.outer-method-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.outer-method-btn {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  border: 1.5px solid #dadce0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #3c4043;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+  box-sizing: border-box;
+}
+.outer-method-btn.active {
+  background: #e8f0fe;
+  color: #1a73e8;
+  border-color: #1a73e8;
+}
   </style>

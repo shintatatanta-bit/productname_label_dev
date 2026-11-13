@@ -590,8 +590,12 @@
           const globalIndex = page * 36 + i; // 0〜35, 36〜71, 72〜107... という通し番号
           const data = slotsData[globalIndex];
           
-          // データが入力されているかの判定
-          const hasData = Boolean(data && ((data.products && data.products.some(p => p.trim() !== "")) || (data.categoryText && data.categoryText.trim() !== "")));
+          // 修正後: 外袋テキストやカテゴリ名、または商品名があればデータ有りと判定
+          const hasData = Boolean(data && (
+            (data.products && data.products.some(p => p.trim() !== "")) || 
+            (data.categoryText && data.categoryText.trim() !== "") ||
+            (data.outerText && data.outerText.trim() !== "")
+          ));
 
           let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
           if (globalIndex === editingSlotIndex) cellClass += ' active-editing';
@@ -741,25 +745,29 @@
       // ▼▼ 分岐A: 外袋ラベルの場合 ▼▼
       // ──────────────────────────────────────────
       if (labelType === 'outer') {
-        const outerTextRaw = data.outerText || data.categoryText || "セット名を入力";
-        const headerSubText = data.outerMethod || "冷凍庫保管・前日冷蔵庫解凍";
+        // 外袋セット名を取得（外袋専用テキストを優先）
+        const outerTextRaw = data.outerText || data.categoryText || "";
+        
+        // 保管方法が「無し」の場合は空文字にする
+        let headerSubText = data.outerMethod || "冷凍庫保管・前日冷蔵庫解凍";
+        if (headerSubText === "無し") {
+          headerSubText = "";
+        }
         
         const lines = outerTextRaw.split(/\r\n|\r|\n/);
         let outerTextHtml = '';
         
         const lineHeight = 13;
-        let startY = 27.592; // 基準位置
+        let startY = 27.592;
         
-        // 行数に応じた開始Y座標の微調整
         if (lines.length === 1) startY = 32;
         else if (lines.length === 2) startY = 26;
         else startY = 20;
 
-        const maxNormalChars = 14; // ★ 1行最大14文字基準
-        const maxAllowedLength = 115; // 14文字分の基準ピクセル幅
+        const maxNormalChars = 14; 
+        const maxAllowedLength = 115; 
 
         lines.forEach((lineText, idx) => {
-          // 長体制御の適用
           let attrStr = '';
           if (lineText.length > maxNormalChars) {
             attrStr = ` textLength="${maxAllowedLength}" lengthAdjust="spacingAndGlyphs"`;
@@ -777,7 +785,7 @@
                 ${outerTextHtml}
               </text>
               
-              <!-- 黒ロゴ（本体ラベル用と同じ完全な7パス構造・平行移動） -->
+              <!-- 黒ロゴ -->
               <g fill="#231815" transform="translate(69.317, -1.889)">
                 <path d="M36.63,15.62h-.78v-.07q0-1.51,0-3.03c0-.32-.03-.64-.15-.94-.11-.29-.29-.53-.58-.66-.43-.19-.96-.09-1.3.24-.32.31-.47.67-.47,1.11q0,1.63,0,3.27v.08h-.79s0-.05,0-.07c0-1.09,0-2.17,0-3.26,0-.29-.04-.57-.17-.84-.16-.34-.42-.56-.81-.61-.36-.05-.68.05-.95.28-.36.3-.54.69-.57,1.14,0,.06,0,.12,0,.18q0,1.55,0,3.1v.08h-.78c-.02-1.77.03-3.54-.04-5.32h.69c.02.29.03.57.05.86.04.02.06,0,.08-.04.17-.29.39-.54.69-.7.56-.3,1.13-.34,1.7-.03.33.18.54.46.68.81,0,0,0,0,0,0,.02.02.03.04.04.05.02,0,.04-.02.05-.03.09-.13.17-.27.27-.39.54-.65,1.4-.77,2.02-.54.45.17.74.5.92.94.13.31.18.63.19.96.01.24.01.48.01.72q0,1.31,0,2.63V15.62Z"></path>
                 <path d="M49.09,15.67c-.52-.01-1.01-.12-1.45-.41-.48-.33-.79-.78-.97-1.33-.16-.46-.2-.94-.15-1.42.05-.49.19-.94.46-1.34.4-.59.95-.93,1.65-1.04.48-.07.96-.04,1.42.12.67.24,1.12.71,1.4,1.36.21.49.27,1.02.23,1.55-.04.51-.18.99-.46,1.41-.37.57-.89.91-1.56,1.04C49.48,15.64,49.28,15.65,49.09,15.67ZM50.87,13c0-.34-.03-.65-.12-.96-.11-.42-.29-.79-.61-1.09-.51-.47-1.29-.56-1.89-.2-.42.25-.67.63-.8,1.1-.14.51-.15,1.04-.07,1.56.06.4.2.78.43,1.11.47.68,1.21.83,1.85.62.46-.16.77-.49.97-.92C50.81,13.83,50.87,13.41,50.87,13Z"></path>
@@ -788,7 +796,7 @@
                 <path d="M53.11,7.68c.26,0,.47.22.47.49,0,.26-.22.48-.47.48-.27,0-.49-.22-.49-.49C52.62,7.89,52.84,7.68,53.11,7.68Z"></path>
               </g>
 
-              <!-- 下部サブテキスト（選択された保管方法） -->
+              <!-- 下部サブテキスト（無しなら空欄、それ以外は保管方法を表示） -->
               <text class="cls-11" font-size="8px" letter-spacing="0.075em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 77.012)">
                 <tspan x="0" y="0">${escapeHtml(headerSubText)}</tspan>
               </text>
@@ -1047,12 +1055,12 @@ function setLabelType(type) {
         if (outerGroup) outerGroup.style.display = 'flex';
 
         // 外袋データの初期化（未定義の場合）
-        if (data.outerText === undefined) data.outerText = data.categoryText || '';
-        if (data.outerMethod === undefined) data.outerMethod = '冷凍庫保管・前日冷蔵庫解凍';
+        // openEditPanel 内の、外袋データ初期化部分
+      if (data.outerText === undefined) data.outerText = data.categoryText || '';
+      if (data.outerMethod === undefined) data.outerMethod = '冷凍庫保管・前日冷蔵庫解凍';
 
-        // 入力フォームへの値反映
-        document.getElementById('inputOuterText').value = data.outerText;
-        updateOuterMethodUI(data.outerMethod);
+      document.getElementById('inputOuterText').value = data.outerText;
+      updateOuterMethodUI(data.outerMethod);
       } else {
         if (mainGroup) mainGroup.style.display = 'flex';
         if (outerGroup) outerGroup.style.display = 'none';

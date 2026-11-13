@@ -221,12 +221,12 @@
 
         <!-- ② 保管方法選択ボタン（4パターン） -->
         <div>
-          <label style="font-size:11px; font-weight:bold; color:#1a73e8; margin-bottom:4px; display:block;">❄️ 保管・解凍方法:</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button type="button" class="btn-method-choice warm-2 active" id="outerMethod_default" onclick="selectOuterMethod('冷凍庫保管・前日冷蔵庫解凍')">冷凍庫保管・前日冷蔵庫解凍</button>
-            <button type="button" class="btn-method-choice warm-2" id="outerMethod_freezer" onclick="selectOuterMethod('冷凍庫保管')">冷凍庫保管</button>
-            <button type="button" class="btn-method-choice cold" id="outerMethod_fridge" onclick="selectOuterMethod('冷蔵庫保管')">冷蔵庫保管</button>
-            <button type="button" class="btn-method-choice doc" id="outerMethod_none" onclick="selectOuterMethod('無し')">無し</button>
+          <label style="font-size:11px; font-weight:bold; color:#1a73e8; margin-bottom:6px; display:block;">❄️ 保管・解凍方法:</label>
+          <div class="outer-method-grid">
+            <button type="button" class="outer-method-btn active" id="outerMethod_default" onclick="selectOuterMethod('冷凍庫保管・前日冷蔵庫解凍')">冷凍庫保管・前日冷蔵庫解凍</button>
+            <button type="button" class="outer-method-btn" id="outerMethod_freezer" onclick="selectOuterMethod('冷凍庫保管')">冷凍庫保管</button>
+            <button type="button" class="outer-method-btn" id="outerMethod_fridge" onclick="selectOuterMethod('冷蔵庫保管')">冷蔵庫保管</button>
+            <button type="button" class="outer-method-btn" id="outerMethod_none" onclick="selectOuterMethod('無し')">無し</button>
           </div>
         </div>
 
