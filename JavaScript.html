@@ -560,54 +560,6 @@
       return { fontSizePt: data.customFontPt || 10.0, marginY: data.customMarginY || 0.55, fontWeight: data.fontWeight || '700' };
     }
 
-    function autoFitLongLines() {
-      document.querySelectorAll('.design-card').forEach(card => {
-        // コンテナの実効幅（左右のパディングを考慮）
-        const containerWidth = card.clientWidth > 0 ? card.clientWidth - 16 : 173; 
-        
-        const lineWrappers = card.querySelectorAll('.product-subline-wrapper');
-        const tspanList = [];
-        
-        lineWrappers.forEach(wrap => {
-          const span = wrap.querySelector('.card-product-line');
-          if (!span) return;
-          
-          // 一旦リセットして自然な幅を測定
-          span.style.transform = 'none';
-          span.style.transformOrigin = 'center center';
-          span.style.display = 'inline-block';
-          span.style.whiteSpace = 'nowrap';
-          
-          const w = span.scrollWidth;
-          tspanList.push({ element: span, naturalWidth: w });
-        });
-
-        const maxAllowedLength = containerWidth;
-        
-        let minCompressionRatio = 1.0;
-        tspanList.forEach(item => {
-          if (item.naturalWidth > maxAllowedLength) {
-            const ratio = maxAllowedLength / item.naturalWidth;
-            if (ratio < minCompressionRatio) minCompressionRatio = ratio;
-          }
-        });
-
-        tspanList.forEach(item => {
-          const span = item.element;
-          if (typeof isUniformStretch !== 'undefined' && isUniformStretch) {
-            if (minCompressionRatio < 1.0) {
-              span.style.transform = `scaleX(${minCompressionRatio.toFixed(3)})`;
-            }
-          } else {
-            if (item.naturalWidth > maxAllowedLength) {
-              const ratio = maxAllowedLength / item.naturalWidth;
-              span.style.transform = `scaleX(${ratio.toFixed(3)})`;
-            }
-          }
-        });
-      });
-    }
-
     function renderAllSlots() {
       const container = document.getElementById('sheetsContainer');
       container.innerHTML = '';
@@ -785,13 +737,9 @@
       const labelType = data.labelType || 'main';
       const categoryText = data.categoryText || ""; 
 
-      // ──────────────────────────────────────────
-      // ▼▼ 分岐A: 外袋ラベルの場合（完全独立型インラインSVG） ▼▼
-      // ──────────────────────────────────────────
       if (labelType === 'outer') {
         const headerSubText = categoryText || "冷凍庫保管・前日冷蔵庫解凍";
         
-        // 初期の文字構築（後で autoFitLongLines によって最適化されます）
         let outerTextHtml = '';
         validProds.forEach((p, idx) => {
           if (idx > 0) outerTextHtml += `<tspan x="0" dy="13">×</tspan>`;
@@ -829,7 +777,7 @@
                 <tspan x="0" y="0">${escapeHtml(headerSubText)}</tspan>
               </text>
 
-              <!-- 装飾線・カラーバー -->
+              <!-- カラーバー・線 -->
               <g stroke-linecap="round" stroke-miterlimit="10">
                 <g>
                   <line stroke="#9e4724" fill="#9e4724" x1="43.455" y1="62.197" x2="39.977" y2="65.675"/>
@@ -875,7 +823,6 @@
             <text font-size="7px" fill="#4c4298" font-family="YuGothic-Bold, 'Yu Gothic'" font-weight="700" transform="translate(95.26 72.62)"><tspan x="0" y="0">${escapeHtml(data.methodText || '')}</tspan></text>
             <text font-size="6px" fill="#231815" stroke="#231815" stroke-width="0.25" stroke-miterlimit="10" font-family="YuGothic-Medium, 'Yu Gothic'" font-weight="500" transform="translate(11.28 26.42)"><tspan x="0" y="0">${escapeHtml(categoryText)}</tspan></text>
             
-            <!-- 黒ロゴ -->
             <g fill="#231815">
               <path d="M36.63,15.62h-.78v-.07q0-1.51,0-3.03c0-.32-.03-.64-.15-.94-.11-.29-.29-.53-.58-.66-.43-.19-.96-.09-1.3.24-.32.31-.47.67-.47,1.11q0,1.63,0,3.27v.08h-.79s0-.05,0-.07c0-1.09,0-2.17,0-3.26,0-.29-.04-.57-.17-.84-.16-.34-.42-.56-.81-.61-.36-.05-.68.05-.95.28-.36.3-.54.69-.57,1.14,0,.06,0,.12,0,.18q0,1.55,0,3.1v.08h-.78c-.02-1.77.03-3.54-.04-5.32h.69c.02.29.03.57.05.86.04.02.06,0,.08-.04.17-.29.39-.54.69-.7.56-.3,1.13-.34,1.7-.03.33.18.54.46.68.81,0,0,0,0,0,0,.02.02.03.04.04.05.02,0,.04-.02.05-.03.09-.13.17-.27.27-.39.54-.65,1.4-.77,2.02-.54.45.17.74.5.92.94.13.31.18.63.19.96.01.24.01.48.01.72q0,1.31,0,2.63V15.62Z"/>
               <path d="M49.09,15.67c-.52-.01-1.01-.12-1.45-.41-.48-.33-.79-.78-.97-1.33-.16-.46-.2-.94-.15-1.42.05-.49.19-.94.46-1.34.4-.59.95-.93,1.65-1.04.48-.07.96-.04,1.42.12.67.24,1.12.71,1.4,1.36.21.49.27,1.02.23,1.55-.04.51-.18.99-.46,1.41-.37.57-.89.91-1.56,1.04C49.48,15.64,49.28,15.65,49.09,15.67ZM50.87,13c0-.34-.03-.65-.12-.96-.11-.42-.29-.79-.61-1.09-.51-.47-1.29-.56-1.89-.2-.42.25-.67.63-.8,1.1-.14.51-.15,1.04-.07,1.56.06.4.2.78.43,1.11.47.68,1.21.83,1.85.62.46-.16.77-.49.97-.92C50.81,13.83,50.87,13.41,50.87,13Z"/>
@@ -885,7 +832,6 @@
               <path d="M53.5,15.58h-.79v-5.58h.79V15.58Z"/>
               <path d="M53.11,7.68c.26,0,.47.22.47.49,0,.26-.22.48-.47.48-.27,0-.49-.22-.49-.49C52.62,7.89,52.84,7.68,53.11,7.68Z"/>
             </g>
-            <!-- カラーバー -->
             <g stroke-linecap="round" stroke-miterlimit="10">
               <line stroke="#9e4724" fill="#9e4724" x1="78.91" y1="11.27" x2="75.43" y2="14.75"/>
               <line stroke="#ecc2da" fill="#ecc2da" x1="74.15" y1="11.27" x2="70.68" y2="14.75"/>
@@ -896,7 +842,6 @@
               <line stroke="#e72e13" fill="#e72e13" x1="14.76" y1="11.27" x2="11.28" y2="14.75"/>
             </g>
             
-            <!-- 動的テキスト領域 -->
             <g class="dynamic-content-group">
               <text class="dynamic-main-text" font-size="10px" font-family="YuGothic-Bold, 'Yu Gothic'" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
                 ${validProds.map((p, idx) => `<tspan x="0" dy="${idx === 0 ? 0 : 13}">${escapeHtml(p)}</tspan>`).join('')}
@@ -910,6 +855,95 @@
           </svg>
         </div>
       `;
+    }
+
+    function autoFitLongLines() {
+      document.querySelectorAll('.design-card').forEach(card => {
+        const svg = card.querySelector('svg');
+        if (!svg) return;
+
+        const mainTextElem = svg.querySelector('.dynamic-main-text');
+        if (!mainTextElem) return;
+
+        const slotCell = card.closest('.label-cell');
+        if (!slotCell) return;
+        const slotIdx = parseInt(slotCell.dataset.slotIndex, 10);
+        const data = slotsData[slotIdx];
+        if (!data || !data.products) return;
+
+        const rawLines = [];
+        data.products.forEach(p => {
+          if (p && p.trim()) {
+            p.split(/\r\n|\r|\n/).forEach(line => {
+              if (line.trim()) rawLines.push(line.trim());
+            });
+          }
+        });
+
+        mainTextElem.innerHTML = '';
+        const lineHeight = 13;
+        
+        let startY = 0;
+        if (data.labelType === 'outer') {
+          if (rawLines.length === 1) startY = 11;
+          else if (rawLines.length === 2) startY = 6;
+          else startY = 0;
+        } else {
+          if (rawLines.length === 1) startY = 0;
+          else if (rawLines.length === 2) startY = -6.5;
+          else startY = -13;
+        }
+
+        const maxNormalChars = 11;
+        const maxAllowedLength = data.labelType === 'outer' ? 115 : 118;
+
+        const tspanList = [];
+        rawLines.forEach((lineText, idx) => {
+          const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+          tspan.setAttribute("x", "0");
+          tspan.setAttribute("y", startY + (idx * lineHeight));
+          tspan.textContent = lineText;
+          tspan.style.letterSpacing = "0";
+          mainTextElem.appendChild(tspan);
+
+          const naturalWidth = tspan.getComputedTextLength();
+          tspanList.push({ element: tspan, text: lineText, naturalWidth: naturalWidth });
+        });
+
+        let minCompressionRatio = 1.0;
+        tspanList.forEach(item => {
+          if (item.text.length > maxNormalChars && item.naturalWidth > maxAllowedLength) {
+            const ratio = maxAllowedLength / item.naturalWidth;
+            if (ratio < minCompressionRatio) minCompressionRatio = ratio;
+          }
+        });
+
+        tspanList.forEach(item => {
+          const tspan = item.element;
+          if (typeof isUniformStretch !== 'undefined' && isUniformStretch) {
+            if (minCompressionRatio < 1.0) {
+              const targetWidth = item.naturalWidth * minCompressionRatio;
+              tspan.setAttribute("textLength", targetWidth.toFixed(2));
+              tspan.setAttribute("lengthAdjust", "spacingAndGlyphs");
+              tspan.style.letterSpacing = "0";
+            } else {
+              tspan.removeAttribute("textLength");
+              tspan.removeAttribute("lengthAdjust");
+              tspan.style.letterSpacing = "";
+            }
+          } else {
+            if (item.text.length > maxNormalChars) {
+              tspan.setAttribute("textLength", maxAllowedLength);
+              tspan.setAttribute("lengthAdjust", "spacingAndGlyphs");
+              tspan.style.letterSpacing = "0";
+            } else {
+              tspan.removeAttribute("textLength");
+              tspan.removeAttribute("lengthAdjust");
+              tspan.style.letterSpacing = "";
+            }
+          }
+        });
+      });
     }
 
     function openActualSizeModal() {
