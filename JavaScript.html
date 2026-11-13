@@ -762,13 +762,29 @@
         else if (lines.length === 2) startY = 26;
         else startY = 20;
 
-        // ▼▼ 仕様変更の適用（11文字まで長体なし、12文字以上で11文字分の幅に圧縮） ▼▼
-        const maxNormalChars = 11; // 11文字まで等倍表示
-        const maxAllowedLength = 115;  // 全角11文字分の基準ピクセル幅
+        const maxAllowedLength = 93; // 全角11文字分の基準ピクセル幅
+
+        // ▼ 半角を0.5文字、全角を1.0文字として視覚的長さを計算するヘルパー関数
+        function getVisualLength(str) {
+          let len = 0;
+          for (let i = 0; i < str.length; i++) {
+            const code = str.charCodeAt(i);
+            // 半角英数字・記号（ASCII範囲）の場合は0.5文字分として加算
+            if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
+              len += 0.5;
+            } else {
+              len += 1.0;
+            }
+          }
+          return len;
+        }
 
         lines.forEach((lineText, idx) => {
           let attrStr = '';
-          if (lineText.length > maxNormalChars) {
+          const visualLen = getVisualLength(lineText);
+          
+          // 視覚的な長さが「11.0文字」を超える場合（半角換算で22文字超、全角換算で11文字超）に長体を適用
+          if (visualLen > 11.0) {
             attrStr = ` textLength="${maxAllowedLength}" lengthAdjust="spacingAndGlyphs"`;
           }
           outerTextHtml += `<tspan x="0" y="${startY + (idx * lineHeight)}" ${attrStr}>${escapeHtml(lineText)}</tspan>`;
