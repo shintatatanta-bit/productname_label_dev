@@ -764,8 +764,8 @@
         else if (lines.length === 2) startY = 26;
         else startY = 20;
 
-        const maxNormalChars = 14; 
-        const maxAllowedLength = 115; 
+        const maxNormalChars = 13; 
+        const maxAllowedLength = 110; 
 
         lines.forEach((lineText, idx) => {
           let attrStr = '';
@@ -1042,28 +1042,30 @@ function setLabelType(type) {
       const data = slotsData[editingSlotIndex];
       data.labelType = type;
 
-      // ボタンのアクティブ状態更新
       document.getElementById('btnType_main').className = (type === 'main') ? 'btn-choice active' : 'btn-choice';
       document.getElementById('btnType_outer').className = (type === 'outer') ? 'btn-choice active' : 'btn-choice';
 
-      // 入力グループの表示切替
       const mainGroup = document.getElementById('mainLabelInputsGroup');
       const outerGroup = document.getElementById('outerLabelInputsGroup');
+      const categoryWrapper = document.getElementById('categoryInputWrapper');
+      const masterCallBar = document.getElementById('masterCallBarWrapper');
 
       if (type === 'outer') {
         if (mainGroup) mainGroup.style.display = 'none';
         if (outerGroup) outerGroup.style.display = 'flex';
+        if (categoryWrapper) categoryWrapper.style.display = 'none'; // 上のセット名非表示
+        if (masterCallBar) masterCallBar.style.display = 'none';     // セット一括呼出非表示
 
-        // 外袋データの初期化（未定義の場合）
-        // openEditPanel 内の、外袋データ初期化部分
-      if (data.outerText === undefined) data.outerText = data.categoryText || '';
-      if (data.outerMethod === undefined) data.outerMethod = '冷凍庫保管・前日冷蔵庫解凍';
+        if (data.outerText === undefined) data.outerText = data.categoryText || '';
+        if (data.outerMethod === undefined) data.outerMethod = '冷凍庫保管・前日冷蔵庫解凍';
 
-      document.getElementById('inputOuterText').value = data.outerText;
-      updateOuterMethodUI(data.outerMethod);
+        document.getElementById('inputOuterText').value = data.outerText;
+        updateOuterMethodUI(data.outerMethod);
       } else {
         if (mainGroup) mainGroup.style.display = 'flex';
         if (outerGroup) outerGroup.style.display = 'none';
+        if (categoryWrapper) categoryWrapper.style.display = 'flex'; // 本体時は表示
+        if (masterCallBar) masterCallBar.style.display = 'flex';     // 本体時は表示
       }
 
       renderAllSlots();
