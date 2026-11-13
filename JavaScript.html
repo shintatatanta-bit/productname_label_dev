@@ -915,43 +915,65 @@
 
     function autoFitLongLines() {
       document.querySelectorAll('.design-card').forEach(card => {
-        const containerWidth = card.clientWidth > 0 ? card.clientWidth - 16 : 173; 
-        const lineWrappers = card.querySelectorAll('.product-subline-wrapper');
-        const tspanList = [];
+        const isOuter = card.dataset.isOuter === 'true';
         
-        lineWrappers.forEach(wrap => {
-          const span = wrap.querySelector('.card-product-line');
-          if (!span) return;
-          span.style.transform = 'none';
-          span.style.transformOrigin = 'center center';
-          span.style.display = 'inline-block';
-          span.style.whiteSpace = 'nowrap';
-          const w = span.scrollWidth;
-          tspanList.push({ element: span, naturalWidth: w });
-        });
-
-        const maxAllowedLength = containerWidth;
-        let minCompressionRatio = 1.0;
-        tspanList.forEach(item => {
-          if (item.naturalWidth > maxAllowedLength) {
-            const ratio = maxAllowedLength / item.naturalWidth;
-            if (ratio < minCompressionRatio) minCompressionRatio = ratio;
-          }
-        });
-
-        tspanList.forEach(item => {
-          const span = item.element;
-          if (typeof isUniformStretch !== 'undefined' && isUniformStretch) {
-            if (minCompressionRatio < 1.0) {
-              span.style.transform = `scaleX(${minCompressionRatio.toFixed(3)})`;
-            }
-          } else {
-            if (item.naturalWidth > maxAllowedLength) {
-              const ratio = maxAllowedLength / item.naturalWidth;
+        if (isOuter) {
+          // --- 外袋ラベル専用のピクセル幅フィット処理 ---
+          const maxAllowedWidth = 110; // 外袋ラベルで綺麗に収まる最大ピクセル幅の基準
+          const sublines = card.querySelectorAll('.outer-subline');
+          
+          sublines.forEach(span => {
+            span.style.transform = 'none';
+            span.style.transformOrigin = 'left center';
+            span.style.display = 'inline-block';
+            
+            const naturalWidth = span.getComputedTextLength ? span.getComputedTextLength() : span.scrollWidth;
+            
+            if (naturalWidth > maxAllowedWidth) {
+              const ratio = maxAllowedWidth / naturalWidth;
               span.style.transform = `scaleX(${ratio.toFixed(3)})`;
             }
-          }
-        });
+          });
+        } else {
+          // --- 既存の本体ラベル用フィット処理 ---
+          const containerWidth = card.clientWidth > 0 ? card.clientWidth - 16 : 173; 
+          const lineWrappers = card.querySelectorAll('.product-subline-wrapper');
+          const tspanList = [];
+          
+          lineWrappers.forEach(wrap => {
+            const span = wrap.querySelector('.card-product-line');
+            if (!span) return;
+            span.style.transform = 'none';
+            span.style.transformOrigin = 'center center';
+            span.style.display = 'inline-block';
+            span.style.whiteSpace = 'nowrap';
+            const w = span.scrollWidth;
+            tspanList.push({ element: span, naturalWidth: w });
+          });
+
+          const maxAllowedLength = containerWidth;
+          let minCompressionRatio = 1.0;
+          tspanList.forEach(item => {
+            if (item.naturalWidth > maxAllowedLength) {
+              const ratio = maxAllowedLength / item.naturalWidth;
+              if (ratio < minCompressionRatio) minCompressionRatio = ratio;
+            }
+          });
+
+          tspanList.forEach(item => {
+            const span = item.element;
+            if (typeof isUniformStretch !== 'undefined' && isUniformStretch) {
+              if (minCompressionRatio < 1.0) {
+                span.style.transform = `scaleX(${minCompressionRatio.toFixed(3)})`;
+              }
+            } else {
+              if (item.naturalWidth > maxAllowedLength) {
+                const ratio = maxAllowedLength / item.naturalWidth;
+                span.style.transform = `scaleX(${ratio.toFixed(3)})`;
+              }
+            }
+          });
+        }
       });
     }
 
