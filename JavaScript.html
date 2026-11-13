@@ -745,10 +745,8 @@
       // ▼▼ 分岐A: 外袋ラベルの場合 ▼▼
       // ──────────────────────────────────────────
       if (labelType === 'outer') {
-        // 外袋セット名を取得（外袋専用テキストを優先）
         const outerTextRaw = data.outerText || data.categoryText || "";
         
-        // 保管方法が「無し」の場合は空文字にする
         let headerSubText = data.outerMethod || "冷凍庫保管・前日冷蔵庫解凍";
         if (headerSubText === "無し") {
           headerSubText = "";
@@ -764,8 +762,9 @@
         else if (lines.length === 2) startY = 26;
         else startY = 20;
 
-        const maxNormalChars = 11; 
-        const maxAllowedLength = 115; 
+        // ▼▼ ここを変更（12文字を基準に変更） ▼▼
+        const maxNormalChars = 12; // 12文字まで長体なし
+        const maxAllowedLength = 102; // 12文字分の基準ピクセル幅（14文字:115 から 12文字分に比例換算）
 
         lines.forEach((lineText, idx) => {
           let attrStr = '';
