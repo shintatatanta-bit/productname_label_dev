@@ -918,39 +918,43 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          // --- 外袋ラベル専用：全行の長体率を最も長い行に統一するロジック ---
-          const maxAllowedWidth = 110; // 基準となる最大ピクセル幅
+          // --- 外袋ラベル専用：SVGネイティブ属性による一括長体制御 ---
+          const maxAllowedWidth = 110; // 外袋ラベルで綺麗に収まる最大ピクセル幅の基準
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
-          let minScale = 1.0;
+          let maxWidth = 0;
           const lineData = [];
 
-          // 1. まず各行の自然な幅を計測し、このカードに必要な最小スケール（最も強い長体率）を求める
+          // 1. 各行の自然なピクセル幅を正確に計測し、カード内の最大幅を特定する
           sublines.forEach(span => {
-            span.style.transform = 'none';
-            span.style.transformOrigin = 'left center';
-            span.style.display = 'inline-block';
+            // 一度属性をクリアして初期状態の自然な幅を測る
+            span.removeAttribute('textLength');
+            span.removeAttribute('lengthAdjust');
             
             const naturalWidth = span.getComputedTextLength ? span.getComputedTextLength() : span.scrollWidth;
             lineData.push({ span, naturalWidth });
-
-            if (naturalWidth > maxAllowedWidth) {
-              const ratio = maxAllowedWidth / naturalWidth;
-              if (ratio < minScale) {
-                minScale = ratio;
-              }
+            
+            if (naturalWidth > maxWidth) {
+              maxWidth = naturalWidth;
             }
           });
 
-          // 2. 求めた共通のスケール（minScale）を、外袋のすべての行に一括適用して揃える
-          lineData.forEach(item => {
-            if (minScale < 1.0) {
-              item.span.style.transform = `scaleX(${minScale.toFixed(3)})`;
-            } else {
-              item.span.style.transform = 'none';
-            }
-          });
+          // 2. 最大幅が許容幅（110px）を超える場合、全行を「同じ比率（統一された長体率）」で縮める
+          if (maxWidth > maxAllowedWidth) {
+            const uniformScale = maxAllowedWidth / maxWidth;
+            lineData.forEach(item => {
+              const adjustedLength = item.naturalWidth * uniformScale;
+              item.span.setAttribute('textLength', adjustedLength.toFixed(1));
+              item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+            });
+          } else {
+            // 許容幅内の場合は長体なし（標準表示）
+            lineData.forEach(item => {
+              item.span.removeAttribute('textLength');
+              item.span.removeAttribute('lengthAdjust');
+            });
+          }
 
         } else {
           // --- 既存の本体ラベル用フィット処理 ---
