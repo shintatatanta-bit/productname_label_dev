@@ -1,5 +1,4 @@
 <script>
-    let outerFitTimer = null; // ★ 外袋テキスト用の一時停止タイマー
     let currentZoom = 1.0;
     let editingSlotIndex = null;
     let draggedSlotIndex = null;
@@ -1101,13 +1100,20 @@ function setLabelType(type) {
       renderAllSlots();
     }
 
+
+    let outerInputTimer = null; // デバウンス用のタイマー
     function onOuterTextInput(val) {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       data.outerText = sanitizeProductInput(val);
       
-      // プレビューの描画を即座に行う
-      renderAllSlots();
+      // ★ タイピング中の「一瞬全角に戻るチラつき」を防ぐため、
+      // 全体の再描画（renderAllSlots）をわずかに遅延（デバウンス）させ、連続入力をまとめます。
+      if (outerInputTimer) clearTimeout(outerInputTimer);
+      
+      outerInputTimer = setTimeout(() => {
+        renderAllSlots();
+      }, 250); // 0.25秒間入力が止まったら描画を反映
     }
 
     function selectOuterMethod(methodStr) {
