@@ -897,66 +897,51 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          // --- 外袋ラベル専用：ぐらつき防止最適化（ガード節付き） ---
-          const maxAllowedWidth = 114; // 全角12文字分の基準ピクセル幅
+          // --- 外袋ラベル専用：文字数ベースの即時一括長体制御（遅延・ぐらつき完全排除） ---
+          const maxAllowedLength = 114; // 全角12文字分の基準幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
-          // ▼ 効率化・チラつき防止チェック：
-          // カード内のすべての行が「十分に短い（おおよそ12文字以下）」場合、
-          // わざわざ長体を解除して再計測するリセット処理を一切行わず、等倍を維持して高速化する。
-          let needsCheck = false;
-          sublines.forEach(span => {
-            // テキストの文字数が12文字を超えている行が1つでもある場合のみ計測・長体処理を行う
-            const textContent = span.textContent || "";
-            // 簡易的に文字数（半角を0.5、全角を1.0として換算）が12を超えるかチェック
-            let roughLen = 0;
-            for (let i = 0; i < textContent.length; i++) {
-              const code = textContent.charCodeAt(i);
-              if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-                roughLen += 0.5;
-              } else {
-                roughLen += 1.0;
-              }
-            }
-            if (roughLen > 12.0) {
-              needsCheck = true;
-            }
-          });
-
-          // 12文字以下の行しか存在しない場合は、余計なリセットを走らせず即座に終了（ぐらつきを完全排除）
-          if (!needsCheck) {
-            sublines.forEach(span => {
-              span.removeAttribute('textLength');
-              span.removeAttribute('lengthAdjust');
-            });
-            return;
-          }
-
-          // --- 以下、13文字以上の行が含まれる場合のみ厳密なピクセル計測と一括長体を実行 ---
-          let maxWidth = 0;
+          // 各行の視覚的文字数（半角=0.5, 全角=1.0）を算出し、最大文字数を求める
+          let maxVisualLen = 0;
           const lineData = [];
 
           sublines.forEach(span => {
             span.removeAttribute('textLength');
             span.removeAttribute('lengthAdjust');
             
-            const naturalWidth = span.getComputedTextLength ? span.getComputedTextLength() : span.scrollWidth;
-            lineData.push({ span, naturalWidth });
+            const textContent = span.textContent || "";
+            let visualLen = 0;
+            for (let i = 0; i < textContent.length; i++) {
+              const code = textContent.charCodeAt(i);
+              // 半角英数字・記号の場合は0.5文字分としてカウント
+              if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
+                visualLen += 0.5;
+              } else {
+                visualLen += 1.0;
+              }
+            }
             
-            if (naturalWidth > maxWidth) {
-              maxWidth = naturalWidth;
+            lineData.push({ span, visualLen });
+            if (visualLen > maxVisualLen) {
+              maxVisualLen = visualLen;
             }
           });
 
-          if (maxWidth > maxAllowedWidth) {
-            const uniformScale = maxAllowedWidth / maxWidth;
+          // 全角12文字（12.0）を超える場合のみ、超過度合いに応じた統一スケールを瞬時に適用
+          if (maxVisualLen > 12.0) {
+            // 12文字分を基準とした圧縮比率を計算（例: 15文字なら 12 / 15）
+            const uniformScale = 12.0 / maxVisualLen;
+            const targetLength = maxAllowedLength * uniformScale;
+
             lineData.forEach(item => {
-              const adjustedLength = item.naturalWidth * uniformScale;
-              item.span.setAttribute('textLength', adjustedLength.toFixed(1));
+              // 各行の文字数に応じた比例長体を一括適用
+              const lineTarget = targetLength * (item.visualLen / maxVisualLen);
+              item.span.setAttribute('textLength', Math.max(40, lineTarget).toFixed(1));
               item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
             });
           } else {
+            // 12文字以内の場合は即座に等倍を維持（ラグなし）
             lineData.forEach(item => {
               item.span.removeAttribute('textLength');
               item.span.removeAttribute('lengthAdjust');
