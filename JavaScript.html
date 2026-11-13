@@ -755,45 +755,30 @@
         const lines = outerTextRaw.split(/\r\n|\r|\n/);
         let outerTextHtml = '';
         
-        // --- 行数に応じたフォントサイズ・行間・開始位置の動的制御 ---
         const isFourLinesOrMore = lines.length >= 4;
         const fontSize = isFourLinesOrMore ? '9px' : '10px';
-        const lineHeight = isFourLinesOrMore ? 11.5 : 13; // 4行時は行間を少し詰める
+        const lineHeight = isFourLinesOrMore ? 11.5 : 13;
         
         let startY = 27.592;
         if (lines.length === 1) startY = 32;
         else if (lines.length === 2) startY = 26;
         else if (lines.length === 3) startY = 21;
-        else startY = 17; // 4行以上の場合は上方にシフトして全体を収める
+        else startY = 17;
 
-        const maxAllowedWidth = 115; // 設定されている長体基準幅
+        const maxAllowedLength = 115; // 115px基準幅
 
         lines.forEach((lineText, idx) => {
-          let visualLen = 0;
-          for (let i = 0; i < lineText.length; i++) {
-            const code = lineText.charCodeAt(i);
-            if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-              visualLen += 0.5;
-            } else {
-              visualLen += 1.0;
-            }
-          }
-
-          let attrStr = '';
-          // 12文字目以降の長体制御
-          if (visualLen > 11.0) {
-            attrStr = ` textLength="${maxAllowedWidth}" lengthAdjust="spacingAndGlyphs"`;
-          }
-
-          outerTextHtml += `<tspan class="outer-subline" x="0" y="${startY + (idx * lineHeight)}" ${attrStr}>${escapeHtml(lineText)}</tspan>`;
+          outerTextHtml += `<tspan class="outer-subline" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
         });
 
+        // データの状態からuniform属性の値を決定 ('true' または 'false')
+        const isUniformAttr = data.outerUniformFit ? 'true' : 'false';
+
         return `
-          <div class="design-card" data-label-type="outer" data-is-outer="true">
+          <div class="design-card" data-label-type="outer" data-is-outer="true" data-uniform-fit="${isUniformAttr}">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.982 85.039" width="100%" height="100%" style="display:block; position:absolute; top:0; left:0;">
               <rect fill="#ffffff" width="141.732" height="85.039" rx="6.112" ry="6.112"></rect>
               
-              <!-- 外袋用 動的メインテキスト（4行以上で自動的に9pxへ切り替わり、位置を調整） -->
               <text font-size="${fontSize}" letter-spacing="0.05em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 5)">
                 ${outerTextHtml}
               </text>
@@ -916,16 +901,12 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          // --- 外袋ラベル専用：トグル連動型長体制御 ---
-          const maxAllowedLength = 93; // 全角11文字分の基準ピクセル幅
+          const maxAllowedLength = 115; // 基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
-          // 該当カードのデータからトグルの状態（ON/OFF）を取得
-          const cell = card.closest('.label-cell');
-          const slotIdx = cell ? parseInt(cell.dataset.slotIndex, 10) : null;
-          const data = (slotIdx !== null && slotsData[slotIdx]) ? slotsData[slotIdx] : null;
-          const isUniform = data ? Boolean(data.outerUniformFit) : false;
+          // カードのDOM属性から直接一括モードのON/OFFを取得（確実な判定）
+          const isUniform = card.dataset.uniformFit === 'true';
 
           if (isUniform) {
             // --- 【ON】全行の中で最も長い行の比率を算出し、12文字を超える行に一括適用する ---
@@ -947,18 +928,16 @@
                 }
               }
               
-              const naturalWidth = visualLen * 10; // 10pxフォント換算の自然幅
+              const naturalWidth = visualLen * 10;
               lineData.push({ span, visualLen, naturalWidth });
               if (naturalWidth > maxWidth) {
                 maxWidth = naturalWidth;
               }
             });
 
-            // 最も長い行が11文字分（93px）を超える場合のみ処理
             if (maxWidth > maxAllowedLength) {
               const uniformScale = maxAllowedLength / maxWidth;
               lineData.forEach(item => {
-                // ★ 修正：11文字以下の短い行は長体対象外とし、等倍（標準サイズ）を維持する
                 if (item.visualLen > 11.0) {
                   const adjustedLength = item.naturalWidth * uniformScale;
                   item.span.setAttribute('textLength', adjustedLength.toFixed(1));
@@ -976,7 +955,7 @@
             }
 
           } else {
-            // --- 【OFF】個別調整モード（11文字まで等倍、12文字目から93pxに固定） ---
+            // --- 【OFF】個別調整モード（11文字まで等倍、12文字目から115pxに固定） ---
             sublines.forEach(span => {
               span.removeAttribute('textLength');
               span.removeAttribute('lengthAdjust');
@@ -1093,7 +1072,7 @@
       // ★追加：選択したラベル枠に向かってプレビューを自動スクロール・フォーカスする
       scrollToEditingSlot(slotIdx);
 
-      // 編集パネルを開いた際、保存されているトグル状態をUIに反映
+      // 編集パネルを開いた際、トグルのチェック状態をデータと同期
       const chk = document.getElementById('chkOuterUniform');
       if (chk) chk.checked = Boolean(data.outerUniformFit);
     }
