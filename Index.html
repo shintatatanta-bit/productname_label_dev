@@ -163,13 +163,14 @@
       <div class="panel-header">
         <span class="panel-title" id="panelSlotTitle">ラベル #1 を編集</span>
         <div style="display:flex; align-items:center; gap:6px;">
-          <button type="button" class="btn-main" style="padding:4px 8px; font-size:11px; background:#e8f0fe; color:#1a73e8; border:1px solid #c2e7ff;" onclick="openActualSizeModal()">
+          <button type="button" class="btn-main" style="padding:4px 8px; font-size:11px; background:#e8f0fe; color:#1a73e8; border:1.5px solid #c2e7ff;" onclick="openActualSizeModal()">
             🔍 実寸
           </button>
         </div>
       </div>
 
-<div style="margin-top: 6px;">
+      <!-- ラベル種類選択 -->
+      <div style="margin-top: 6px;">
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">🏷️ ラベル種類:</label>
         <div class="choice-group">
           <button type="button" class="btn-choice active" id="btnType_main" onclick="setLabelType('main')">本体ラベル</button>
@@ -177,7 +178,7 @@
         </div>
       </div>
 
-<!-- 追加: 長体モード切替UI -->
+      <!-- 長体モード切替UI -->
       <div class="mode-switch-box">
         <button type="button" id="btnToggleStretchMode" class="btn-toggle-mode" onclick="toggleStretchMode()">
           <span id="modeIcon">📐</span>
@@ -195,105 +196,142 @@
         </select>
       </div>
 
-      <!-- セット名（カテゴリ名）入力枠 -->
+      <!-- セット名（カテゴリ名）入力枠（本体用・共通） -->
       <div id="categoryInputWrapper" style="margin-top: 6px; width: 100%; display: flex; flex-direction: column;">
         <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">セット名（カテゴリ名）:</label>
         <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="width: 100% !important; min-height: 32px; padding: 6px 10px; font-size: 12.5px; box-sizing: border-box;">
       </div>
 
-      <div>
-        <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">記載商品数:</label>
-        <div class="choice-group">
-          <button type="button" class="btn-choice" id="btnCount1" onclick="setProductCount(1)">1品</button>
-          <button type="button" class="btn-choice" id="btnCount2" onclick="setProductCount(2)">2品</button>
-          <button type="button" class="btn-choice" id="btnCount3" onclick="setProductCount(3)">3品</button>
-          <button type="button" class="btn-choice" id="btnCount4" onclick="setProductCount(4)">4品</button>
+      <!-- ========================================== -->
+      <!-- ▼▼ 【外袋ラベル専用】入力グループ ▼▼ -->
+      <!-- ========================================== -->
+      <div id="outerLabelInputsGroup" style="display: none; flex-direction: column; gap: 12px; margin-top: 8px; border-top: 2px dashed #dadce0; padding-top: 10px;">
+        
+        <!-- ① セット名の自由入力枠（改行対応・1行14文字長体想定） -->
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="font-size:11px; font-weight:bold; color:#1a73e8;">📦 外袋セット名（自由入力 / 改行可）:</label>
+            <span style="font-size:10px; color:#5f6368;">1行最大14文字</span>
+          </div>
+          <textarea id="inputOuterText" rows="3" class="input-prod-text" 
+                    placeholder="例: VEGANコースメニューセット&#10;メイン＆デザート" 
+                    oninput="onOuterTextInput(this.value)"
+                    style="width:100% !important; padding:8px 10px; font-size:12.5px; font-weight:bold; resize:vertical; min-height:65px; line-height:1.4; box-sizing:border-box;"></textarea>
         </div>
+
+        <!-- ② 保管方法選択ボタン（4パターン） -->
+        <div>
+          <label style="font-size:11px; font-weight:bold; color:#1a73e8; margin-bottom:4px; display:block;">❄️ 保管・解凍方法:</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+            <button type="button" class="btn-method-choice warm-2 active" id="outerMethod_default" onclick="selectOuterMethod('冷凍庫保管・前日冷蔵庫解凍')">冷凍庫保管・前日冷蔵庫解凍</button>
+            <button type="button" class="btn-method-choice warm-2" id="outerMethod_freezer" onclick="selectOuterMethod('冷凍庫保管')">冷凍庫保管</button>
+            <button type="button" class="btn-method-choice cold" id="outerMethod_fridge" onclick="selectOuterMethod('冷蔵庫保管')">冷蔵庫保管</button>
+            <button type="button" class="btn-method-choice doc" id="outerMethod_none" onclick="selectOuterMethod('無し')">無し</button>
+          </div>
+        </div>
+
       </div>
 
-      <div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <label style="font-size:11px; font-weight:bold; color:#555;">商品名入力:</label>
-          <button type="button" class="btn-toggle-lang" onclick="toggleAllProductsLanguage()" style="padding:2px 8px;">
-            🌐⇄🇯🇵 全品 日/英 切替
+      <!-- ========================================== -->
+      <!-- ▼▼ 【本体ラベル専用】入力グループ ▼▼ -->
+      <!-- ========================================== -->
+      <div id="mainLabelInputsGroup" style="display: flex; flex-direction: column; gap: 10px;">
+
+        <div>
+          <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">記載商品数:</label>
+          <div class="choice-group">
+            <button type="button" class="btn-choice" id="btnCount1" onclick="setProductCount(1)">1品</button>
+            <button type="button" class="btn-choice" id="btnCount2" onclick="setProductCount(2)">2品</button>
+            <button type="button" class="btn-choice" id="btnCount3" onclick="setProductCount(3)">3品</button>
+            <button type="button" class="btn-choice" id="btnCount4" onclick="setProductCount(4)">4品</button>
+          </div>
+        </div>
+
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="font-size:11px; font-weight:bold; color:#555;">商品名入力:</label>
+            <button type="button" class="btn-toggle-lang" onclick="toggleAllProductsLanguage()" style="padding:2px 8px;">
+              🌐⇄🇯🇵 全品 日/英 切替
+            </button>
+          </div>
+          <div class="product-inputs-container" id="productInputsContainer"></div>
+        </div>
+
+        <div>
+          <button type="button" class="btn-toggle-font-settings" onclick="toggleFontSettings()">
+            <span>⚙️ フォント・間隔詳細設定</span>
+            <span id="lblFontSummaryBadge" style="font-size:10.5px; color:#1a73e8; background:#e8f0fe; padding:1px 6px; border-radius:4px;">太字 10.0pt / 余白 標準 ▼</span>
           </button>
         </div>
-        <div class="product-inputs-container" id="productInputsContainer"></div>
-      </div>
 
-      <div>
-        <button type="button" class="btn-toggle-font-settings" onclick="toggleFontSettings()">
-          <span>⚙️ フォント・間隔詳細設定</span>
-          <span id="lblFontSummaryBadge" style="font-size:10.5px; color:#1a73e8; background:#e8f0fe; padding:1px 6px; border-radius:4px;">太字 10.0pt / 余白 標準 ▼</span>
-        </button>
-      </div>
+        <div class="font-custom-section" id="fontCustomSection">
+          <div>
+            <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">文字の太さ:</label>
+            <div class="choice-group">
+              <button type="button" class="btn-choice active" id="btnWeight_bold" onclick="setFontWeight('700')">太字（標準）</button>
+              <button type="button" class="btn-choice" id="btnWeight_light" onclick="setFontWeight('400')">細字</button>
+            </div>
+          </div>
 
-      <div class="font-custom-section" id="fontCustomSection">
-        <div>
-          <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">文字の太さ:</label>
-          <div class="choice-group">
-            <button type="button" class="btn-choice active" id="btnWeight_bold" onclick="setFontWeight('700')">太字（標準）</button>
-            <button type="button" class="btn-choice" id="btnWeight_light" onclick="setFontWeight('400')">細字</button>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="font-size:11px; font-weight:bold; color:#555;">文字サイズ:</label>
+              <span id="lblCurrentPt" style="font-size:11px; font-weight:bold; color:#1a73e8; background:#e8f0fe; padding:2px 8px; border-radius:4px;">10.0 pt</span>
+            </div>
+            <div class="choice-group">
+              <button type="button" class="btn-choice active" id="btnScale_normal" onclick="setFontScale('normal')">標準</button>
+              <button type="button" class="btn-choice" id="btnScale_small" onclick="setFontScale('small')">小さめ</button>
+              <button type="button" class="btn-choice" id="btnScale_xsmall" onclick="setFontScale('xsmall')">極小</button>
+            </div>
+            <div class="custom-slider-wrap">
+              <button type="button" class="btn-step" onclick="stepFontSize(-0.2)">－</button>
+              <input type="range" class="custom-range-input" id="rangeFontPt" min="5.0" max="14.0" step="0.1" value="10.0" oninput="onManualFontSizeSlider(this.value)">
+              <button type="button" class="btn-step" onclick="stepFontSize(0.2)">＋</button>
+            </div>
+          </div>
+
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label style="font-size:11px; font-weight:bold; color:#555;">行間:</label>
+              <span id="lblCurrentMargin" style="font-size:11px; font-weight:bold; color:#137333; background:#e6f4ea; padding:2px 8px; border-radius:4px;">0.55 mm</span>
+            </div>
+            <div class="choice-group" style="margin-bottom:6px;">
+              <button type="button" class="btn-choice active" id="btnMargin_normal" onclick="setMarginPreset('normal', 0.55)">標準</button>
+              <button type="button" class="btn-choice" id="btnMargin_narrow" onclick="setMarginPreset('narrow', 0.25)">狭め</button>
+              <button type="button" class="btn-choice" id="btnMargin_wide" onclick="setMarginPreset('wide', 0.95)">広め</button>
+            </div>
+            <div class="custom-slider-wrap">
+              <button type="button" class="btn-step" onclick="stepMargin(-0.1)">－</button>
+              <input type="range" class="custom-range-input" id="rangeMargin" min="0.0" max="2.5" step="0.05" value="0.55" oninput="onManualMarginSlider(this.value)">
+              <button type="button" class="btn-step" onclick="stepMargin(0.1)">＋</button>
+            </div>
           </div>
         </div>
 
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <label style="font-size:11px; font-weight:bold; color:#555;">文字サイズ:</label>
-            <span id="lblCurrentPt" style="font-size:11px; font-weight:bold; color:#1a73e8; background:#e8f0fe; padding:2px 8px; border-radius:4px;">10.0 pt</span>
+        <div class="method-section">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <label style="font-size:11px; font-weight:bold; color:#555;">温め方:</label>
+            <button type="button" class="btn-toggle-lang" onclick="toggleMethodLanguage()" style="padding:1px 6px;">🌐日英切替</button>
           </div>
-          <div class="choice-group">
-            <button type="button" class="btn-choice active" id="btnScale_normal" onclick="setFontScale('normal')">標準</button>
-            <button type="button" class="btn-choice" id="btnScale_small" onclick="setFontScale('small')">小さめ</button>
-            <button type="button" class="btn-choice" id="btnScale_xsmall" onclick="setFontScale('xsmall')">極小</button>
+          <div class="method-btn-grid">
+            <button type="button" class="btn-method-choice warm-2 active" id="mBtn_microwave" onclick="selectHeatingMethod('microwave')">レンジ</button>
+            <button type="button" class="btn-method-choice warm-2" id="mBtn_boil" onclick="selectHeatingMethod('boil')">湯煎</button>
+            <button type="button" class="btn-method-choice cold" id="mBtn_cold" onclick="selectHeatingMethod('cold')">冷たいまま</button>
+            <button type="button" class="btn-method-choice water" id="mBtn_water" onclick="selectHeatingMethod('water')">流水解凍</button>
+            <button type="button" class="btn-method-choice doc" id="mBtn_doc" onclick="selectHeatingMethod('doc')">別紙資料参照</button>
+            <button type="button" class="btn-method-choice custom" id="mBtn_custom" onclick="selectHeatingMethod('custom')">自由入力</button>
           </div>
-          <div class="custom-slider-wrap">
-            <button type="button" class="btn-step" onclick="stepFontSize(-0.2)">－</button>
-            <input type="range" class="custom-range-input" id="rangeFontPt" min="5.0" max="14.0" step="0.1" value="10.0" oninput="onManualFontSizeSlider(this.value)">
-            <button type="button" class="btn-step" onclick="stepFontSize(0.2)">＋</button>
+          <div id="methodTimeInputWrap" class="time-split-wrap">
+            <span style="font-size:11px; font-weight:bold; color:#555;">⏱️ 時間:</span>
+            <input type="text" id="inputMethodMin" class="input-time-box" inputmode="numeric" placeholder="分" oninput="onSplitTimeInput()">
+            <span style="font-size:11px; font-weight:bold; color:#555;">分</span>
+            <input type="text" id="inputMethodSec" class="input-time-box" inputmode="numeric" placeholder="秒" oninput="onSplitTimeInput()">
+            <span style="font-size:11px; font-weight:bold; color:#555;">秒</span>
           </div>
+          <input type="text" id="inputCustomMethod" style="width:100%; padding:5px 8px; border:1px solid #ccc; border-radius:4px; font-size:11.5px; font-weight:bold;" placeholder="印字文言直接編集" oninput="onCustomMethodInput(this.value)">
         </div>
 
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-            <label style="font-size:11px; font-weight:bold; color:#555;">行間:</label>
-            <span id="lblCurrentMargin" style="font-size:11px; font-weight:bold; color:#137333; background:#e6f4ea; padding:2px 8px; border-radius:4px;">0.55 mm</span>
-          </div>
-          <div class="choice-group" style="margin-bottom:6px;">
-            <button type="button" class="btn-choice active" id="btnMargin_normal" onclick="setMarginPreset('normal', 0.55)">標準</button>
-            <button type="button" class="btn-choice" id="btnMargin_narrow" onclick="setMarginPreset('narrow', 0.25)">狭め</button>
-            <button type="button" class="btn-choice" id="btnMargin_wide" onclick="setMarginPreset('wide', 0.95)">広め</button>
-          </div>
-          <div class="custom-slider-wrap">
-            <button type="button" class="btn-step" onclick="stepMargin(-0.1)">－</button>
-            <input type="range" class="custom-range-input" id="rangeMargin" min="0.0" max="2.5" step="0.05" value="0.55" oninput="onManualMarginSlider(this.value)">
-            <button type="button" class="btn-step" onclick="stepMargin(0.1)">＋</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="method-section">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <label style="font-size:11px; font-weight:bold; color:#555;">温め方:</label>
-          <button type="button" class="btn-toggle-lang" onclick="toggleMethodLanguage()" style="padding:1px 6px;">🌐日英切替</button>
-        </div>
-        <div class="method-btn-grid">
-          <button type="button" class="btn-method-choice warm-2 active" id="mBtn_microwave" onclick="selectHeatingMethod('microwave')">レンジ</button>
-          <button type="button" class="btn-method-choice warm-2" id="mBtn_boil" onclick="selectHeatingMethod('boil')">湯煎</button>
-          <button type="button" class="btn-method-choice cold" id="mBtn_cold" onclick="selectHeatingMethod('cold')">冷たいまま</button>
-          <button type="button" class="btn-method-choice water" id="mBtn_water" onclick="selectHeatingMethod('water')">流水解凍</button>
-          <button type="button" class="btn-method-choice doc" id="mBtn_doc" onclick="selectHeatingMethod('doc')">別紙資料参照</button>
-          <button type="button" class="btn-method-choice custom" id="mBtn_custom" onclick="selectHeatingMethod('custom')">自由入力</button>
-        </div>
-        <div id="methodTimeInputWrap" class="time-split-wrap">
-          <span style="font-size:11px; font-weight:bold; color:#555;">⏱️ 時間:</span>
-          <input type="text" id="inputMethodMin" class="input-time-box" inputmode="numeric" placeholder="分" oninput="onSplitTimeInput()">
-          <span style="font-size:11px; font-weight:bold; color:#555;">分</span>
-          <input type="text" id="inputMethodSec" class="input-time-box" inputmode="numeric" placeholder="秒" oninput="onSplitTimeInput()">
-          <span style="font-size:11px; font-weight:bold; color:#555;">秒</span>
-        </div>
-        <input type="text" id="inputCustomMethod" style="width:100%; padding:5px 8px; border:1px solid #ccc; border-radius:4px; font-size:11.5px; font-weight:bold;" placeholder="印字文言直接編集" oninput="onCustomMethodInput(this.value)">
-      </div>
+      </div><!-- /本体ラベル専用グループ終了 -->
 
       <div class="panel-bottom-actions" style="display: flex; justify-content: space-between; align-items: center;">
         <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; margin-right: 8px;">
