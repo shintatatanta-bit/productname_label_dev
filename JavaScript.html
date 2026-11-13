@@ -762,18 +762,17 @@
         else if (lines.length === 2) startY = 26;
         else startY = 20;
 
-        // ピクセル計測で動的制御するため、プレーンなtspanとして出力
         lines.forEach((lineText, idx) => {
           outerTextHtml += `<tspan class="outer-subline" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
         });
 
         return `
-          <div class="design-card" data-label-type="outer" data-is-outer="true"> <!-- ★ data-is-outer="true" を追加 -->
+          <div class="design-card" data-label-type="outer" data-is-outer="true">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.982 85.039" width="100%" height="100%" style="display:block; position:absolute; top:0; left:0;">
               <rect fill="#ffffff" width="141.732" height="85.039" rx="6.112" ry="6.112"></rect>
               
-              <!-- 外袋用 動的メインテキスト（ピクセル自動フィット対象） -->
-              <text font-size="10px" letter-spacing="0.05em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 0)">
+              <!-- 外袋用 動的メインテキスト（Y座標を 0 から 5 へ変更し、全角の半分下げる） -->
+              <text font-size="10px" letter-spacing="0.05em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 5)">
                 ${outerTextHtml}
               </text>
               
