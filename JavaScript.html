@@ -1,4 +1,5 @@
 <script>
+    let outerFitTimer = null; // ★ 外袋テキスト用の一時停止タイマー
     let currentZoom = 1.0;
     let editingSlotIndex = null;
     let draggedSlotIndex = null;
@@ -1111,7 +1112,15 @@ function setLabelType(type) {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       data.outerText = sanitizeProductInput(val);
+      
+      // 1. プレビューの描画自体は即座に行う（文字の取りこぼしを防ぐため）
       renderAllSlots();
+
+      // 2. タイピング中の「ぐらつき」を防ぐため、長体の自動フィット計算だけを遅延（デバウンス）させる
+      if (outerFitTimer) clearTimeout(outerFitTimer);
+      outerFitTimer = setTimeout(() => {
+        autoFitLongLines();
+      }, 300); // 300ms（0.3秒）入力が止まったら長体を適用
     }
 
     function selectOuterMethod(methodStr) {
