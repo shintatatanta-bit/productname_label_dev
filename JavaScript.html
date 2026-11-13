@@ -897,15 +897,46 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          // --- 外袋ラベル専用：SVGネイティブ属性による一括長体制御 ---
-          const maxAllowedWidth = 114; // ★ 全角12文字分の基準ピクセル幅に変更
+          // --- 外袋ラベル専用：ぐらつき防止最適化（ガード節付き） ---
+          const maxAllowedWidth = 114; // 全角12文字分の基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
+          // ▼ 効率化・チラつき防止チェック：
+          // カード内のすべての行が「十分に短い（おおよそ12文字以下）」場合、
+          // わざわざ長体を解除して再計測するリセット処理を一切行わず、等倍を維持して高速化する。
+          let needsCheck = false;
+          sublines.forEach(span => {
+            // テキストの文字数が12文字を超えている行が1つでもある場合のみ計測・長体処理を行う
+            const textContent = span.textContent || "";
+            // 簡易的に文字数（半角を0.5、全角を1.0として換算）が12を超えるかチェック
+            let roughLen = 0;
+            for (let i = 0; i < textContent.length; i++) {
+              const code = textContent.charCodeAt(i);
+              if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
+                roughLen += 0.5;
+              } else {
+                roughLen += 1.0;
+              }
+            }
+            if (roughLen > 12.0) {
+              needsCheck = true;
+            }
+          });
+
+          // 12文字以下の行しか存在しない場合は、余計なリセットを走らせず即座に終了（ぐらつきを完全排除）
+          if (!needsCheck) {
+            sublines.forEach(span => {
+              span.removeAttribute('textLength');
+              span.removeAttribute('lengthAdjust');
+            });
+            return;
+          }
+
+          // --- 以下、13文字以上の行が含まれる場合のみ厳密なピクセル計測と一括長体を実行 ---
           let maxWidth = 0;
           const lineData = [];
 
-          // 1. 各行の自然なピクセル幅を正確に計測し、カード内の最大幅を特定する
           sublines.forEach(span => {
             span.removeAttribute('textLength');
             span.removeAttribute('lengthAdjust');
@@ -918,7 +949,6 @@
             }
           });
 
-          // 2. 最も長い行が全角12文字分（114px）を超える場合、全行を同じ比率で一括圧縮
           if (maxWidth > maxAllowedWidth) {
             const uniformScale = maxAllowedWidth / maxWidth;
             lineData.forEach(item => {
@@ -927,7 +957,6 @@
               item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
             });
           } else {
-            // 12文字以内の場合は長体なし（標準表示）
             lineData.forEach(item => {
               item.span.removeAttribute('textLength');
               item.span.removeAttribute('lengthAdjust');
