@@ -897,53 +897,7 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          // --- 外袋ラベル専用：文字数ベースの即時一括長体制御（遅延・ぐらつき完全排除） ---
-          const maxAllowedLength = 114; // 全角12文字分の基準幅
-          const sublines = card.querySelectorAll('.outer-subline');
-          if (sublines.length === 0) return;
-
-          // 各行の視覚的文字数（半角=0.5, 全角=1.0）を算出し、最大文字数を求める
-          let maxVisualLen = 0;
-          const lineData = [];
-
-          sublines.forEach(span => {
-            span.removeAttribute('textLength');
-            span.removeAttribute('lengthAdjust');
-            
-            const textContent = span.textContent || "";
-            let visualLen = 0;
-            for (let i = 0; i < textContent.length; i++) {
-              const code = textContent.charCodeAt(i);
-              // 半角英数字・記号の場合は0.5文字分としてカウント
-              if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-                visualLen += 0.5;
-              } else {
-                visualLen += 1.0;
-              }
-            }
-            
-            lineData.push({ span, visualLen });
-            if (visualLen > maxVisualLen) {
-              maxVisualLen = visualLen;
-            }
-          });
-
-          // 全角12文字（12.0）を超える場合のみ、超過度合いに応じた統一スケールを瞬時に適用
-          if (maxVisualLen > 12.0) {
-            // 12文字分を基準とした圧縮比率を計算（例: 15文字なら 12 / 15）
-            const uniformScale = 12.0 / maxVisualLen;
-            const targetLength = maxAllowedLength * uniformScale;
-
-            lineData.forEach(item => {
-              // 各行の文字数に応じた比例長体を一括適用
-              const lineTarget = targetLength * (item.visualLen / maxVisualLen);
-              item.span.setAttribute('textLength', Math.max(40, lineTarget).toFixed(1));
-              item.span.setAttribute('function autoFitLongLines() {
-      document.querySelectorAll('.design-card').forEach(card => {
-        const isOuter = card.dataset.isOuter === 'true';
-        
-        if (isOuter) {
-          // --- 外袋ラベル専用：行ごとの独立・即時判定制御（変形・ぐらつき完全防止） ---
+          // --- 外袋ラベル専用：行ごとの独立判定制御（変形・異常サイズ完全防止） ---
           const maxAllowedWidth = 114; // 全角12文字分の基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
@@ -965,14 +919,13 @@
               }
             }
             
-            // 12.0文字（全角12文字）を超える行のみ、114pxの幅に収まるよう長体を即時適用
+            // 12.0文字（全角12文字）を超える行のみ、114pxの幅に収まるよう長体を適用
             if (visualLen > 12.0) {
-              // 12文字分を基準とした圧縮比率で自然に長体化
               const targetLength = maxAllowedWidth * (12.0 / visualLen);
               span.setAttribute('textLength', Math.max(40, targetLength).toFixed(1));
               span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
             }
-            // 12文字以下の行は、属性を付与せず完全な等倍（標準サイズ）を維持するため変形しない
+            // 12文字以下の行は変形せず、完全な等倍を維持
           });
 
         } else {
@@ -1154,14 +1107,8 @@ function setLabelType(type) {
       const data = slotsData[editingSlotIndex];
       data.outerText = sanitizeProductInput(val);
       
-      // 1. プレビューの描画自体は即座に行う（文字の取りこぼしを防ぐため）
+      // プレビューの描画を即座に行う
       renderAllSlots();
-
-      // 2. タイピング中の「ぐらつき」を防ぐため、長体の自動フィット計算だけを遅延（デバウンス）させる
-      if (outerFitTimer) clearTimeout(outerFitTimer);
-      outerFitTimer = setTimeout(() => {
-        autoFitLongLines();
-      }, 300); // 300ms（0.3秒）入力が止まったら長体を適用
     }
 
     function selectOuterMethod(methodStr) {
