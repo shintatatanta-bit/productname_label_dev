@@ -917,7 +917,7 @@
         
         if (isOuter) {
           // --- 外袋ラベル専用：トグル連動型長体制御 ---
-          const maxAllowedLength = 115; // 全角11文字分の基準ピクセル幅
+          const maxAllowedLength = 93; // 全角11文字分の基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
@@ -928,7 +928,7 @@
           const isUniform = data ? Boolean(data.outerUniformFit) : false;
 
           if (isUniform) {
-            // --- 【ON】全行の長体比率を最も長い行に一括統一するモード ---
+            // --- 【ON】全行の中で最も長い行の比率を算出し、12文字を超える行に一括適用する ---
             let maxWidth = 0;
             const lineData = [];
 
@@ -948,18 +948,25 @@
               }
               
               const naturalWidth = visualLen * 10; // 10pxフォント換算の自然幅
-              lineData.push({ span, naturalWidth });
+              lineData.push({ span, visualLen, naturalWidth });
               if (naturalWidth > maxWidth) {
                 maxWidth = naturalWidth;
               }
             });
 
+            // 最も長い行が11文字分（93px）を超える場合のみ処理
             if (maxWidth > maxAllowedLength) {
               const uniformScale = maxAllowedLength / maxWidth;
               lineData.forEach(item => {
-                const adjustedLength = Math.max(40, item.naturalWidth * uniformScale);
-                item.span.setAttribute('textLength', adjustedLength.toFixed(1));
-                item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+                // ★ 修正：11文字以下の短い行は長体対象外とし、等倍（標準サイズ）を維持する
+                if (item.visualLen > 11.0) {
+                  const adjustedLength = item.naturalWidth * uniformScale;
+                  item.span.setAttribute('textLength', adjustedLength.toFixed(1));
+                  item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+                } else {
+                  item.span.removeAttribute('textLength');
+                  item.span.removeAttribute('lengthAdjust');
+                }
               });
             } else {
               lineData.forEach(item => {
