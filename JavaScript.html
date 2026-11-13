@@ -938,15 +938,42 @@
               // 各行の文字数に応じた比例長体を一括適用
               const lineTarget = targetLength * (item.visualLen / maxVisualLen);
               item.span.setAttribute('textLength', Math.max(40, lineTarget).toFixed(1));
-              item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
-            });
-          } else {
-            // 12文字以内の場合は即座に等倍を維持（ラグなし）
-            lineData.forEach(item => {
-              item.span.removeAttribute('textLength');
-              item.span.removeAttribute('lengthAdjust');
-            });
-          }
+              item.span.setAttribute('function autoFitLongLines() {
+      document.querySelectorAll('.design-card').forEach(card => {
+        const isOuter = card.dataset.isOuter === 'true';
+        
+        if (isOuter) {
+          // --- 外袋ラベル専用：行ごとの独立・即時判定制御（変形・ぐらつき完全防止） ---
+          const maxAllowedWidth = 114; // 全角12文字分の基準ピクセル幅
+          const sublines = card.querySelectorAll('.outer-subline');
+          if (sublines.length === 0) return;
+
+          sublines.forEach(span => {
+            // 一度属性を完全にクリア
+            span.removeAttribute('textLength');
+            span.removeAttribute('lengthAdjust');
+            
+            const textContent = span.textContent || "";
+            let visualLen = 0;
+            for (let i = 0; i < textContent.length; i++) {
+              const code = textContent.charCodeAt(i);
+              // 半角英数字・記号の場合は0.5文字分としてカウント
+              if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
+                visualLen += 0.5;
+              } else {
+                visualLen += 1.0;
+              }
+            }
+            
+            // 12.0文字（全角12文字）を超える行のみ、114pxの幅に収まるよう長体を即時適用
+            if (visualLen > 12.0) {
+              // 12文字分を基準とした圧縮比率で自然に長体化
+              const targetLength = maxAllowedWidth * (12.0 / visualLen);
+              span.setAttribute('textLength', Math.max(40, targetLength).toFixed(1));
+              span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+            }
+            // 12文字以下の行は、属性を付与せず完全な等倍（標準サイズ）を維持するため変形しない
+          });
 
         } else {
           // --- 既存の本体ラベル用フィット処理 ---
