@@ -897,8 +897,8 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          // --- 外袋ラベル専用：行ごとの独立判定制御（変形・異常サイズ完全防止） ---
-          const maxAllowedWidth = 114; // 全角12文字分の基準ピクセル幅
+          // --- 外袋ラベル専用：最大12文字分の物理幅固定制御 ---
+          const maxAllowedWidth = 114; // 全角12文字分の物理的な基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
@@ -919,13 +919,12 @@
               }
             }
             
-            // 12.0文字（全角12文字）を超える行のみ、114pxの幅に収まるよう長体を適用
+            // 12.0文字（全角12文字）を超える行のみ、幅を全角12文字分の物理幅（114px）に固定
             if (visualLen > 12.0) {
-              const targetLength = maxAllowedWidth * (12.0 / visualLen);
-              span.setAttribute('textLength', Math.max(40, targetLength).toFixed(1));
+              span.setAttribute('textLength', maxAllowedWidth);
               span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
             }
-            // 12文字以下の行は変形せず、完全な等倍を維持
+            // 12文字以下の行は、等倍（標準サイズ）を維持
           });
 
         } else {
