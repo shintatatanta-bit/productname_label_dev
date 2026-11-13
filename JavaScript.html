@@ -771,7 +771,7 @@
           outerTextHtml += `<tspan class="outer-subline" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
         });
 
-        // データの状態からuniform属性の値を決定 ('true' または 'false')
+        // データの状態からuniform属性の値を決定
         const isUniformAttr = data.outerUniformFit ? 'true' : 'false';
 
         return `
@@ -901,79 +901,63 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          const maxAllowedLength = 115; // 基準ピクセル幅
+          const maxAllowedWidth = 115; // 基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
-          // カードのDOM属性から直接一括モードのON/OFFを取得（確実な判定）
           const isUniform = card.dataset.uniformFit === 'true';
 
-          if (isUniform) {
-            // --- 【ON】全行の中で最も長い行の比率を算出し、12文字を超える行に一括適用する ---
-            let maxWidth = 0;
-            const lineData = [];
+          // 1. 各行の視覚的文字数を計算
+          const lineItems = [];
+          let maxVisualLen = 0;
 
-            sublines.forEach(span => {
-              span.removeAttribute('textLength');
-              span.removeAttribute('lengthAdjust');
-              
-              const textContent = span.textContent || "";
-              let visualLen = 0;
-              for (let i = 0; i < textContent.length; i++) {
-                const code = textContent.charCodeAt(i);
-                if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-                  visualLen += 0.5;
-                } else {
-                  visualLen += 1.0;
-                }
+          sublines.forEach(span => {
+            span.removeAttribute('textLength');
+            span.removeAttribute('lengthAdjust');
+            
+            const textContent = span.textContent || "";
+            let visualLen = 0;
+            for (let i = 0; i < textContent.length; i++) {
+              const code = textContent.charCodeAt(i);
+              if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
+                visualLen += 0.5;
+              } else {
+                visualLen += 1.0;
               }
-              
-              const naturalWidth = visualLen * 10;
-              lineData.push({ span, visualLen, naturalWidth });
-              if (naturalWidth > maxWidth) {
-                maxWidth = naturalWidth;
+            }
+            lineItems.push({ span, visualLen });
+            if (visualLen > maxVisualLen) {
+              maxVisualLen = visualLen;
+            }
+          });
+
+          if (isUniform && maxVisualLen > 11.0) {
+            // --- 【ON】一括統一モード：最も長い行を基準として、全行の長体比率を完全に揃える ---
+            const scaleRatio = 11.0 / maxVisualLen;
+            const uniformTargetWidth = maxAllowedWidth * scaleRatio;
+
+            lineItems.forEach(item => {
+              if (item.visualLen > 11.0) {
+                // 各行の文字数に応じた比例長体を適用し、比率を完全に統一
+                const lineTarget = uniformTargetWidth * (item.visualLen / maxVisualLen);
+                item.span.setAttribute('textLength', Math.max(40, lineTarget).toFixed(1));
+                item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+              } else {
+                // 11文字以下の行は等倍を維持
+                item.span.removeAttribute('textLength');
+                item.span.removeAttribute('lengthAdjust');
               }
             });
 
-            if (maxWidth > maxAllowedLength) {
-              const uniformScale = maxAllowedLength / maxWidth;
-              lineData.forEach(item => {
-                if (item.visualLen > 11.0) {
-                  const adjustedLength = item.naturalWidth * uniformScale;
-                  item.span.setAttribute('textLength', adjustedLength.toFixed(1));
-                  item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
-                } else {
-                  item.span.removeAttribute('textLength');
-                  item.span.removeAttribute('lengthAdjust');
-                }
-              });
-            } else {
-              lineData.forEach(item => {
+          } else {
+            // --- 【OFF】個別調整モード：11文字まで等倍、12文字目から115pxに固定 ---
+            lineItems.forEach(item => {
+              if (item.visualLen > 11.0) {
+                item.span.setAttribute('textLength', maxAllowedWidth);
+                item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+              } else {
                 item.span.removeAttribute('textLength');
                 item.span.removeAttribute('lengthAdjust');
-              });
-            }
-
-          } else {
-            // --- 【OFF】個別調整モード（11文字まで等倍、12文字目から115pxに固定） ---
-            sublines.forEach(span => {
-              span.removeAttribute('textLength');
-              span.removeAttribute('lengthAdjust');
-              
-              const textContent = span.textContent || "";
-              let visualLen = 0;
-              for (let i = 0; i < textContent.length; i++) {
-                const code = textContent.charCodeAt(i);
-                if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-                  visualLen += 0.5;
-                } else {
-                  visualLen += 1.0;
-                }
-              }
-              
-              if (visualLen > 11.0) {
-                span.setAttribute('textLength', maxAllowedLength);
-                span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
               }
             });
           }
@@ -1053,9 +1037,14 @@
         };
       }
       const data = slotsData[slotIdx];
+const isUniform = Boolean(data.outerUniformFit);
+      const chk = document.getElementById('chkOuterUniform');
+      if (chk) chk.checked = isUniform;
+      updateToggleStatusLabel(isUniform);
+      // ==========================================
+
       document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
       document.getElementById('inputCategoryText').value = data.categoryText || '';
-
       // ▼▼ ここを追加: ボタンのアクティブ状態を反映 ▼▼
       const labelType = data.labelType || 'main';
       document.getElementById('btnType_main').className = (labelType === 'main') ? 'btn-choice active' : 'btn-choice';
@@ -1816,10 +1805,24 @@ function copyToRemainingEmptySlots() {
       });
     }
     
-    // --- 外袋の長体統一トグルが変更されたときの処理 ---
     function toggleOuterUniformFit(isChecked) {
       if (editingSlotIndex === null) return;
       slotsData[editingSlotIndex].outerUniformFit = isChecked;
+      updateToggleStatusLabel(isChecked);
       renderAllSlots();
+    }
+
+    function updateToggleStatusLabel(isChecked) {
+      const lbl = document.getElementById('lblToggleStatus');
+      if (!lbl) return;
+      if (isChecked) {
+        lbl.innerText = "有効";
+        lbl.style.background = "#e8f0fe";
+        lbl.style.color = "#1a73e8";
+      } else {
+        lbl.innerText = "無効";
+        lbl.style.background = "#e0e0e0";
+        lbl.style.color = "#5f6368";
+      }
     }
   </script>
