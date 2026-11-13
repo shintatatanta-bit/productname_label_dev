@@ -178,16 +178,14 @@
         </div>
       </div>
 
-      <!-- 長体モード切替UI -->
-      <div class="mode-switch-box">
-        <button type="button" id="btnToggleStretchMode" class="btn-toggle-mode" onclick="toggleStretchMode()">
-          <span id="modeIcon">📐</span>
-          <span id="modeBtnLabel">長体モード：個別調整（標準）</span>
-        </button>
-        <div id="modeDesc" class="mode-status-text">
-          現在：各行が個別に長体化されます。ボタンを押すと、全行の長体比率を「最も細長い行」に統一して美しく揃えます。
-        </div>
-      </div>
+      <!-- 外袋テキスト入力枠の直下に配置するトグルスイッチ -->
+<div id="outerUniformToggleContainer" style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 6px 10px; border-radius: 6px; border: 1px solid #e0e0e0;">
+  <span style="font-size: 11.5px; font-weight: bold; color: #333;">全行の長体比率を最も長い行に統一する</span>
+  <label style="position: relative; display: inline-block; width: 36px; height: 20px; cursor: pointer;">
+    <input type="checkbox" id="chkOuterUniform" onchange="toggleOuterUniformFit(this.checked)" style="opacity: 0; width: 0; height: 0;">
+    <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 20px; box-sizing: border-box;"></span>
+  </label>
+</div>
       
       <div class="master-call-bar">
         <span style="font-size:11px; font-weight:bold; color:#1a73e8;">📁 セット一括呼出:</span>

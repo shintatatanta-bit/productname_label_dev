@@ -916,35 +916,81 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          // --- 外袋ラベル専用：全角11文字まで等倍、12文字目から11文字分の幅（93px）に固定 ---
-          const maxAllowedLength = 115; // 全角11文字分の基準ピクセル幅
+          // --- 外袋ラベル専用：トグル連動型長体制御 ---
+          const maxAllowedLength = 93; // 全角11文字分の基準ピクセル幅
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
-          sublines.forEach(span => {
-            // 一度属性を完全にクリア
-            span.removeAttribute('textLength');
-            span.removeAttribute('lengthAdjust');
-            
-            const textContent = span.textContent || "";
-            let visualLen = 0;
-            for (let i = 0; i < textContent.length; i++) {
-              const code = textContent.charCodeAt(i);
-              // 半角英数字・記号の場合は0.5文字分としてカウント
-              if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-                visualLen += 0.5;
-              } else {
-                visualLen += 1.0;
+          // 該当カードのデータからトグルの状態（ON/OFF）を取得
+          const cell = card.closest('.label-cell');
+          const slotIdx = cell ? parseInt(cell.dataset.slotIndex, 10) : null;
+          const data = (slotIdx !== null && slotsData[slotIdx]) ? slotsData[slotIdx] : null;
+          const isUniform = data ? Boolean(data.outerUniformFit) : false;
+
+          if (isUniform) {
+            // --- 【ON】全行の長体比率を最も長い行に一括統一するモード ---
+            let maxWidth = 0;
+            const lineData = [];
+
+            sublines.forEach(span => {
+              span.removeAttribute('textLength');
+              span.removeAttribute('lengthAdjust');
+              
+              const textContent = span.textContent || "";
+              let visualLen = 0;
+              for (let i = 0; i < textContent.length; i++) {
+                const code = textContent.charCodeAt(i);
+                if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
+                  visualLen += 0.5;
+                } else {
+                  visualLen += 1.0;
+                }
               }
+              
+              const naturalWidth = visualLen * 10; // 10pxフォント換算の自然幅
+              lineData.push({ span, naturalWidth });
+              if (naturalWidth > maxWidth) {
+                maxWidth = naturalWidth;
+              }
+            });
+
+            if (maxWidth > maxAllowedLength) {
+              const uniformScale = maxAllowedLength / maxWidth;
+              lineData.forEach(item => {
+                const adjustedLength = Math.max(40, item.naturalWidth * uniformScale);
+                item.span.setAttribute('textLength', adjustedLength.toFixed(1));
+                item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+              });
+            } else {
+              lineData.forEach(item => {
+                item.span.removeAttribute('textLength');
+                item.span.removeAttribute('lengthAdjust');
+              });
             }
-            
-            // 11.0文字（全角11文字）を超える行（12文字目以降）のみ、全角11文字分の物理幅（93px）に収める
-            if (visualLen > 11.0) {
-              span.setAttribute('textLength', maxAllowedLength);
-              span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
-            }
-            // 11文字以下の行は、属性を付与せず完全な等倍（標準サイズ）を維持
-          });
+
+          } else {
+            // --- 【OFF】個別調整モード（11文字まで等倍、12文字目から93pxに固定） ---
+            sublines.forEach(span => {
+              span.removeAttribute('textLength');
+              span.removeAttribute('lengthAdjust');
+              
+              const textContent = span.textContent || "";
+              let visualLen = 0;
+              for (let i = 0; i < textContent.length; i++) {
+                const code = textContent.charCodeAt(i);
+                if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
+                  visualLen += 0.5;
+                } else {
+                  visualLen += 1.0;
+                }
+              }
+              
+              if (visualLen > 11.0) {
+                span.setAttribute('textLength', maxAllowedLength);
+                span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+              }
+            });
+          }
 
         } else {
           // --- 既存の本体ラベル用フィット処理 ---
@@ -1039,6 +1085,10 @@
 
       // ★追加：選択したラベル枠に向かってプレビューを自動スクロール・フォーカスする
       scrollToEditingSlot(slotIdx);
+
+      // 編集パネルを開いた際、保存されているトグル状態をUIに反映
+      const chk = document.getElementById('chkOuterUniform');
+      if (chk) chk.checked = Boolean(data.outerUniformFit);
     }
 
     function closeEditPanel() {
@@ -1780,4 +1830,10 @@ function copyToRemainingEmptySlots() {
       });
     }
     
+    // --- 外袋の長体統一トグルが変更されたときの処理 ---
+    function toggleOuterUniformFit(isChecked) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].outerUniformFit = isChecked;
+      renderAllSlots();
+    }
   </script>
