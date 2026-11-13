@@ -907,7 +907,7 @@
 
           const isUniform = card.dataset.uniformFit === 'true';
 
-          // 1. 各行の視覚的文字数を計算
+          // 1. 各行の視覚的文字数を計算し、最大文字数を特定する
           const lineItems = [];
           let maxVisualLen = 0;
 
@@ -932,15 +932,14 @@
           });
 
           if (isUniform && maxVisualLen > 11.0) {
-            // --- 【ON】一括統一モード：最も長い行を基準として、全行の長体比率を完全に揃える ---
-            const scaleRatio = 11.0 / maxVisualLen;
-            const uniformTargetWidth = maxAllowedWidth * scaleRatio;
+            // --- 【ON】一括統一モード：最も長い行の比率を算出し、11文字を超える全行に「共通の長体幅」を適用する ---
+            // 例: 最も長い行が15文字なら、幅は 115px * (11 / 15) になり、全行がその幅に統一される
+            const uniformTargetWidth = maxAllowedWidth * (11.0 / maxVisualLen);
 
             lineItems.forEach(item => {
               if (item.visualLen > 11.0) {
-                // 各行の文字数に応じた比例長体を適用し、比率を完全に統一
-                const lineTarget = uniformTargetWidth * (item.visualLen / maxVisualLen);
-                item.span.setAttribute('textLength', Math.max(40, lineTarget).toFixed(1));
+                // 長体対象の行はすべて「同一の目標幅（uniformTargetWidth）」に統一
+                item.span.setAttribute('textLength', Math.max(40, uniformTargetWidth).toFixed(1));
                 item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
               } else {
                 // 11文字以下の行は等倍を維持
@@ -1033,19 +1032,21 @@
           methodMin: "2",
           methodSec: "",
           methodText: "レンジ 600W で 2分温め",
-          methodType: "warm"
+          methodType: "warm",
+          outerUniformFit: false
         };
       }
       const data = slotsData[slotIdx];
-const isUniform = Boolean(data.outerUniformFit);
+
+      // 編集パネルを開いた際の状態同期（重複を排除してここに集約）
+      const isUniform = Boolean(data.outerUniformFit);
       const chk = document.getElementById('chkOuterUniform');
       if (chk) chk.checked = isUniform;
       updateToggleStatusLabel(isUniform);
-      // ==========================================
 
       document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
       document.getElementById('inputCategoryText').value = data.categoryText || '';
-      // ▼▼ ここを追加: ボタンのアクティブ状態を反映 ▼▼
+
       const labelType = data.labelType || 'main';
       document.getElementById('btnType_main').className = (labelType === 'main') ? 'btn-choice active' : 'btn-choice';
       document.getElementById('btnType_outer').className = (labelType === 'outer') ? 'btn-choice active' : 'btn-choice';
@@ -1058,12 +1059,7 @@ const isUniform = Boolean(data.outerUniformFit);
       renderAllSlots();
       setLabelType(labelType);
 
-      // ★追加：選択したラベル枠に向かってプレビューを自動スクロール・フォーカスする
       scrollToEditingSlot(slotIdx);
-
-      // 編集パネルを開いた際、トグルのチェック状態をデータと同期
-      const chk = document.getElementById('chkOuterUniform');
-      if (chk) chk.checked = Boolean(data.outerUniformFit);
     }
 
     function closeEditPanel() {
@@ -1123,12 +1119,14 @@ function setLabelType(type) {
       const outerGroup = document.getElementById('outerLabelInputsGroup');
       const categoryWrapper = document.getElementById('categoryInputWrapper');
       const masterCallBar = document.getElementById('masterCallBarWrapper');
+      const uniformToggleWrap = document.getElementById('outerUniformToggleWrap'); // トグル要素のラッパー
 
       if (type === 'outer') {
         if (mainGroup) mainGroup.style.display = 'none';
         if (outerGroup) outerGroup.style.display = 'flex';
-        if (categoryWrapper) categoryWrapper.style.display = 'none'; // 上のセット名非表示
-        if (masterCallBar) masterCallBar.style.display = 'none';     // セット一括呼出非表示
+        if (categoryWrapper) categoryWrapper.style.display = 'none';
+        if (masterCallBar) masterCallBar.style.display = 'none';
+        if (uniformToggleWrap) uniformToggleWrap.style.display = 'flex'; // 外袋時はトグルを表示
 
         if (data.outerText === undefined) data.outerText = data.categoryText || '';
         if (data.outerMethod === undefined) data.outerMethod = '冷凍庫保管・前日冷蔵庫解凍';
@@ -1138,8 +1136,9 @@ function setLabelType(type) {
       } else {
         if (mainGroup) mainGroup.style.display = 'flex';
         if (outerGroup) outerGroup.style.display = 'none';
-        if (categoryWrapper) categoryWrapper.style.display = 'flex'; // 本体時は表示
-        if (masterCallBar) masterCallBar.style.display = 'flex';     // 本体時は表示
+        if (categoryWrapper) categoryWrapper.style.display = 'flex';
+        if (masterCallBar) masterCallBar.style.display = 'flex';
+        if (uniformToggleWrap) uniformToggleWrap.style.display = 'none'; // 本体時はトグルを非表示
       }
 
       renderAllSlots();
