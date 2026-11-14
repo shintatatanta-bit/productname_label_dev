@@ -194,6 +194,7 @@
       <!-- ========================================== -->
       <!-- ▼▼ 【外袋ラベル専用】入力グループ ▼▼ -->
       <!-- ========================================== -->
+      <!-- ★ 以下の1行（親枠のdiv）が欠落していたため補完しました -->
       <div id="outerLabelInputsGroup" style="display: none; flex-direction: column; gap: 12px; margin-top: 8px; border-top: 2px dashed #dadce0; padding-top: 10px;">
         
         <!-- ① セット名の自由入力枠（改行対応・1行14文字長体想定） -->
@@ -208,8 +209,7 @@
                     style="width:100% !important; padding:8px 10px; font-size:12.5px; font-weight:bold; resize:vertical; min-height:65px; line-height:1.4; box-sizing:border-box;"></textarea>
         </div>
 
-        <!-- ▼ 追加: 外袋テキスト入力欄の直下に配置するトグルスイッチ ▼ -->
-        <div id="outerUniformToggleWrap" style="display: none; margin-top: 2px; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #e0e0e0;">
+        <div id="outerUniformToggleWrap" style="display: none; margin-top: 10px; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #e0e0e0;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 11.5px; font-weight: bold; color: #333;">長体の比率を全行で統一する</span>
             <span id="lblToggleStatus" style="font-size: 10.5px; font-weight: bold; padding: 2px 6px; border-radius: 4px; background: #e0e0e0; color: #5f6368;">無効</span>
@@ -220,48 +220,10 @@
           </label>
         </div>
         <style>
-          #chkOuterUniform + .slider-toggle:before {
-            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%;
-          }
+          #chkOuterUniform + .slider-toggle:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
           #chkOuterUniform:checked + .slider-toggle { background-color: #1a73e8; }
           #chkOuterUniform:checked + .slider-toggle:before { transform: translateX(20px); }
         </style>
-        <!-- ▲ 追加終了 ▲ -->
-
-        <!-- ② 保管方法選択ボタン（4パターン） -->
-        <div>
-
- <!-- ▼ 外袋テキスト入力欄の直下に配置するトグルスイッチ -->
-<div id="outerUniformToggleWrap" style="display: none; margin-top: 10px; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #e0e0e0;">
-  <div style="display: flex; align-items: center; gap: 8px;">
-    <span style="font-size: 11.5px; font-weight: bold; color: #333;">長体の比率を全行で統一する</span>
-    <span id="lblToggleStatus" style="font-size: 10.5px; font-weight: bold; padding: 2px 6px; border-radius: 4px; background: #e0e0e0; color: #5f6368;">無効</span>
-  </div>
-  <label style="position: relative; display: inline-block; width: 42px; height: 22px; cursor: pointer; flex-shrink: 0;">
-    <input type="checkbox" id="chkOuterUniform" onchange="toggleOuterUniformFit(this.checked)" style="opacity: 0; width: 0; height: 0;">
-    <span class="slider-toggle" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 22px;"></span>
-  </label>
-</div>
-
-<style>
-  #chkOuterUniform + .slider-toggle:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-  }
-  #chkOuterUniform:checked + .slider-toggle {
-    background-color: #1a73e8;
-  }
-  #chkOuterUniform:checked + .slider-toggle:before {
-    transform: translateX(20px);
-  }
-</style>
 
         <!-- ② 保管方法選択ボタン（4パターン） -->
         <div>
