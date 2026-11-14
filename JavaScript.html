@@ -769,6 +769,7 @@
           outerTextHtml += `<tspan class="outer-subline" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
         });
 
+        // データの状態からuniform属性の値を決定
         const isUniformAttr = data.outerUniformFit ? 'true' : 'false';
 
         return `
@@ -987,6 +988,7 @@
         }
       });
     }
+  </script>
 
     function openActualSizeModal() {
       if (editingSlotIndex === null) return;
