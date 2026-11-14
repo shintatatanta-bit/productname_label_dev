@@ -9,7 +9,7 @@
 
     let slotsData = Array(36).fill(null);
     let stockItems = [];
-    let labelStockItems = []; // ★ 一時保管ラベル用の配列
+    let labelStockItems = []; 
     let singleMasterItems = [];
     let setMasterPresets = [];
     let savedDraftList = [];
@@ -43,7 +43,6 @@
       const activeEl = document.querySelector('.label-cell.active-editing');
       if (activeEl) activeEl.classList.remove('active-editing');
 
-      // ★修正: 現在のズーム倍率を退避し、印刷前に一時的に等倍(1.0)へ戻して長体を正確に再計算させる
       const savedZoom = currentZoom;
       currentZoom = 1.0;
       applyZoom(false, false);
@@ -60,12 +59,10 @@
       const originalTitle = document.title;
       document.title = fileName;
 
-      // DOMの等倍レンダリングを確実に反映させてから印刷ダイアログを起動
       setTimeout(() => {
         window.print();
         setTimeout(() => {
           document.title = originalTitle;
-          // 印刷ダイアログ終了後、元のズーム倍率へ復元
           currentZoom = savedZoom;
           applyZoom(true, false);
           autoFitLongLines();
@@ -80,7 +77,7 @@
       renderAllSlots();
       startAutoSaveTimer();
       setTimeout(() => {
-        setZoom(0.8); // ★ 初期表示の拡大率を 80% (0.8) に設定
+        setZoom(0.8); 
       }, 50);
     };
 
@@ -186,9 +183,8 @@
       executeSaveDraft(cleanTitle, cleanWorker, false);
     }
 
-    // --- 1. 保存処理（36枠ごとに分割してGASへ渡す） ---
     function executeSaveDraft(cleanTitle, cleanWorker, isAutoSave = false) {
-      const chunkedMaps = []; // ページごとのデータを格納する配列
+      const chunkedMaps = []; 
       let usedCount = 0;
 
       slotsData.forEach((d, idx) => {
@@ -200,12 +196,11 @@
         }
       });
 
-      if (chunkedMaps.length === 0) chunkedMaps[0] = {}; // 空でも1ページ目は作成
+      if (chunkedMaps.length === 0) chunkedMaps[0] = {}; 
 
       const jsonChunks = [];
       for (let i = 0; i < chunkedMaps.length; i++) {
         let chunkObj = { slotsMap: chunkedMaps[i] || {} };
-        // 最初のシートのデータにのみ、ストック情報を含める（容量節約）
         if (i === 0) {
           chunkObj.stocks = stockItems;
           chunkObj.labelStocks = labelStockItems;
@@ -213,7 +208,6 @@
         jsonChunks.push(JSON.stringify(chunkObj));
       }
 
-      // オートセーブ用の比較（配列全体を文字列化して比較）
       const fullJsonStr = JSON.stringify(jsonChunks);
       if (isAutoSave && fullJsonStr === lastSavedJsonStr) return;
 
@@ -231,7 +225,6 @@
         .saveDraftToSpreadsheet(cleanTitle, cleanWorker, jsonChunks, usedCount);
     }
 
-    // --- 2. 読込処理（複数セルのデータを結合して復元） ---
     function loadSelectedWorkDraft(idxStr) {
       if (idxStr === "") return;
       const draft = savedDraftList[Number(idxStr)];
@@ -242,7 +235,6 @@
         let parsedStocks = [];
         let parsedLabelStocks = [];
 
-        // 旧フォーマット（jsonStr）と新フォーマット（jsonChunks）の両対応
         const chunks = draft.jsonChunks && draft.jsonChunks.length > 0 ? draft.jsonChunks : [draft.jsonStr];
 
         chunks.forEach((chunkStr, chunkIdx) => {
@@ -257,7 +249,6 @@
           if (parsed.slotsMap) {
             Object.assign(combinedMap, parsed.slotsMap);
           } else if (Array.isArray(parsed) || Array.isArray(parsed.slots)) {
-            // 旧配列フォーマットのフォールバック
             const rawSlots = Array.isArray(parsed) ? parsed : (parsed.slots || []);
             rawSlots.forEach((item, idx) => {
               if (item) combinedMap[idx] = item;
@@ -265,7 +256,6 @@
           }
         });
 
-        // 結合したデータの最大インデックスから、必要な配列長（36の倍数）を算出
         const keys = Object.keys(combinedMap).map(Number);
         const maxIndex = keys.length > 0 ? Math.max(35, ...keys) : 35;
         const requiredLength = Math.ceil((maxIndex + 1) / 36) * 36;
@@ -292,7 +282,10 @@
               methodMin: item.methodMin !== undefined ? item.methodMin : "2",
               methodSec: item.methodSec !== undefined ? item.methodSec : "",
               methodText: item.methodText || "レンジ 600W で 2分温め",
-              methodType: item.methodType || "warm"
+              methodType: item.methodType || "warm",
+              outerUniformFit: item.outerUniformFit || false,
+              outerText: item.outerText || "",
+              outerMethod: item.outerMethod || "冷凍庫保管・前日冷蔵庫解凍"
             };
           }
         });
@@ -350,7 +343,8 @@
         methodMin: "2",
         methodSec: "",
         methodText: s.methodText,
-        methodType: "warm"
+        methodType: "warm",
+        outerUniformFit: false
       };
 
       openEditPanel(editingSlotIndex);
@@ -386,9 +380,8 @@
         data.methodText = '別紙資料参照';
       } else if (methodKey === 'custom') {
         data.methodType = 'warm';
-        data.methodText = ''; // ★ 自由入力の場合は枠内の文字を空欄にする
+        data.methodText = ''; 
       } else {
-        // microwave, boil, water
         data.methodType = 'warm';
         rebuildMethodTextFromState(data);
       }
@@ -404,7 +397,6 @@
 
       const methodKey = data.heatingType || 'microwave';
       
-      // 各ボタンに紐付く固有の配色クラス定義
       const btnColorClasses = {
         microwave: 'warm-2',
         boil: 'warm-2',
@@ -414,7 +406,6 @@
         custom: 'custom'
       };
 
-      // 各ボタンのクラスを正しく再構築（配色クラスを維持しつつ active を切り替え）
       ['microwave', 'boil', 'water', 'cold', 'doc', 'custom'].forEach(k => {
         const btn = document.getElementById(`mBtn_${k}`);
         if (btn) {
@@ -427,7 +418,6 @@
         }
       });
 
-      // ★ 時間入力欄の表示制御（cold, doc, custom の場合は非表示、それ以外は表示）
       const timeWrap = document.getElementById('methodTimeInputWrap');
       if (timeWrap) {
         timeWrap.style.display = (methodKey === 'cold' || methodKey === 'doc' || methodKey === 'custom') ? 'none' : 'flex';
@@ -468,8 +458,6 @@
       renderAllSlots();
     }
 
-
-
     function buildDurationString(minStr, secStr) {
       const m = parseInt(minStr, 10) || 0;
       const s = parseInt(secStr, 10) || 0;
@@ -480,15 +468,11 @@
       return ja;
     }
 
-    
-
     function onCustomMethodInput(val) {
       if (editingSlotIndex === null) return;
       slotsData[editingSlotIndex].methodText = val;
       renderAllSlots();
     }
-
-    
 
     function toggleMethodLanguage() {
       if (editingSlotIndex === null) return;
@@ -564,33 +548,27 @@
       const container = document.getElementById('sheetsContainer');
       container.innerHTML = '';
       
-      // ★変更1: slotsDataの長さを常に36の倍数に保つ（空き枠をnullで埋める）
       while (slotsData.length % 36 !== 0) {
         slotsData.push(null);
       }
-      // もし配列が空なら、最低1シート分（36枠）を確保する
       if (slotsData.length === 0) {
         slotsData = Array(36).fill(null);
       }
 
-      // 必要なA4シートの数を算出
       const totalSheets = slotsData.length / 36;
 
-      // ★変更2: 必要なシート数だけループして、A4シートのDOMを複数生成する
       for (let page = 0; page < totalSheets; page++) {
         const sheet = document.createElement('div');
         sheet.className = 'sheet-a4';
-        sheet.style.marginBottom = '30px'; // 画面上でシート同士を区切る隙間
+        sheet.style.marginBottom = '30px'; 
 
         const grid = document.createElement('div');
         grid.className = 'label-grid';
 
-        // 1シートにつき36枠のセルを生成
         for (let i = 0; i < 36; i++) {
-          const globalIndex = page * 36 + i; // 0〜35, 36〜71, 72〜107... という通し番号
+          const globalIndex = page * 36 + i; 
           const data = slotsData[globalIndex];
           
-          // 修正後: 外袋テキストやカテゴリ名、または商品名があればデータ有りと判定
           const hasData = Boolean(data && (
             (data.products && data.products.some(p => p.trim() !== "")) || 
             (data.categoryText && data.categoryText.trim() !== "") ||
@@ -605,7 +583,6 @@
           cell.dataset.slotIndex = globalIndex;
           cell.draggable = hasData;
 
-          // -- ドラッグ＆ドロップ系のイベント --
           cell.ondragstart = function(e) {
             draggedSlotIndex = globalIndex;
             isDraggingActive = true;
@@ -645,7 +622,6 @@
               parsed = { type: 'slotMove', index: parseInt(rawData, 10) }; 
             }
 
-            // ラベルストックからのドロップ
             if (parsed.type === 'labelStockItem') {
               const stockIndex = parsed.stockIndex;
               const stockItem = labelStockItems[stockIndex];
@@ -658,7 +634,6 @@
               return;
             }
             
-            // 料理名ストックからのドロップ
             if (parsed.type === 'stockItem') {
               const stockName = parsed.value;
               if (!slotsData[globalIndex] || !slotsData[globalIndex].products || slotsData[globalIndex].products.every(p => !p || p.trim() === '')) {
@@ -687,17 +662,14 @@
               return;
             }
 
-            // セル間の移動・コピー
             if (parsed.type === 'slotMove') {
               const sourceIdx = parsed.index;
               if (sourceIdx !== null && sourceIdx !== globalIndex) {
                 if (e.ctrlKey) {
-                  // コピー
                   if (slotsData[sourceIdx]) {
                     slotsData[globalIndex] = JSON.parse(JSON.stringify(slotsData[sourceIdx]));
                   }
                 } else {
-                  // 移動（スワップ）
                   const temp = slotsData[globalIndex];
                   slotsData[globalIndex] = slotsData[sourceIdx];
                   slotsData[sourceIdx] = temp;
@@ -716,7 +688,6 @@
             if (!isDraggingActive) openEditPanel(globalIndex);
           };
 
-          // セルの中身を描画
           let cellHtml = `<span class="slot-num-badge">#${globalIndex + 1}</span>`;
           if (hasData) {
             cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${globalIndex})">✕</button>`;
@@ -726,31 +697,22 @@
           grid.appendChild(cell);
         }
         
-        // グリッドをシートに追加し、シートをコンテナに追加
         sheet.appendChild(grid);
         container.appendChild(sheet);
       }
 
-      // ズームと長体の再計算
       applyZoom(false, false); 
       setTimeout(autoFitLongLines, 10);
     }
 
     function buildLabelDesignHtml(data) {
-      const validProds = (data.products || []).filter(p => p.trim() !== "");
       const labelType = data.labelType || 'main';
       const categoryText = data.categoryText || ""; 
 
-      // ──────────────────────────────────────────
-      // ▼▼ 分岐A: 外袋ラベルの場合 ▼▼
-      // ──────────────────────────────────────────
       if (labelType === 'outer') {
         const outerTextRaw = data.outerText || data.categoryText || "";
-        
         let headerSubText = data.outerMethod || "冷凍庫保管・前日冷蔵庫解凍";
-        if (headerSubText === "無し") {
-          headerSubText = "";
-        }
+        if (headerSubText === "無し") headerSubText = "";
         
         const lines = outerTextRaw.split(/\r\n|\r|\n/);
         let outerTextHtml = '';
@@ -769,19 +731,15 @@
           outerTextHtml += `<tspan class="outer-subline" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
         });
 
-        // データの状態からuniform属性の値を決定
         const isUniformAttr = data.outerUniformFit ? 'true' : 'false';
 
         return `
           <div class="design-card" data-label-type="outer" data-is-outer="true" data-uniform-fit="${isUniformAttr}">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.982 85.039" width="100%" height="100%" style="display:block; position:absolute; top:0; left:0;">
               <rect fill="#ffffff" width="141.732" height="85.039" rx="6.112" ry="6.112"></rect>
-              
               <text font-size="${fontSize}" letter-spacing="0.05em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 5)">
                 ${outerTextHtml}
               </text>
-              
-              <!-- 黒ロゴ -->
               <g fill="#231815" transform="translate(69.317, -1.889)">
                 <path d="M36.63,15.62h-.78v-.07q0-1.51,0-3.03c0-.32-.03-.64-.15-.94-.11-.29-.29-.53-.58-.66-.43-.19-.96-.09-1.3.24-.32.31-.47.67-.47,1.11q0,1.63,0,3.27v.08h-.79s0-.05,0-.07c0-1.09,0-2.17,0-3.26,0-.29-.04-.57-.17-.84-.16-.34-.42-.56-.81-.61-.36-.05-.68.05-.95.28-.36.3-.54.69-.57,1.14,0,.06,0,.12,0,.18q0,1.55,0,3.1v.08h-.78c-.02-1.77.03-3.54-.04-5.32h.69c.02.29.03.57.05.86.04.02.06,0,.08-.04.17-.29.39-.54.69-.7.56-.3,1.13-.34,1.7-.03.33.18.54.46.68.81,0,0,0,0,0,0,.02.02.03.04.04.05.02,0,.04-.02.05-.03.09-.13.17-.27.27-.39.54-.65,1.4-.77,2.02-.54.45.17.74.5.92.94.13.31.18.63.19.96.01.24.01.48.01.72q0,1.31,0,2.63V15.62Z"></path>
                 <path d="M49.09,15.67c-.52-.01-1.01-.12-1.45-.41-.48-.33-.79-.78-.97-1.33-.16-.46-.2-.94-.15-1.42.05-.49.19-.94.46-1.34.4-.59.95-.93,1.65-1.04.48-.07.96-.04,1.42.12.67.24,1.12.71,1.4,1.36.21.49.27,1.02.23,1.55-.04.51-.18.99-.46,1.41-.37.57-.89.91-1.56,1.04C49.48,15.64,49.28,15.65,49.09,15.67ZM50.87,13c0-.34-.03-.65-.12-.96-.11-.42-.29-.79-.61-1.09-.51-.47-1.29-.56-1.89-.2-.42.25-.67.63-.8,1.1-.14.51-.15,1.04-.07,1.56.06.4.2.78.43,1.11.47.68,1.21.83,1.85.62.46-.16.77-.49.97-.92C50.81,13.83,50.87,13.41,50.87,13Z"></path>
@@ -791,13 +749,9 @@
                 <path d="M53.5,15.58h-.79v-5.58h.79V15.58Z"></path>
                 <path d="M53.11,7.68c.26,0,.47.22.47.49,0,.26-.22.48-.47.48-.27,0-.49-.22-.49-.49C52.62,7.89,52.84,7.68,53.11,7.68Z"></path>
               </g>
-
-              <!-- 下部サブテキスト -->
               <text class="cls-11" font-size="8px" letter-spacing="0.075em" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.445 77.012)">
                 <tspan x="0" y="0">${escapeHtml(headerSubText)}</tspan>
               </text>
-
-              <!-- カラーバー・線 -->
               <g stroke-linecap="round" stroke-miterlimit="10">
                 <g>
                   <line stroke="#9e4724" fill="none" x1="43.455" y1="62.197" x2="39.977" y2="65.675"></line>
@@ -828,9 +782,6 @@
         `;
       }
 
-      // ──────────────────────────────────────────
-      // ▼▼ 分岐B: 本体パックラベルの場合（復元部分） ▼▼
-      // ──────────────────────────────────────────
       const subProdText = (data.subProducts && data.subProducts[0]) ? data.subProducts[0] : '';
       let subTextHtml = '';
       if (subProdText) {
@@ -886,13 +837,12 @@
         const isOuter = card.dataset.isOuter === 'true';
         
         if (isOuter) {
-          const maxAllowedWidth = 115; // 基準ピクセル幅
+          const maxAllowedWidth = 115; 
           const sublines = card.querySelectorAll('.outer-subline');
           if (sublines.length === 0) return;
 
           const isUniform = card.dataset.uniformFit === 'true';
 
-          // 1. 各行の視覚的文字数を計算し、最大文字数を特定する
           const lineItems = [];
           let maxVisualLen = 0;
 
@@ -917,24 +867,19 @@
           });
 
           if (isUniform && maxVisualLen > 11.0) {
-            // --- 【ON】一括統一モード：最も長い行の比率を算出し、11文字を超える全行に「共通の長体幅」を適用する ---
-            // 例: 最も長い行が15文字なら、幅は 115px * (11 / 15) になり、全行がその幅に統一される
             const uniformTargetWidth = maxAllowedWidth * (11.0 / maxVisualLen);
 
             lineItems.forEach(item => {
               if (item.visualLen > 11.0) {
-                // 長体対象の行はすべて「同一の目標幅（uniformTargetWidth）」に統一
                 item.span.setAttribute('textLength', Math.max(40, uniformTargetWidth).toFixed(1));
                 item.span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
               } else {
-                // 11文字以下の行は等倍を維持
                 item.span.removeAttribute('textLength');
                 item.span.removeAttribute('lengthAdjust');
               }
             });
 
           } else {
-            // --- 【OFF】個別調整モード：11文字まで等倍、12文字目から115pxに固定 ---
             lineItems.forEach(item => {
               if (item.visualLen > 11.0) {
                 item.span.setAttribute('textLength', maxAllowedWidth);
@@ -947,7 +892,6 @@
           }
 
         } else {
-          // --- 既存の本体ラベル用フィット処理 ---
           const containerWidth = card.clientWidth > 0 ? card.clientWidth - 16 : 173; 
           const lineWrappers = card.querySelectorAll('.product-subline-wrapper');
           const tspanList = [];
@@ -988,7 +932,6 @@
         }
       });
     }
-  </script>
 
     function openActualSizeModal() {
       if (editingSlotIndex === null) return;
@@ -1000,6 +943,52 @@
     }
 
     function closeActualSizeModal() { document.getElementById('actualSizeModal').style.display = 'none'; }
+
+    function openEditPanel(slotIdx) {
+      editingSlotIndex = slotIdx;
+      if (!slotsData[slotIdx]) {
+        slotsData[slotIdx] = {
+          categoryText: "",
+          products: [""],
+          subProducts: [""],
+          productsAlt: [""],
+          fontScale: "normal",
+          customFontPt: 10.0,
+          marginPreset: "normal",
+          customMarginY: 0.55,
+          fontWeight: "700",
+          heatingType: "microwave",
+          methodMin: "2",
+          methodSec: "",
+          methodText: "レンジ 600W で 2分温め",
+          methodType: "warm",
+          outerUniformFit: false
+        };
+      }
+      const data = slotsData[slotIdx];
+
+      const isUniform = Boolean(data.outerUniformFit);
+      const chk = document.getElementById('chkOuterUniform');
+      if (chk) chk.checked = isUniform;
+      updateToggleStatusLabel(isUniform);
+
+      document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
+      document.getElementById('inputCategoryText').value = data.categoryText || '';
+
+      const labelType = data.labelType || 'main';
+      document.getElementById('btnType_main').className = (labelType === 'main') ? 'btn-choice active' : 'btn-choice';
+      document.getElementById('btnType_outer').className = (labelType === 'outer') ? 'btn-choice active' : 'btn-choice';
+ 
+      const count = Math.max(1, Math.min(4, data.products.length));
+      highlightChoiceButton('btnCount', count);
+      renderProductInputFields(data.products);
+      updateControlsUI();
+      updateMethodUI();
+      renderAllSlots();
+      setLabelType(labelType);
+
+      scrollToEditingSlot(slotIdx);
+    }
 
     function closeEditPanel() {
       if (editingSlotIndex !== null) {
@@ -1046,7 +1035,7 @@
       renderAllSlots();
     }
 
-function setLabelType(type) {
+    function setLabelType(type) {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       data.labelType = type;
@@ -1058,14 +1047,14 @@ function setLabelType(type) {
       const outerGroup = document.getElementById('outerLabelInputsGroup');
       const categoryWrapper = document.getElementById('categoryInputWrapper');
       const masterCallBar = document.getElementById('masterCallBarWrapper');
-      const uniformToggleWrap = document.getElementById('outerUniformToggleWrap'); // トグル要素のラッパー
+      const uniformToggleWrap = document.getElementById('outerUniformToggleWrap');
 
       if (type === 'outer') {
         if (mainGroup) mainGroup.style.display = 'none';
         if (outerGroup) outerGroup.style.display = 'flex';
         if (categoryWrapper) categoryWrapper.style.display = 'none';
         if (masterCallBar) masterCallBar.style.display = 'none';
-        if (uniformToggleWrap) uniformToggleWrap.style.display = 'flex'; // 外袋時はトグルを表示
+        if (uniformToggleWrap) uniformToggleWrap.style.display = 'flex'; 
 
         if (data.outerText === undefined) data.outerText = data.categoryText || '';
         if (data.outerMethod === undefined) data.outerMethod = '冷凍庫保管・前日冷蔵庫解凍';
@@ -1077,25 +1066,23 @@ function setLabelType(type) {
         if (outerGroup) outerGroup.style.display = 'none';
         if (categoryWrapper) categoryWrapper.style.display = 'flex';
         if (masterCallBar) masterCallBar.style.display = 'flex';
-        if (uniformToggleWrap) uniformToggleWrap.style.display = 'none'; // 本体時はトグルを非表示
+        if (uniformToggleWrap) uniformToggleWrap.style.display = 'none'; 
       }
 
       renderAllSlots();
     }
 
-
-    let outerInputTimer = null; // タイピング中のチラつき防止用タイマー
+    let outerInputTimer = null; 
 
     function onOuterTextInput(val) {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       data.outerText = sanitizeProductInput(val);
       
-      // タイピング中の描画負荷とチラつきを抑えるため、描画更新をわずかにデバウンス
       if (outerInputTimer) clearTimeout(outerInputTimer);
       outerInputTimer = setTimeout(() => {
         renderAllSlots();
-      }, 200); // 0.25秒間隔で安定描画
+      }, 200); 
     }
 
     function selectOuterMethod(methodStr) {
@@ -1270,7 +1257,6 @@ function setLabelType(type) {
       container.innerHTML = html;
     }
 
-    // --- ラベルストック関連の完全実装 ---
     function switchStockTab(tabName) {
       document.getElementById('btnTabMaster').classList.toggle('active', tabName === 'master');
       document.getElementById('btnTabLabel').classList.toggle('active', tabName === 'label');
@@ -1321,7 +1307,6 @@ function setLabelType(type) {
       });
       container.innerHTML = html;
 
-      // --- ホバー1秒タイマーのバインド処理 ---
       const popup = document.getElementById('globalHoverPreviewPopup');
       let hoverTimer = null;
 
@@ -1331,14 +1316,11 @@ function setLabelType(type) {
           const itemData = labelStockItems[idx];
           if (!itemData) return;
 
-          // 既存のタイマーがあればクリア
           if (hoverTimer) clearTimeout(hoverTimer);
 
-          // 1秒（1000ms）後にポップアップを表示
           hoverTimer = setTimeout(() => {
             popup.innerHTML = buildLabelDesignHtml(itemData);
             
-            // マウスカーソルの位置、またはカードの近傍にポップアップを表示
             const rect = card.getBoundingClientRect();
             popup.style.left = (rect.right + 10) + 'px';
             popup.style.top = rect.top + 'px';
@@ -1347,7 +1329,6 @@ function setLabelType(type) {
         });
 
         card.addEventListener('mouseleave', function() {
-          // マウスが外れたらタイマーを即座にキャンセルし、ポップアップを隠す
           if (hoverTimer) clearTimeout(hoverTimer);
           popup.style.display = 'none';
         });
@@ -1375,41 +1356,33 @@ function setLabelType(type) {
 
         console.log('パース結果:', parsed);
 
-        // プレビューのラベル枠（スロット）からドラッグされた場合
         if (parsed.type === 'slotMove') {
           const sourceIndex = parsed.index;
           const slotData = slotsData[sourceIndex];
           if (slotData) {
-            // 複製データを作成
             const newStockItem = JSON.parse(JSON.stringify(slotData));
 
-            // ★ 同一のラベルがすでにラベルストック内に存在するかチェック
             const isAlreadyExists = labelStockItems.some(item => {
               return JSON.stringify(item) === JSON.stringify(newStockItem);
             });
 
             if (isAlreadyExists) {
               alert('このラベルはすでにラベルストックに登録されています。');
-              return; // 登録を中断
+              return; 
             }
 
-            // 1. ラベルストックに複製を追加
             labelStockItems.push(newStockItem);
             
-            // 2. 元のプレビュー枠をクリア（削除）
             slotsData[sourceIndex] = null;
             
-            // 3. 編集パネルが開いていた枠であれば閉じる
             if (editingSlotIndex === sourceIndex) {
               closeEditPanel();
             }
             
-            // 4. 画面全体（使用数・プレビュー・ストック一覧）を更新
             updateUsageCount();
             renderAllSlots();
             renderLabelStockList();
             
-            // 5. 自動でラベルストックタブに切り替える
             switchStockTab('label');
           }
         }
@@ -1423,7 +1396,6 @@ function setLabelType(type) {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // ▼ 修正後の完全復元されたズーム関数群
     function onZoomSliderInput(val) {
       currentZoom = parseFloat(val);
       applyZoom(false);
@@ -1433,27 +1405,22 @@ function setLabelType(type) {
       const container = document.getElementById('sheetsContainer');
       if (!container) return;
       
-      // 画面内にあるすべてのA4シート要素を取得する
       const sheets = container.querySelectorAll('.sheet-a4');
       if (sheets.length === 0) return;
 
-      // 基準となる1枚目のシートからサイズを取得
       const firstSheet = sheets[0];
       const baseWidth = firstSheet.offsetWidth || 794;
       const baseHeight = firstSheet.offsetHeight || 1123;
       
-      // コンテナ全体のサイズを「シート数 × 縦の高さ」に合わせて拡張する
       container.style.width = Math.round(baseWidth * currentZoom) + 'px';
-      container.style.height = Math.round((baseHeight * totalSheetsHeight()) * currentZoom) + 'px'; // 修正: 全シートの総高さを考慮
+      container.style.height = Math.round((baseHeight * totalSheetsHeight()) * currentZoom) + 'px'; 
       container.style.transform = 'none';
       container.style.marginLeft = 'auto';
       container.style.marginRight = 'auto';
 
-      // ★重要: すべてのシート（1P目も2P目以降も）に対して、同一のスケールと変形基点を一括適用する
       sheets.forEach((sheet, idx) => {
         sheet.style.transformOrigin = 'top left';
         sheet.style.transform = `scale(${currentZoom.toFixed(3)})`;
-        // 2枚目以降のシートが重ならないよう、縦方向に適切なマージン（隙間）を持たせる
         if (idx > 0) {
           sheet.style.marginTop = '20px';
         }
@@ -1471,7 +1438,6 @@ function setLabelType(type) {
       }
     }
 
-    // ヘルパー: 全シートの合計高さを計算する関数
     function totalSheetsHeight() {
       const container = document.getElementById('sheetsContainer');
       if (!container) return 1;
@@ -1519,18 +1485,11 @@ function setLabelType(type) {
 
     let hoverPreviewTimer = null;
 
-    // --- ラベルストックのホバー拡大プレビュー関連の処理 ---
     document.addEventListener('mouseover', function(e) {
       const card = e.target.closest('.label-stock-card');
       if (!card) return;
-
-      // どのインデックスのラベルか、HTML要素のデータ属性等から特定するか、
-      // あるいは要素自身からインデックスを逆引きできるようにします。
-      // ここでは簡易的に、親コンテナ内の何番目かを特定してデータを取得します。
     });
 
-    // より確実に紐付けるため、renderLabelStockList 内でカード生成時に mouseenter / mouseleave をバインドします。
-  
     let pendingDropData = null;
 
     function openStockDropChoiceModal(slotIndex, stockName) {
@@ -1540,7 +1499,6 @@ function setLabelType(type) {
       const container = document.getElementById('dropChoiceButtonsContainer');
       let html = '';
 
-      // ① 既存のすべての有効な品目（品名1〜4）それぞれに対して結合ボタンを生成
       products.forEach((prod, idx) => {
         if (prod && prod.trim() !== "") {
           html += `
@@ -1551,12 +1509,10 @@ function setLabelType(type) {
         }
       });
 
-      // 空の枠があるか、または配列長が4未満かをチェック
       const emptyIdx = products.findIndex(p => !p || p.trim() === "");
       const canAddNewRow = (emptyIdx !== -1) || (products.length < 4);
       const nextRowNum = (emptyIdx !== -1) ? (emptyIdx + 1) : (products.length + 1);
 
-      // ② 新たな品名として独立して追加する選択肢（最大4品まで）
       if (canAddNewRow) {
         html += `
           <button type="button" class="btn-main" style="background:#e6f4ea; color:#137333; border:1.5px solid #ceead6; padding:10px; justify-content:flex-start; font-size:12.5px;" onclick="executeStockDropChoice('newRow')">
@@ -1580,20 +1536,17 @@ function setLabelType(type) {
       const data = slotsData[slotIndex];
 
       if (mode === 'combine') {
-        // ① 指定されたインデックス（targetIdx: 品名1〜4）の後ろに結合
         if (data.products && data.products[targetIdx] !== undefined) {
           const currentBase = data.products[targetIdx].trim();
           data.products[targetIdx] = currentBase ? `${currentBase} ${stockName}` : stockName;
         }
       } else if (mode === 'newRow') {
-        // ② 新たな品名（空き行があればそこへ、なければ末尾）として追加
         if (!data.products) data.products = [];
         if (!data.subProducts) data.subProducts = [];
         if (!data.productsAlt) data.productsAlt = [];
         
         const emptyIdx = data.products.findIndex(p => !p || p.trim() === "");
         if (emptyIdx !== -1) {
-          // 既存の空行（例：「2品」ボタンを押して空になっている品名2など）があればそこへ格納
           data.products[emptyIdx] = stockName;
           if (data.subProducts[emptyIdx] === undefined) data.subProducts[emptyIdx] = "";
           if (data.productsAlt[emptyIdx] === undefined) data.productsAlt[emptyIdx] = "";
@@ -1633,24 +1586,20 @@ function setLabelType(type) {
     function clearAllLabelStock() {
       console.log('=== clearAllLabelStock 実行開始 ===');
       
-      // 確認ダイアログを表示
       if (!confirm('すべての保管ラベルを削除しますか？')) {
         console.log('クリア操作がキャンセルされました。');
         return;
       }
 
       try {
-        // 1. ホバープレビューの強制非表示
         const popup = document.getElementById('globalHoverPreviewPopup');
         if (popup) {
           popup.style.display = 'none';
         }
 
-        // 2. 配列の初期化
         labelStockItems = [];
         console.log('labelStockItems を空にしました:', labelStockItems);
 
-        // 3. リストの再描画
         renderLabelStockList();
         console.log('ラベルストックリストの再描画が完了しました。');
 
@@ -1671,7 +1620,6 @@ function copyToRemainingEmptySlots() {
         return;
       }
 
-      // 空白枠の数をカウント
       const emptyCount = slotsData.filter(d => !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim())).length;
       if (emptyCount === 0) {
         alert('コピー先の空白枠がありません。');
@@ -1682,7 +1630,6 @@ function copyToRemainingEmptySlots() {
         return;
       }
 
-      // 36枠を走査し、データが入っていない（空白の）枠にのみ複製を代入
       for (let i = 0; i < 36; i++) {
         const d = slotsData[i];
         const isEmpty = !d || (!d.products.some(p => p && p.trim() !== "") && !d.categoryText.trim());
@@ -1706,33 +1653,25 @@ function copyToRemainingEmptySlots() {
       const baseWidth = sheet ? sheet.offsetWidth : 794;
       const baseHeight = sheet ? sheet.offsetHeight : 1123;
 
-      // 36面グリッド上の「列(0〜3)」と「段(0〜8)」を算出
       const col = slotIdx % 4;
       const row = Math.floor(slotIdx / 4);
 
-      // A4シート(210mm x 297mm)に対する実際のピクセル比率
       const pxPerMmX = baseWidth / 210.0;
       const pxPerMmY = baseHeight / 297.0;
 
-      // シート左上(0,0)から、対象ラベルの「中心点」までの物理座標(mm)
-      // 左余白:5mm + (列 × 幅50mm) + 半分25mm
-      // 上余白:5.5mm + (段 × [高30mm + 間隔2mm]) + 半分15mm
       const cellCenterMmX = 5.0 + (col * 50.0) + 25.0;
       const cellCenterMmY = 5.5 + (row * 32.0) + 15.0;
 
-      // 現在のズーム倍率を掛けた、シート左上からの正確なピクセル中心座標
       const targetCenterX = (cellCenterMmX * pxPerMmX) * currentZoom;
       const targetCenterY = (cellCenterMmY * pxPerMmY) * currentZoom;
 
-      // .preview-outer の padding（左: 60px, 上: 20px）と margin:auto 分の余白を正確に算出
       const scaledSheetWidth = baseWidth * currentZoom;
-      const innerAvailableWidth = outerArea.clientWidth - 120; // 左右padding(60px×2)を引いた幅
+      const innerAvailableWidth = outerArea.clientWidth - 120; 
       const autoMarginLeft = scaledSheetWidth < innerAvailableWidth ? (innerAvailableWidth - scaledSheetWidth) / 2 : 0;
 
       const sheetStartX = 60 + autoMarginLeft;
-      const sheetStartY = 20; // 上padding(20px)
+      const sheetStartY = 20; 
 
-      // 表示領域（outerArea）の真ん中にラベルの中心が来るようにスクロール位置を算出
       const scrollLeft = sheetStartX + targetCenterX - (outerArea.clientWidth / 2);
       const scrollTop = sheetStartY + targetCenterY - (outerArea.clientHeight / 2);
 
@@ -1743,7 +1682,6 @@ function copyToRemainingEmptySlots() {
       });
     }
     
-    // --- ① トグル切替・ステータス表示の更新 ---
     function toggleOuterUniformFit(isChecked) {
       if (editingSlotIndex === null) return;
       slotsData[editingSlotIndex].outerUniformFit = isChecked;
