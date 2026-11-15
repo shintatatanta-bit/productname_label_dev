@@ -813,9 +813,9 @@
         lineHeight = 12;
         startY = -3;
       } else if (lines.length === 3) {
-        // 10pxフォントの半分（約5.0単位）下げるため、-13.5 → -8.5 にシフト
+        // 10pxフォントの半分（+5）をさらに下げる（例: -8.5 → -3.5）
         lineHeight = 10.5;
-        startY = -8.5;
+        startY = -3.5;
       } else if (lines.length >= 4) {
         lineHeight = 10.5;
         startY = -15.5;
