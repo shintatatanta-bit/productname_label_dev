@@ -802,7 +802,8 @@
       let mainTextHtml = '';
       const lines = validProds;
       const isFourItems = lines.length >= 4;
-      const mainFontSizePx = isFourItems ? 9 : 10;
+      // 4品時はフォントサイズを1pt下げる（10 -> 9）、1〜3品は現行の10を維持
+      const mainFontSize = isFourItems ? '9px' : '10px';
 
       let lineHeight = 12;
       let startY = 0;
@@ -822,8 +823,7 @@
       }
 
       lines.forEach((lineText, idx) => {
-        const yPos = (startY + (idx * lineHeight)).toFixed(2);
-        mainTextHtml += `<tspan class="card-product-line" x="0" y="${yPos}">${escapeHtml(lineText)}</tspan>`;
+        mainTextHtml += `<tspan class="card-product-line" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
       });
 
       const heatingType = data.heatingType || 'microwave';
@@ -847,7 +847,7 @@
   <tspan x="0" y="0">${escapeHtml(data.methodText || '')}</tspan>
 </text>
 
-            <text class="dynamic-main-text" font-size="${mainFontSizePx}px" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
+            <text class="dynamic-main-text" font-size="${mainFontSize}" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
               ${mainTextHtml}
             </text>
 
