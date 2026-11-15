@@ -815,10 +815,10 @@
       });
 
       return `
-        <!-- ★ Flexboxの縮小干渉を完全に断ち切る絶対配置スタイルを強制付与 -->
         <div class="design-card" data-label-type="main" style="position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; padding: 0 !important; margin: 0 !important; border: none !important; display: block !important; background: transparent !important;">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 141.96 85.04" preserveAspectRatio="none" style="display:block; width:100%; height:100%;">
-            <rect fill="#ffffff" width="141.96" height="85.04" rx="6.11" ry="6.11"></rect>
+            <!-- ★検証1: キャンバス(141.96 x 85.04)の四隅に赤い枠線を描画し、枠全体が縮んでいないことを確認する -->
+            <rect fill="#ffffff" stroke="#ff0000" stroke-width="1.5" x="0.75" y="0.75" width="140.46" height="83.54" rx="6.11" ry="6.11"></rect>
             
             <line stroke="#497535" stroke-linecap="round" stroke-miterlimit="10" fill="none" x1="141.46" y1="65.12" x2="11.28" y2="65.12"></line>
             
@@ -826,7 +826,8 @@
               <tspan x="0" y="0">${escapeHtml(data.methodText || '')}</tspan>
             </text>
             
-            <text class="product-subline-wrapper" font-size="10px" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
+            <!-- ★検証2: バグの原因だった class="product-subline-wrapper" を削除 -->
+            <text class="dynamic-main-text" font-size="10px" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
               ${mainTextHtml}
             </text>
             
