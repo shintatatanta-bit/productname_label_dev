@@ -803,20 +803,29 @@
       const lines = validProds;
       const isFourItems = lines.length >= 4;
       const mainFontSizePx = isFourItems ? 9 : 10;
-      const lineHeight = isFourItems ? 10.5 : (lines.length === 3 ? 11.0 : 11.5);
 
+      // 行数ごとの行間（SVG座標単位）と開始Yオフセット（基準: translate(11.28 45.69)）
+      let lineHeight = 12;
       let startY = 0;
-      if (lines.length === 2) {
-        startY = -(lineHeight / 2);
+
+      if (lines.length === 1) {
+        startY = 0;
+      } else if (lines.length === 2) {
+        lineHeight = 12;
+        startY = -3; // 従来の -6 から少し下げて中央〜やや下寄りに配置
       } else if (lines.length === 3) {
-        startY = -lineHeight;
+        lineHeight = 11.5;
+        // 3行分: -13.5, -2.0, +9.5 -> SVG y ≈ 32.19 〜 55.19（セット名 y=26.42 と分離）
+        startY = -13.5;
       } else if (lines.length >= 4) {
-        // 基準Y=45.69に対し、4行全体(3 * 10.5 = 31.5)が y=29.5〜61.0 付近に収まるよう調整
+        lineHeight = 10.5;
+        // 4行分（9px）: -15.5, -5.0, +5.5, +16.0 -> SVG y ≈ 30.19 〜 61.69（緑線 y=65.12 の手前に収める）
         startY = -15.5;
       }
 
       lines.forEach((lineText, idx) => {
-        mainTextHtml += `<tspan class="card-product-line" x="0" y="${(startY + (idx * lineHeight)).toFixed(2)}">${escapeHtml(lineText)}</tspan>`;
+        const yPos = (startY + (idx * lineHeight)).toFixed(2);
+        mainTextHtml += `<tspan class="card-product-line" x="0" y="${yPos}">${escapeHtml(lineText)}</tspan>`;
       });
 
       const heatingType = data.heatingType || 'microwave';
