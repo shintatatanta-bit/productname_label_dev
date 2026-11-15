@@ -195,9 +195,12 @@
       <!-- ▼▼ 【外袋ラベル専用】入力グループ ▼▼ -->
       <!-- ========================================== -->
       <!-- ★ 以下の1行（親枠のdiv）が欠落していたため補完しました -->
+      <!-- ========================================== -->
+      <!-- ▼▼ 【外袋ラベル専用】入力グループ ▼▼ -->
+      <!-- ========================================== -->
       <div id="outerLabelInputsGroup" style="display: none; flex-direction: column; gap: 12px; margin-top: 8px; border-top: 2px dashed #dadce0; padding-top: 10px;">
         
-        <!-- ① セット名の自由入力枠（改行対応・1行14文字長体想定） -->
+        <!-- ① セット名の自由入力枠 -->
         <div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="font-size:11px; font-weight:bold; color:#1a73e8;">📦 外袋セット名（自由入力 / 改行可）:</label>
@@ -209,33 +212,80 @@
                     style="width:100% !important; padding:8px 10px; font-size:12.5px; font-weight:bold; resize:vertical; min-height:65px; line-height:1.4; box-sizing:border-box;"></textarea>
         </div>
 
-        <div id="outerUniformToggleWrap" style="display: none; margin-top: 10px; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #e0e0e0;">
+        <!-- ▼ 外袋テキスト入力欄の直下に配置するトグルスイッチ ▼ -->
+        <div id="outerUniformToggleWrap" style="display: none; margin-top: 2px; align-items: center; justify-content: space-between; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1.5px solid #e0e0e0;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 11.5px; font-weight: bold; color: #333;">長体の比率を全行で統一する</span>
             <span id="lblToggleStatus" style="font-size: 10.5px; font-weight: bold; padding: 2px 6px; border-radius: 4px; background: #e0e0e0; color: #5f6368;">無効</span>
           </div>
           <label style="position: relative; display: inline-block; width: 42px; height: 22px; cursor: pointer; flex-shrink: 0;">
             <input type="checkbox" id="chkOuterUniform" onchange="toggleOuterUniformFit(this.checked)" style="opacity: 0; width: 0; height: 0;">
-            <span class="slider-toggle" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 22px;"></span>
+            <span class="slider-toggle-outer" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 22px;"></span>
           </label>
         </div>
-        <style>
-          #chkOuterUniform + .slider-toggle:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-          #chkOuterUniform:checked + .slider-toggle { background-color: #1a73e8; }
-          #chkOuterUniform:checked + .slider-toggle:before { transform: translateX(20px); }
-        </style>
 
-        <!-- ② 保管方法選択ボタン（4パターン） -->
+        <!-- ② 保管方法選択ボタン -->
         <div>
           <label style="font-size:11px; font-weight:bold; color:#1a73e8; margin-bottom:4px; display:block;">❄️ 保管・解凍方法:</label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-            <button type="button" class="btn-method-choice warm-2 active" id="outerMethod_default" onclick="selectOuterMethod('冷凍庫保管・前日冷蔵庫解凍')">冷凍庫保管・前日冷蔵庫解凍</button>
-            <button type="button" class="btn-method-choice warm-2" id="outerMethod_freezer" onclick="selectOuterMethod('冷凍庫保管')">冷凍庫保管</button>
-            <button type="button" class="btn-method-choice cold" id="outerMethod_fridge" onclick="selectOuterMethod('冷蔵庫保管')">冷蔵庫保管</button>
-            <button type="button" class="btn-method-choice doc" id="outerMethod_none" onclick="selectOuterMethod('無し')">無し</button>
+            <button type="button" class="btn-outer-method method-grad active" id="outerMethod_default" onclick="selectOuterMethod('冷凍庫保管・前日冷蔵庫解凍')">冷凍庫保管・前日冷蔵庫解凍</button>
+            <button type="button" class="btn-outer-method method-darkblue" id="outerMethod_freezer" onclick="selectOuterMethod('冷凍庫保管')">冷凍庫保管</button>
+            <button type="button" class="btn-outer-method method-lightblue" id="outerMethod_fridge" onclick="selectOuterMethod('冷蔵庫保管')">冷蔵庫保管</button>
+            <button type="button" class="btn-outer-method method-gray" id="outerMethod_none" onclick="selectOuterMethod('無し')">無し</button>
           </div>
         </div>
 
+        <!-- ★ 新規追加するCSSスタイル ★ -->
+        <style>
+          /* トグルスイッチの強力なスタイル定義 */
+          #chkOuterUniform + .slider-toggle-outer:before {
+            position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%;
+          }
+          #chkOuterUniform:checked + .slider-toggle-outer {
+            background-color: #1a73e8 !important; /* 強制的に青にする */
+          }
+          #chkOuterUniform:checked + .slider-toggle-outer:before {
+            transform: translateX(20px);
+          }
+
+          /* 保管・解凍方法ボタンのベーススタイル */
+          .btn-outer-method {
+            padding: 8px 4px;
+            font-size: 11px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            color: white;
+            transition: all 0.2s ease;
+            opacity: 0.6; /* 非アクティブ時は少し薄くする */
+          }
+          
+          /* アクティブ（選択中）の状態 */
+          .btn-outer-method.active {
+            opacity: 1.0;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+          }
+
+          /* 各ボタンの個別カラー定義 */
+          .btn-outer-method.method-grad {
+            background: linear-gradient(135deg, #0d47a1 0%, #42a5f5 100%);
+            border-color: #0d47a1;
+          }
+          .btn-outer-method.method-darkblue {
+            background-color: #0d47a1;
+            border-color: #0d47a1;
+          }
+          .btn-outer-method.method-lightblue {
+            background-color: #42a5f5;
+            border-color: #1e88e5;
+          }
+          .btn-outer-method.method-gray {
+            background-color: #757575;
+            border-color: #616161;
+          }
+        </style>
       </div>
 
       <!-- ========================================== -->

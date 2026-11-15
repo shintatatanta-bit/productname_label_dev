@@ -1109,18 +1109,19 @@
 
     function updateOuterMethodUI(currentMethod) {
       const methods = [
-        { key: '冷凍庫保管・前日冷蔵庫解凍', id: 'outerMethod_default' },
-        { key: '冷凍庫保管', id: 'outerMethod_freezer' },
-        { key: '冷蔵庫保管', id: 'outerMethod_fridge' },
-        { key: '無し', id: 'outerMethod_none' }
+        { key: '冷凍庫保管・前日冷蔵庫解凍', id: 'outerMethod_default', colorClass: 'method-grad' },
+        { key: '冷凍庫保管', id: 'outerMethod_freezer', colorClass: 'method-darkblue' },
+        { key: '冷蔵庫保管', id: 'outerMethod_fridge', colorClass: 'method-lightblue' },
+        { key: '無し', id: 'outerMethod_none', colorClass: 'method-gray' }
       ];
       methods.forEach(m => {
         const btn = document.getElementById(m.id);
         if (btn) {
+          // まずすべてのボタンスタイルをリセットし、ベースのクラスを設定
+          btn.className = `btn-outer-method ${m.colorClass}`;
+          // 選択中のボタンにのみ 'active' クラスを付与
           if (m.key === currentMethod) {
             btn.classList.add('active');
-          } else {
-            btn.classList.remove('active');
           }
         }
       });
