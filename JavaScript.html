@@ -801,16 +801,22 @@
 
       let mainTextHtml = '';
       const lines = validProds;
-      const lineHeight = 13;
-      let startY = 0;
+      const isFourItems = lines.length >= 4;
+      const mainFontSizePx = isFourItems ? 9 : 10;
+      const lineHeight = isFourItems ? 10.5 : (lines.length === 3 ? 11.0 : 11.5);
 
-      if (lines.length === 1) startY = 0; 
-      else if (lines.length === 2) startY = -6.5;  
-      else if (lines.length === 3) startY = -13;  
-      else startY = -19.5; 
+      let startY = 0;
+      if (lines.length === 2) {
+        startY = -(lineHeight / 2);
+      } else if (lines.length === 3) {
+        startY = -lineHeight;
+      } else if (lines.length >= 4) {
+        // 基準Y=45.69に対し、4行全体(3 * 10.5 = 31.5)が y=29.5〜61.0 付近に収まるよう調整
+        startY = -15.5;
+      }
 
       lines.forEach((lineText, idx) => {
-        mainTextHtml += `<tspan class="card-product-line" x="0" y="${startY + (idx * lineHeight)}">${escapeHtml(lineText)}</tspan>`;
+        mainTextHtml += `<tspan class="card-product-line" x="0" y="${(startY + (idx * lineHeight)).toFixed(2)}">${escapeHtml(lineText)}</tspan>`;
       });
 
       const heatingType = data.heatingType || 'microwave';
@@ -834,7 +840,7 @@
   <tspan x="0" y="0">${escapeHtml(data.methodText || '')}</tspan>
 </text>
 
-            <text class="dynamic-main-text" font-size="10px" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
+            <text class="dynamic-main-text" font-size="${mainFontSizePx}px" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815" transform="translate(11.28 45.69)">
               ${mainTextHtml}
             </text>
 
