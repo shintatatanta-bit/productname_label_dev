@@ -939,12 +939,14 @@
           }
 
         } else {
-          // --- 本体ラベル用フィット処理（バグ修正版） ---
+          // --- 本体ラベル用フィット処理 ---
           const maxAllowedWidth = 125; // 本体ラベルの印字可能ピクセル幅
-          const maxAllowedChars = 12.0;
-          
           const sublines = card.querySelectorAll('.card-product-line');
           if (sublines.length === 0) return;
+
+          // 4行表示時は16文字（視覚長16.0）まで長体なし、17文字（視覚長17.0超）から長体開始
+          // 3行以下は従来の12.0基準を維持
+          const maxAllowedChars = sublines.length >= 4 ? 16.0 : 12.0;
 
           sublines.forEach(span => {
             span.removeAttribute('textLength');
@@ -961,7 +963,6 @@
               }
             }
             
-            // 12文字を超える長い品名のみ、指定幅（125px）に長体で押し込む
             if (visualLen > maxAllowedChars) {
               span.setAttribute('textLength', maxAllowedWidth);
               span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
