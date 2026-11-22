@@ -1101,34 +1101,29 @@
       display: flex;
     }
 
-   /* ラベルストックのカードスタイル（従来） */
+   /* ラベルストックのコンテナを3列グリッドに統一 */
+    #labelStockListContainer {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      gap: 6px !important;
+      align-content: start;
+    }
+
+    /* ラベルストックのカードスタイル（50mm:30mm＝5:3比率を維持して縦横比崩れを防止） */
     .label-stock-card {
       background: #ffffff;
       border: 1.5px solid #dadce0;
       border-radius: 6px;
-      padding: 3px;
+      padding: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
+      aspect-ratio: 5 / 3;
+      height: auto;
       cursor: grab;
       transition: all 0.15s;
       position: relative;
       overflow: hidden;
-      height: 18mm; /* 高さを固定して安定させる */
-    }
-    .label-stock-card:hover {
-      border-color: #1a73e8;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .label-stock-card:active {
-      cursor: grabbing;
-    }
-    /* スケールを 0.76 まで大きくし、上部に美しく収める */
-    .label-stock-card .design-card {
-      transform: scale(0.76);
-      transform-origin: center center;
-      pointer-events: none;
     }
     .label-stock-card:hover {
       border-color: #1a73e8;
@@ -1142,41 +1137,15 @@
       border-color: #1a73e8 !important;
     }
 
-    /* ラベルストックのコンテナを2列グリッドに変更 */
-    #labelStockListContainer {
-      display: grid !important;
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 6px !important;
-      align-content: start;
-    }
-
-    /* ラベルストックのカードスタイル（2列用） */
-    .label-stock-card {
-      background: #ffffff;
-      border: 1.5px solid #dadce0;
-      border-radius: 6px;
-      padding: 4px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      cursor: grab;
-      transition: all 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-    .label-stock-card:hover {
-      border-color: #1a73e8;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .label-stock-card:active {
-      cursor: grabbing;
-    }
-    /* 2列の幅に美しく収まるよう、縮小率を 0.52 に調整 */
+    /* 内包する .design-card をアスペクト比維持のまま縮小表示 */
     .label-stock-card .design-card {
-      transform: scale(0.52);
-      transform-origin: top center;
-      margin-bottom: -13mm;
+      width: 50mm !important;
+      height: 30mm !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) scale(0.52) !important;
+      transform-origin: center center !important;
+      margin: 0 !important;
       pointer-events: none;
     }
 
