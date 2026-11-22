@@ -1314,18 +1314,12 @@
       const data = slotsData[editingSlotIndex];
       if (!data.subProducts) data.subProducts = products.map(() => "");
 
-      let singleOptionsHtml = '<option value="">＋ 単品マスタから選択</option>';
-      singleMasterItems.forEach(item => {
-        if (item.nameJa) singleOptionsHtml += `<option value="${escapeHtml(item.nameJa)}">${escapeHtml(item.nameJa)}</option>`;
-      });
-
       products.forEach((val, idx) => {
         const row = document.createElement('div');
         row.className = 'single-product-field';
         row.innerHTML = `
           <div class="field-top-row">
             <span class="field-tag">品名 ${idx + 1}:</span>
-            <select class="select-single-item" onchange="onSelectSingleMasterItem(${idx}, this.value)">${singleOptionsHtml}</select>
           </div>
           <div class="field-input-row">
             <div class="input-suggest-wrapper">
