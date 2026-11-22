@@ -469,22 +469,23 @@
           if (hMode === 'range' || hMode === 'yusen') heatingColor = '#b71c1c'; 
           if (hMode === 'cold') heatingColor = '#0288d1';   
 
-          // パックラベル側のヘッダー
+          const subGroupText = item.type === 'combination'
+            ? (item.groupName || '').replace(/\u3000/g, ' ').replace(/ +/g, ' ').trim()
+            : '';
+          const previewPackData = {
+            labelType: 'main',
+            categoryText: showOuterOnPacks ? cleanOuterName : '',
+            parentDish: subGroupText,
+            products: cleanPackName ? [cleanPackName] : [],
+            heatingType: hMode === 'range' ? 'microwave' : (hMode === 'yusen' ? 'boil' : (hMode === 'cold' ? 'cold' : 'doc')),
+            methodText: heatingText
+          };
+
+          // 現在の本体ラベルデザイン（SVG）をプレビューカード内に描画（ホバー連動用に data-preview-pack を保持）
           childCardsHtml += `
             <div class="t-preview-child-row">
-              <div class="t-label-preview-card ${cardStyleClass}" data-preview-pack="${pack.id}">
-                <div class="t-p-header" style="${packHeaderStyle}">
-                  ${t_svgLogoString}
-                  ${showOuterOnPacks ? `<div class="t-p-cat-wrapper"><span class="t-p-set-cat">${escapeHtml(cleanOuterName)}</span></div>` : ''}
-                </div>
-                <div class="t-p-body-center">
-                  ${itemNameHtml}
-                  ${cookingHtml}
-                </div>
-                <div class="t-p-footer">
-                  <div class="t-p-green-line" style="background-color: ${heatingColor};"></div>
-                  <div class="t-p-footer-instruction" style="color: ${heatingColor};">${escapeHtml(heatingText)}</div>
-                </div>
+              <div class="t-label-preview-card ${cardStyleClass}" data-preview-pack="${pack.id}" style="padding:0; overflow:hidden;">
+                ${typeof buildLabelDesignHtml === 'function' ? buildLabelDesignHtml(previewPackData) : ''}
               </div>
               <div class="t-preview-copies-badge">× ${pack.copies || 1} 枚</div>
             </div>
@@ -492,15 +493,23 @@
         });
       });
 
+      let outerSubPlainText = '冷凍庫保管・前日冷蔵庫解凍';
+      if (outerOpt === '2') outerSubPlainText = '冷蔵庫保管';
+      else if (outerOpt === '3') outerSubPlainText = '冷凍庫保管';
+      else if (outerOpt === '4') outerSubPlainText = '';
+
+      const previewOuterData = {
+        labelType: 'outer',
+        outerText: cleanOuterName,
+        outerMethod: outerSubPlainText,
+        outerUniformFit: false
+      };
+
       previewHTML += `
         <div class="t-preview-tree-group">
           <div class="t-preview-parent-row">
-            <div class="t-label-preview-card outer-bag">
-              <div class="t-p-header" style="${outerHeaderStyle}">
-                ${t_svgLogoString}
-                ${outerOpt !== "4" ? `<div class="t-p-cat-wrapper">${outerSubTextHtml}</div>` : ''}
-              </div>
-              <div class="t-p-body-center">${outerNameHtml}</div>
+            <div class="t-label-preview-card outer-bag" style="padding:0; overflow:hidden;">
+              ${typeof buildLabelDesignHtml === 'function' ? buildLabelDesignHtml(previewOuterData) : ''}
             </div>
             <div class="t-preview-copies-badge">× ${Number(group.setCopies || 1)} 枚</div>
           </div>
