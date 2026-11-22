@@ -860,7 +860,8 @@
 
       const baseMainY = 45.69;
       const lastLineOffsetY = lines.length > 0 ? (startY + ((lines.length - 1) * lineHeight)) : 0;
-      const subProdY = (baseMainY + lastLineOffsetY + 10.5).toFixed(2);
+      const subProdOffset = (lines.length === 3 && hasParentDish) ? 9.5 : 10.5;
+      const subProdY = (baseMainY + lastLineOffsetY + subProdOffset).toFixed(2);
 
       const heatingType = data.heatingType || 'microwave';
       let lineStrokeColor = '#497535';
