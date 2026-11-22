@@ -545,13 +545,20 @@
       return { fontSizePt: data.customFontPt || 10.0, marginY: data.customMarginY || 0.55, fontWeight: data.fontWeight || '700' };
     }
 
-    // 品名・セット名・外袋テキストのいずれかに実質的な入力があるか判定する
+    // 品名・セット名・親料理名・外袋テキストのいずれかに実質的な入力があるか判定する
     function hasMeaningfulSlotData(d) {
       if (!d || typeof d !== 'object') return false;
       const hasProd = Array.isArray(d.products) && d.products.some(p => String(p || '').trim() !== '');
       const hasCategory = String(d.categoryText || '').trim() !== '';
+      const hasParentDish = String(d.parentDish || '').trim() !== '';
       const hasOuter = String(d.outerText || '').trim() !== '';
-      return hasProd || hasCategory || hasOuter;
+      return hasProd || hasCategory || hasParentDish || hasOuter;
+    }
+
+    function onParentDishInput(val) {
+      if (editingSlotIndex === null) return;
+      slotsData[editingSlotIndex].parentDish = sanitizeProductInput(val);
+      renderAllSlots();
     }
 
     // 実質的な入力がないスロットを空白（null）に戻す
@@ -804,18 +811,31 @@
       // ──────────────────────────────────────────
       // ▼▼ 分岐B: 本体パックラベルの場合 ▼▼
       // ──────────────────────────────────────────
-      const subProdText = (data.subProducts && data.subProducts[0]) ? data.subProducts[0] : '';
+      const subProdText = String(data.parentDish || '').trim();
+      const hasParentDish = subProdText !== '';
       let subTextHtml = '';
-      if (subProdText) {
+      if (hasParentDish) {
         subTextHtml = `<tspan font-family="YuGothic-Light, 'Yu Gothic', sans-serif" font-weight="300" x="0" y="0">[ </tspan><tspan class="card-subproduct-line" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#231815">${escapeHtml(subProdText)}</tspan><tspan font-family="YuGothic-Light, 'Yu Gothic', sans-serif" font-weight="300"> ]</tspan>`;
       }
 
       let mainTextHtml = '';
       const lines = validProds;
-      const isFourItems = lines.length >= 4;
-      // 4品時はフォントサイズを1pt下げる（10 -> 9）、1〜3品は現行の10を維持
-      const mainFontSize = isFourItems ? '8px' : '10px';
+      const itemCount = lines.length;
 
+      // 親料理名の有無と品数（3品・4品）に応じて品名フォントサイズを切り替える
+      let mainFontSize = '10px';
+      if (hasParentDish) {
+        if (itemCount >= 4) {
+          mainFontSize = '7px';
+        } else if (itemCount === 3) {
+          mainFontSize = '8.5px';
+        } else {
+          mainFontSize = '10px';
+        }
+      } else {
+        mainFontSize = itemCount >= 4 ? '8px' : '10px';
+      }
+      
       let lineHeight = 12;
       let startY = 0;
 
@@ -1067,6 +1087,8 @@
 
       document.getElementById('panelSlotTitle').innerText = `ラベル枠 #${slotIdx + 1} を編集`;
       document.getElementById('inputCategoryText').value = data.categoryText || '';
+      const parentDishEl = document.getElementById('inputParentDish');
+      if (parentDishEl) parentDishEl.value = data.parentDish || '';
 
       const labelType = data.labelType || 'main';
       document.getElementById('btnType_main').className = (labelType === 'main') ? 'btn-choice active' : 'btn-choice';
@@ -1143,6 +1165,7 @@
       const mainGroup = document.getElementById('mainLabelInputsGroup');
       const outerGroup = document.getElementById('outerLabelInputsGroup');
       const categoryWrapper = document.getElementById('categoryInputWrapper');
+      const parentDishWrapper = document.getElementById('parentDishInputWrapper');
       const masterCallBar = document.getElementById('masterCallBarWrapper');
       const uniformToggleWrap = document.getElementById('outerUniformToggleWrap');
 
@@ -1150,6 +1173,7 @@
         if (mainGroup) mainGroup.style.display = 'none';
         if (outerGroup) outerGroup.style.display = 'flex';
         if (categoryWrapper) categoryWrapper.style.display = 'none';
+        if (parentDishWrapper) parentDishWrapper.style.display = 'none';
         if (masterCallBar) masterCallBar.style.display = 'none';
         if (uniformToggleWrap) uniformToggleWrap.style.display = 'flex'; 
 
@@ -1162,6 +1186,7 @@
         if (mainGroup) mainGroup.style.display = 'flex';
         if (outerGroup) outerGroup.style.display = 'none';
         if (categoryWrapper) categoryWrapper.style.display = 'flex';
+        if (parentDishWrapper) parentDishWrapper.style.display = 'flex';
         if (masterCallBar) masterCallBar.style.display = 'flex';
         if (uniformToggleWrap) uniformToggleWrap.style.display = 'none'; 
       }
@@ -1276,7 +1301,6 @@
       });
 
       products.forEach((val, idx) => {
-        const subVal = data.subProducts[idx] || "";
         const row = document.createElement('div');
         row.className = 'single-product-field';
         row.innerHTML = `
@@ -1284,17 +1308,11 @@
             <span class="field-tag">品名 ${idx + 1}:</span>
             <select class="select-single-item" onchange="onSelectSingleMasterItem(${idx}, this.value)">${singleOptionsHtml}</select>
           </div>
-          <div class="field-input-row" style="flex-direction: column; align-items: stretch; gap: 4px;">
-            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
-              <div class="input-suggest-wrapper">
-                <textarea class="input-prod-text" id="prodInput_${idx}" rows="1" placeholder="メイン品名" oninput="onSingleProductInput(${idx}, this)" oncompositionend="onSingleProductInput(${idx}, this)">${escapeHtml(val)}</textarea>
-              </div>
-              <button type="button" class="btn-clear-row" onclick="clearSingleProductRow(${idx})">✕</button>
+          <div class="field-input-row">
+            <div class="input-suggest-wrapper">
+              <textarea class="input-prod-text" id="prodInput_${idx}" rows="1" placeholder="メイン品名" oninput="onSingleProductInput(${idx}, this)" oncompositionend="onSingleProductInput(${idx}, this)">${escapeHtml(val)}</textarea>
             </div>
-            <div style="display: flex; align-items: center; gap: 4px; width: 100%;">
-              <span style="font-size: 10.5px; color: #666; width: 55px; text-align: right; flex-shrink: 0;">親料理名:</span>
-              <textarea class="input-prod-text" id="subInput_${idx}" rows="1" placeholder="親料理名" oninput="onSubProductInput(${idx}, this)" oncompositionend="onSubProductInput(${idx}, this)" style="font-size: 11.5px; min-height: 28px; background: #fafafa;">${escapeHtml(subVal)}</textarea>
-            </div>
+            <button type="button" class="btn-clear-row" onclick="clearSingleProductRow(${idx})">✕</button>
           </div>
         `;
         container.appendChild(row);

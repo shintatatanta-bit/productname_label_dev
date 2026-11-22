@@ -191,6 +191,12 @@
         <input type="text" id="inputCategoryText" class="input-prod-text" placeholder="例: Aセット / 定番メニュー など" oninput="onCategoryTextInput(this.value)" style="width: 100% !important; min-height: 32px; padding: 6px 10px; font-size: 12.5px; box-sizing: border-box;">
       </div>
 
+      <!-- 親料理名（ラベル全体で1つ・本体ラベル用） -->
+      <div id="parentDishInputWrapper" style="margin-top: 6px; width: 100%; display: flex; flex-direction: column;">
+        <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">親料理名:</label>
+        <input type="text" id="inputParentDish" class="input-prod-text" placeholder="例: チキン照り焼き など" oninput="onParentDishInput(this.value)" style="width: 100% !important; min-height: 32px; padding: 6px 10px; font-size: 12.5px; box-sizing: border-box;">
+      </div>
+
       <!-- ========================================== -->
       <!-- ▼▼ 【外袋ラベル専用】入力グループ ▼▼ -->
       <!-- ========================================== -->
