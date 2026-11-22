@@ -458,21 +458,28 @@
             <span id="lblMasterFilterCount" style="font-size:11px; color:#666; font-weight:bold;">0 件表示</span>
           </div>
         </div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:11.5px;">
+          <span id="lblSelectedMasterCount" style="font-weight:bold; color:#1a73e8;">選択中: 0 / 最大4品</span>
+          <button type="button" class="btn-clear-row" onclick="clearSelectedMasterItems()" style="padding:3px 8px;">選択解除</button>
+        </div>
         <div style="max-height:280px; overflow-y:auto; border:1px solid #dadce0; border-radius:4px;">
           <table class="master-table">
             <thead>
               <tr>
+                <th style="width:8%; text-align:center;">選択</th>
                 <th style="width:14%;" onclick="sortMasterTable('recordNo')">レコード番号 <span id="sort_recordNo" class="sort-icon"></span></th>
-                <th style="width:28%;" onclick="sortMasterTable('internalName')">商品名（内部用） <span id="sort_internalName" class="sort-icon"></span></th>
-                <th style="width:28%;" onclick="sortMasterTable('nameJa')">シール商品名（印字用） <span id="sort_nameJa" class="sort-icon"></span></th>
-                <th style="width:30%;" onclick="sortMasterTable('method')">温め方 <span id="sort_method" class="sort-icon"></span></th>
+                <th style="width:26%;" onclick="sortMasterTable('internalName')">商品名（内部用） <span id="sort_internalName" class="sort-icon"></span></th>
+                <th style="width:26%;" onclick="sortMasterTable('nameJa')">シール商品名（印字用） <span id="sort_nameJa" class="sort-icon"></span></th>
+                <th style="width:26%;" onclick="sortMasterTable('method')">温め方 <span id="sort_method" class="sort-icon"></span></th>
               </tr>
             </thead>
             <tbody id="masterTableBody"></tbody>
           </table>
         </div>
       </div>
-      <div style="display:flex; justify-content:flex-end; padding: 10px 20px; background: #f8f9fa; border-top: 1px solid #dadce0;">
+      <div style="display:flex; justify-content:flex-end; gap:8px; padding: 10px 20px; background: #f8f9fa; border-top: 1px solid #dadce0;">
+        <button type="button" class="btn-main" style="background:#1a73e8; color:white; padding:6px 16px;" onclick="applySelectedMasterItemsToLabel()">✓ 選択した品目をラベルに反映</button>
         <button type="button" class="btn-main" style="background:#5f6368; color:white; padding:6px 18px;" onclick="closeProductMasterModal()">閉じる</button>
       </div>
     </div>

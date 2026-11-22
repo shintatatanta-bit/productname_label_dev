@@ -1602,10 +1602,160 @@
     window.addEventListener('keyup', e => { if (!e.ctrlKey || e.key === 'Control') document.body.classList.remove('ctrl-pressed'); });
     window.addEventListener('blur', () => document.body.classList.remove('ctrl-pressed'));
 
+    let selectedMasterNames = [];
+    let currentMasterSearchKeyword = '';
+
     function openManualModal() { document.getElementById('manualModal').style.display = 'flex'; }
     function closeManualModal() { document.getElementById('manualModal').style.display = 'none'; }
-    function openProductMasterModal() { document.getElementById('productMasterModal').style.display = 'flex'; }
-    function closeProductMasterModal() { document.getElementById('productMasterModal').style.display = 'none'; }
+
+    function openProductMasterModal() {
+      selectedMasterNames = [];
+      currentMasterSearchKeyword = '';
+      const searchEl = document.getElementById('searchMasterKeyword');
+      if (searchEl) searchEl.value = '';
+      renderProductMasterTable();
+      document.getElementById('productMasterModal').style.display = 'flex';
+    }
+
+    function closeProductMasterModal() {
+      document.getElementById('productMasterModal').style.display = 'none';
+    }
+
+    function onMasterSearchInput(keyword) {
+      currentMasterSearchKeyword = String(keyword || '').trim().toLowerCase();
+      renderProductMasterTable();
+    }
+
+    function getMasterDisplayName(item) {
+      if (!item) return '';
+      return String(item.nameJa || item.internalName || '').trim();
+    }
+
+    function toggleMasterItemSelection(nameVal, isChecked) {
+      const cleanName = sanitizeProductInput(nameVal).trim();
+      if (!cleanName) return;
+
+      if (isChecked) {
+        if (selectedMasterNames.includes(cleanName)) return;
+        if (selectedMasterNames.length >= 4) {
+          alert('1枚のラベルに選択できる品名は最大4品までです。');
+          renderProductMasterTable();
+          return;
+        }
+        selectedMasterNames.push(cleanName);
+      } else {
+        selectedMasterNames = selectedMasterNames.filter(n => n !== cleanName);
+      }
+      updateSelectedMasterCountLabel();
+    }
+
+    function clearSelectedMasterItems() {
+      selectedMasterNames = [];
+      renderProductMasterTable();
+    }
+
+    function updateSelectedMasterCountLabel() {
+      const lbl = document.getElementById('lblSelectedMasterCount');
+      if (lbl) {
+        lbl.innerText = `選択中: ${selectedMasterNames.length} / 最大4品`;
+      }
+    }
+
+    function renderProductMasterTable() {
+      const tbody = document.getElementById('masterTableBody');
+      const countLbl = document.getElementById('lblMasterFilterCount');
+      if (!tbody) return;
+
+      const list = Array.isArray(singleMasterItems) ? singleMasterItems : [];
+      const filtered = list.filter(item => {
+        if (!currentMasterSearchKeyword) return true;
+        const rec = String(item.recordNo || '').toLowerCase();
+        const internal = String(item.internalName || '').toLowerCase();
+        const ja = String(item.nameJa || '').toLowerCase();
+        const method = String(item.method || '').toLowerCase();
+        return rec.includes(currentMasterSearchKeyword) ||
+               internal.includes(currentMasterSearchKeyword) ||
+               ja.includes(currentMasterSearchKeyword) ||
+               method.includes(currentMasterSearchKeyword);
+      });
+
+      if (countLbl) {
+        countLbl.innerText = `${filtered.length} 件表示`;
+      }
+      updateSelectedMasterCountLabel();
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888; padding:16px;">該当する商品マスタがありません</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => {
+        const displayName = getMasterDisplayName(item);
+        const checkedAttr = selectedMasterNames.includes(displayName) ? 'checked' : '';
+        return `
+          <tr>
+            <td style="text-align:center;">
+              <input type="checkbox" ${checkedAttr} onchange="toggleMasterItemSelection('${escapeHtml(displayName)}', this.checked)">
+            </td>
+            <td>${escapeHtml(item.recordNo || '')}</td>
+            <td>${escapeHtml(item.internalName || '')}</td>
+            <td>${escapeHtml(item.nameJa || '')}</td>
+            <td>${escapeHtml(item.method || '')}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function applySelectedMasterItemsToLabel() {
+      if (selectedMasterNames.length === 0) {
+        alert('反映する品目を1つ以上選択してください。');
+        return;
+      }
+
+      const targetSlotIdx = (editingSlotIndex !== null) ? editingSlotIndex : 0;
+      if (!slotsData[targetSlotIdx]) {
+        slotsData[targetSlotIdx] = {
+          labelType: lastSelectedLabelType || 'main',
+          categoryText: "",
+          products: [""],
+          subProducts: [""],
+          productsAlt: [""],
+          fontScale: "normal",
+          customFontPt: 10.0,
+          marginPreset: "normal",
+          customMarginY: 0.55,
+          fontWeight: "700",
+          heatingType: "microwave",
+          methodMin: "2",
+          methodSec: "",
+          methodText: "レンジ 600W で 2分温め",
+          methodType: "warm",
+          outerUniformFit: false
+        };
+      }
+
+      const data = slotsData[targetSlotIdx];
+      const nextCount = Math.max(1, Math.min(4, selectedMasterNames.length));
+      const nextProds = [];
+      const nextSubs = [];
+      const nextAlts = [];
+
+      for (let i = 0; i < nextCount; i++) {
+        nextProds.push(selectedMasterNames[i] || "");
+        nextSubs.push((data.subProducts && data.subProducts[i]) ? data.subProducts[i] : "");
+        nextAlts.push((data.productsAlt && data.productsAlt[i]) ? data.productsAlt[i] : "");
+      }
+
+      data.products = nextProds;
+      data.subProducts = nextSubs;
+      data.productsAlt = nextAlts;
+
+      closeProductMasterModal();
+      openEditPanel(targetSlotIdx);
+      setProductCount(nextCount);
+      updateUsageCount();
+      renderAllSlots();
+    }
     function openSpecModal() { document.getElementById('specModal').style.display = 'flex'; }
     function closeSpecModal() { document.getElementById('specModal').style.display = 'none'; }
     function copyToAllSlots() {
