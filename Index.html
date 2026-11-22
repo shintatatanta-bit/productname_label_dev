@@ -303,7 +303,7 @@
           </div>
         </div>
 
-        <div>
+<div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
             <label style="font-size:11px; font-weight:bold; color:#555;">商品名入力:</label>
             <button type="button" class="btn-toggle-lang" onclick="toggleAllProductsLanguage()" style="padding:2px 8px;">
@@ -313,26 +313,7 @@
           <div class="product-inputs-container" id="productInputsContainer"></div>
         </div>
 
-          <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <label style="font-size:11px; font-weight:bold; color:#555;">行間:</label>
-              <span id="lblCurrentMargin" style="font-size:11px; font-weight:bold; color:#137333; background:#e6f4ea; padding:2px 8px; border-radius:4px;">0.55 mm</span>
-            </div>
-            <div class="choice-group" style="margin-bottom:6px;">
-              <button type="button" class="btn-choice active" id="btnMargin_normal" onclick="setMarginPreset('normal', 0.55)">標準</button>
-              <button type="button" class="btn-choice" id="btnMargin_narrow" onclick="setMarginPreset('narrow', 0.25)">狭め</button>
-              <button type="button" class="btn-choice" id="btnMargin_wide" onclick="setMarginPreset('wide', 0.95)">広め</button>
-            </div>
-            <div class="custom-slider-wrap">
-              <button type="button" class="btn-step" onclick="stepMargin(-0.1)">－</button>
-              <input type="range" class="custom-range-input" id="rangeMargin" min="0.0" max="2.5" step="0.05" value="0.55" oninput="onManualMarginSlider(this.value)">
-              <button type="button" class="btn-step" onclick="stepMargin(0.1)">＋</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="method-section">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="method-section">          <div style="display:flex; justify-content:space-between; align-items:center;">
             <label style="font-size:11px; font-weight:bold; color:#555;">温め方:</label>
             <button type="button" class="btn-toggle-lang" onclick="toggleMethodLanguage()" style="padding:1px 6px;">🌐日英切替</button>
           </div>
