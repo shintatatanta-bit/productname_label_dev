@@ -836,6 +836,12 @@
         mainFontSize = itemCount >= 4 ? '8px' : '10px';
       }
 
+      // 親料理名あり・4品時は親料理名のフォントサイズを6pxに明示
+      let parentDishFontSize = '6px';
+      if (hasParentDish && itemCount >= 4) {
+        parentDishFontSize = '6px';
+      }
+
       let lineHeight = 12;
       let startY = 0;
 
@@ -888,7 +894,7 @@
               ${mainTextHtml}
             </text>
 
-            <text font-size="6px" fill="#231815" transform="translate(11.28 ${subProdY})">
+            <text font-size="${parentDishFontSize}" fill="#231815" transform="translate(11.28 ${subProdY})">
               ${subTextHtml}
             </text>
 
