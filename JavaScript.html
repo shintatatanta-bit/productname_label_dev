@@ -1685,7 +1685,7 @@
       updateSelectedMasterCountLabel();
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888; padding:16px;">該当する商品マスタがありません</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#888; padding:16px;">該当する商品マスタがありません</td></tr>';
         return;
       }
 
@@ -1700,7 +1700,6 @@
             <td>${escapeHtml(item.recordNo || '')}</td>
             <td>${escapeHtml(item.internalName || '')}</td>
             <td>${escapeHtml(item.nameJa || '')}</td>
-            <td>${escapeHtml(item.method || '')}</td>
           </tr>
         `;
       }).join('');
@@ -1736,19 +1735,11 @@
 
       const data = slotsData[targetSlotIdx];
       const nextCount = Math.max(1, Math.min(4, selectedMasterNames.length));
-      const nextProds = [];
-      const nextSubs = [];
-      const nextAlts = [];
 
-      for (let i = 0; i < nextCount; i++) {
-        nextProds.push(selectedMasterNames[i] || "");
-        nextSubs.push((data.subProducts && data.subProducts[i]) ? data.subProducts[i] : "");
-        nextAlts.push((data.productsAlt && data.productsAlt[i]) ? data.productsAlt[i] : "");
-      }
-
-      data.products = nextProds;
-      data.subProducts = nextSubs;
-      data.productsAlt = nextAlts;
+      // 選択した商品数（最大4品）に合わせて品名配列を拡張・整形する
+      data.products = selectedMasterNames.slice(0, nextCount);
+      data.subProducts = Array.from({ length: nextCount }, (_, idx) => (data.subProducts && data.subProducts[idx]) ? data.subProducts[idx] : "");
+      data.productsAlt = Array.from({ length: nextCount }, (_, idx) => (data.productsAlt && data.productsAlt[idx]) ? data.productsAlt[idx] : "");
 
       closeProductMasterModal();
       openEditPanel(targetSlotIdx);
