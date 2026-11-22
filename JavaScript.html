@@ -850,8 +850,8 @@
         startY = hasParentDish ? -9.5 : -3.5;
       } else if (lines.length >= 4) {
         lineHeight = 9.0;
-        // 親料理名ありの場合は親料理名フォントサイズ（6）分だけ品名と親料理名を上へ上げる（-7.0 - 6 = -13.0）
-        startY = hasParentDish ? -13.0 : -7.0;
+        // 親料理名あり・4品時は基準（-13.0）から品名を0.5下げる（-13.0 + 0.5 = -12.5）
+        startY = hasParentDish ? -12.5 : -7.0;
       }
 
       lines.forEach((lineText, idx) => {
