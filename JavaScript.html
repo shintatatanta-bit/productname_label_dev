@@ -835,7 +835,7 @@
       } else {
         mainFontSize = itemCount >= 4 ? '8px' : '10px';
       }
-      
+
       let lineHeight = 12;
       let startY = 0;
 
@@ -845,9 +845,9 @@
         lineHeight = 12;
         startY = -3;
       } else if (lines.length === 3) {
-        // 10pxフォントの半分（+5）をさらに下げる（例: -8.5 → -3.5）
         lineHeight = 10.5;
-        startY = -3.5;
+        // 親料理名ありの場合は親料理名フォントサイズ（6px）分だけ上へ上げる（-3.5 - 6 = -9.5）
+        startY = hasParentDish ? -9.5 : -3.5;
       } else if (lines.length >= 4) {
         // 8pxフォントの半分（+4.0）下げる（-9.0 -> -5.0）とともに、行間をわずかに広げる（8.5 -> 9.0）
         lineHeight = 9.0;
