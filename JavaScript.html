@@ -506,8 +506,23 @@
       renderAllSlots();
     }
 
+   function closeEditPanel() {
+      if (editingSlotIndex !== null) {
+        const d = slotsData[editingSlotIndex];
+        if (d && d.labelType) {
+          lastSelectedLabelType = d.labelType;
+        }
+        if (d && !hasMeaningfulSlotData(d) && !d.methodText) {
+          slotsData[editingSlotIndex] = null;
+        }
+      }
+      editingSlotIndex = null;
+      updateUsageCount();
+      renderAllSlots();
+    }
+
     function updateUsageCount() {
-      const used = slotsData.filter(d => d && ((d.products && d.products.some(p => p.trim() !== "")) || (d.categoryText && d.categoryText.trim() !== ""))).length;
+      const used = slotsData.filter(d => hasMeaningfulSlotData(d)).length;
       document.getElementById('lblTotalUsage').innerText = `作成中: ${used} / 36枚`;
     }
 
@@ -545,14 +560,30 @@
       return { fontSizePt: data.customFontPt || 10.0, marginY: data.customMarginY || 0.55, fontWeight: data.fontWeight || '700' };
     }
 
-    // 品名・セット名・親料理名・外袋テキストのいずれかに実質的な入力があるか判定する
-    function hasMeaningfulSlotData(d) {
+   function hasMeaningfulSlotData(d) {
       if (!d || typeof d !== 'object') return false;
       const hasProd = Array.isArray(d.products) && d.products.some(p => String(p || '').trim() !== '');
       const hasCategory = String(d.categoryText || '').trim() !== '';
       const hasParentDish = String(d.parentDish || '').trim() !== '';
       const hasOuter = String(d.outerText || '').trim() !== '';
-      return hasProd || hasCategory || hasParentDish || hasOuter;
+      const isConfirmedBlankOuter = (d.labelType === 'outer' && Boolean(d.outerBlankConfirmed));
+      return hasProd || hasCategory || hasParentDish || hasOuter || isConfirmedBlankOuter;
+    }
+
+    function confirmBlankOuterLabel() {
+      if (editingSlotIndex === null) return;
+      const data = slotsData[editingSlotIndex];
+      if (!data) return;
+
+      data.labelType = 'outer';
+      lastSelectedLabelType = 'outer';
+      if (data.outerMethod === undefined) {
+        data.outerMethod = '冷凍庫保管・前日冷蔵庫解凍';
+      }
+      data.outerBlankConfirmed = true;
+
+      updateUsageCount();
+      renderAllSlots();
     }
 
     function onParentDishInput(val) {
@@ -1122,21 +1153,6 @@
       setLabelType(labelType);
 
       scrollToEditingSlot(slotIdx);
-    }
-
-    function closeEditPanel() {
-      if (editingSlotIndex !== null) {
-        const d = slotsData[editingSlotIndex];
-        if (d && d.labelType) {
-          lastSelectedLabelType = d.labelType;
-        }
-        if (d && !d.products.some(p => p.trim() !== "") && !d.categoryText.trim() && !d.methodText) {
-          slotsData[editingSlotIndex] = null;
-        }
-      }
-      editingSlotIndex = null;
-      updateUsageCount();
-      renderAllSlots();
     }
 
     function toggleFontSettings() {
