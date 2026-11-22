@@ -544,6 +544,24 @@
       return { fontSizePt: data.customFontPt || 10.0, marginY: data.customMarginY || 0.55, fontWeight: data.fontWeight || '700' };
     }
 
+    // 品名・セット名・外袋テキストのいずれかに実質的な入力があるか判定する
+    function hasMeaningfulSlotData(d) {
+      if (!d || typeof d !== 'object') return false;
+      const hasProd = Array.isArray(d.products) && d.products.some(p => String(p || '').trim() !== '');
+      const hasCategory = String(d.categoryText || '').trim() !== '';
+      const hasOuter = String(d.outerText || '').trim() !== '';
+      return hasProd || hasCategory || hasOuter;
+    }
+
+    // 実質的な入力がないスロットを空白（null）に戻す
+    function cleanupSlotIfUnentered(slotIdx) {
+      if (slotIdx === null || slotIdx === undefined) return;
+      const d = slotsData[slotIdx];
+      if (d && !hasMeaningfulSlotData(d)) {
+        slotsData[slotIdx] = null;
+      }
+    }
+
     function renderAllSlots() {
       const container = document.getElementById('sheetsContainer');
       container.innerHTML = '';
@@ -569,14 +587,11 @@
           const globalIndex = page * 36 + i; 
           const data = slotsData[globalIndex];
           
-          const hasData = Boolean(data && (
-            (data.products && data.products.some(p => p.trim() !== "")) || 
-            (data.categoryText && data.categoryText.trim() !== "") ||
-            (data.outerText && data.outerText.trim() !== "")
-          ));
+          const hasData = hasMeaningfulSlotData(data);
+          const isEditingCell = (globalIndex === editingSlotIndex);
 
-          let cellClass = hasData ? 'label-cell has-data' : 'label-cell empty-cell';
-          if (globalIndex === editingSlotIndex) cellClass += ' active-editing';
+          let cellClass = (hasData || isEditingCell) ? 'label-cell has-data' : 'label-cell empty-cell';
+          if (isEditingCell) cellClass += ' active-editing';
           
           const cell = document.createElement('div');
           cell.className = cellClass;
@@ -689,9 +704,9 @@
           };
 
           let cellHtml = `<span class="slot-num-badge">#${globalIndex + 1}</span>`;
-          if (hasData) {
+          if (hasData || isEditingCell) {
             cellHtml += `<button type="button" class="cell-quick-del-btn" onclick="quickDeleteSlot(event, ${globalIndex})">✕</button>`;
-            cellHtml += buildLabelDesignHtml(data);
+            cellHtml += buildLabelDesignHtml(data || { labelType: 'main' });
           }
           cell.innerHTML = cellHtml;
           grid.appendChild(cell);
@@ -985,9 +1000,14 @@
     function closeActualSizeModal() { document.getElementById('actualSizeModal').style.display = 'none'; }
 
     function openEditPanel(slotIdx) {
+      if (editingSlotIndex !== null && editingSlotIndex !== slotIdx) {
+        cleanupSlotIfUnentered(editingSlotIndex);
+      }
+
       editingSlotIndex = slotIdx;
       if (!slotsData[slotIdx]) {
         slotsData[slotIdx] = {
+          labelType: "main",
           categoryText: "",
           products: [""],
           subProducts: [""],
