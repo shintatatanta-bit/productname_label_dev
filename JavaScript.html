@@ -855,9 +855,14 @@
         // 親料理名ありの場合は親料理名フォントサイズ（6px）分だけ上へ上げる（-3.5 - 6 = -9.5）
         startY = hasParentDish ? -9.5 : -3.5;
       } else if (lines.length >= 4) {
-        lineHeight = 9.0;
-        // 親料理名あり・4品時は基準（-13.0）から品名を0.5下げる（-13.0 + 0.5 = -12.5）
-        startY = hasParentDish ? -12.5 : -7.0;
+        if (hasParentDish) {
+          // 4行目（+14.5）の位置を維持したまま、品名1〜4の間を1.0近づける（-9.5 + 3 * 8.0 = +14.5）
+          lineHeight = 8.0;
+          startY = -9.5;
+        } else {
+          lineHeight = 9.0;
+          startY = -7.0;
+        }
       }
 
       lines.forEach((lineText, idx) => {
@@ -866,8 +871,15 @@
 
       const baseMainY = 45.69;
       const lastLineOffsetY = lines.length > 0 ? (startY + ((lines.length - 1) * lineHeight)) : 0;
-      const subProdOffset = (lines.length === 3 && hasParentDish) ? 9.5 : 10.5;
+      let subProdOffset = 10.5;
+      if (lines.length === 3 && hasParentDish) {
+        subProdOffset = 9.5;
+      } else if (lines.length >= 4 && hasParentDish) {
+        // 4行目位置を維持したうえで親料理名を3pt上げる（11.5 - 3.0 = 8.5）
+        subProdOffset = 8.5;
+      }
       const subProdY = (baseMainY + lastLineOffsetY + subProdOffset).toFixed(2);
+      
 
       const heatingType = data.heatingType || 'microwave';
       let lineStrokeColor = '#497535';
