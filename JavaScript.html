@@ -1,6 +1,7 @@
 <script>
     let currentZoom = 1.0;
     let editingSlotIndex = null;
+    let lastSelectedLabelType = 'main';
     let draggedSlotIndex = null;
     let isDraggingActive = false;
     let isFontSettingsOpen = false;
@@ -1001,13 +1002,16 @@
 
     function openEditPanel(slotIdx) {
       if (editingSlotIndex !== null && editingSlotIndex !== slotIdx) {
+        if (slotsData[editingSlotIndex] && slotsData[editingSlotIndex].labelType) {
+          lastSelectedLabelType = slotsData[editingSlotIndex].labelType;
+        }
         cleanupSlotIfUnentered(editingSlotIndex);
       }
 
       editingSlotIndex = slotIdx;
       if (!slotsData[slotIdx]) {
         slotsData[slotIdx] = {
-          labelType: "main",
+          labelType: lastSelectedLabelType,
           categoryText: "",
           products: [""],
           subProducts: [""],
@@ -1053,6 +1057,9 @@
     function closeEditPanel() {
       if (editingSlotIndex !== null) {
         const d = slotsData[editingSlotIndex];
+        if (d && d.labelType) {
+          lastSelectedLabelType = d.labelType;
+        }
         if (d && !d.products.some(p => p.trim() !== "") && !d.categoryText.trim() && !d.methodText) {
           slotsData[editingSlotIndex] = null;
         }
@@ -1099,6 +1106,7 @@
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
       data.labelType = type;
+      lastSelectedLabelType = type;
 
       document.getElementById('btnType_main').className = (type === 'main') ? 'btn-choice active' : 'btn-choice';
       document.getElementById('btnType_outer').className = (type === 'outer') ? 'btn-choice active' : 'btn-choice';
