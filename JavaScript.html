@@ -807,12 +807,7 @@
       const subProdText = (data.subProducts && data.subProducts[0]) ? data.subProducts[0] : '';
       let subTextHtml = '';
       if (subProdText) {
-        const subWidth = subProdText.length * 6; 
-        subTextHtml = `
-          <tspan font-family="YuGothic-Light, 'Yu Gothic', sans-serif" font-weight="300" x="0" y="0">[</tspan>
-          <tspan font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#9e4724" x="3.53" y="0" style="display:inline-block; transform:scaleX(0.91); transform-origin:left center;">${escapeHtml(subProdText)}</tspan>
-          <tspan font-family="YuGothic-Light, 'Yu Gothic', sans-serif" font-weight="300" x="${3.53 + (subWidth * 0.91) + 3}" y="0">]</tspan>
-        `;
+        subTextHtml = `<tspan font-family="YuGothic-Light, 'Yu Gothic', sans-serif" font-weight="300" x="0" y="0">[ </tspan><tspan class="card-subproduct-line" font-family="YuGothic-Bold, 'Yu Gothic', sans-serif" font-weight="700" fill="#9e4724">${escapeHtml(subProdText)}</tspan><tspan font-family="YuGothic-Light, 'Yu Gothic', sans-serif" font-weight="300"> ]</tspan>`;
       }
 
       let mainTextHtml = '';
@@ -873,7 +868,7 @@
             </text>
 
             <text font-size="6px" fill="#231815" stroke="#231815" stroke-width="0.25" stroke-miterlimit="10" stroke-linecap="round" font-family="YuGothic-Medium, 'Yu Gothic', sans-serif" font-weight="500" transform="translate(11.28 26.42)">
-              <tspan x="0" y="0">${escapeHtml(categoryText)}</tspan>
+              <tspan class="card-category-line" x="0" y="0">${escapeHtml(categoryText)}</tspan>
             </text>
 
             <g>
@@ -958,33 +953,62 @@
         } else {
           // --- 本体ラベル用フィット処理 ---
           const maxAllowedWidth = 125; // 本体ラベルの印字可能ピクセル幅
-          const sublines = card.querySelectorAll('.card-product-line');
-          if (sublines.length === 0) return;
 
-          // 4行表示時は16文字（視覚長16.0）まで長体なし、17文字（視覚長17.0超）から長体開始
-          // 3行以下は従来の12.0基準を維持
-          const maxAllowedChars = sublines.length >= 4 ? 16.0 : 12.0;
-
-          sublines.forEach(span => {
-            span.removeAttribute('textLength');
-            span.removeAttribute('lengthAdjust');
-            
-            const textContent = span.textContent || "";
-            let visualLen = 0;
-            for (let i = 0; i < textContent.length; i++) {
-              const code = textContent.charCodeAt(i);
+          // 視覚文字数を計算する共通ヘルパー
+          const calcVisualLen = (str) => {
+            let len = 0;
+            for (let i = 0; i < str.length; i++) {
+              const code = str.charCodeAt(i);
               if ((code >= 0x20 && code <= 0x7E) || (code >= 0xFF61 && code <= 0xFF9F)) {
-                visualLen += 0.5;
+                len += 0.5;
               } else {
-                visualLen += 1.0;
+                len += 1.0;
               }
             }
-            
-            if (visualLen > maxAllowedChars) {
-              span.setAttribute('textLength', maxAllowedWidth);
-              span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+            return len;
+          };
+
+          // 1. 品名行のフィット処理
+          const sublines = card.querySelectorAll('.card-product-line');
+          if (sublines.length > 0) {
+            // 4行表示時は16文字（視覚長16.0）まで長体なし、17文字（視覚長17.0超）から長体開始
+            // 3行以下は従来の12.0基準を維持
+            const maxAllowedChars = sublines.length >= 4 ? 16.0 : 12.0;
+
+            sublines.forEach(span => {
+              span.removeAttribute('textLength');
+              span.removeAttribute('lengthAdjust');
+              const visualLen = calcVisualLen(span.textContent || "");
+              if (visualLen > maxAllowedChars) {
+                span.setAttribute('textLength', maxAllowedWidth);
+                span.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+              }
+            });
+          }
+
+          // 2. セット名（カテゴリ名: 6px）のフィット処理
+          const catSpan = card.querySelector('.card-category-line');
+          if (catSpan) {
+            catSpan.removeAttribute('textLength');
+            catSpan.removeAttribute('lengthAdjust');
+            const catVisualLen = calcVisualLen(catSpan.textContent || "");
+            if (catVisualLen > 19.5) {
+              catSpan.setAttribute('textLength', '119.4');
+              catSpan.setAttribute('lengthAdjust', 'spacingAndGlyphs');
             }
-          });
+          }
+
+          // 3. 親料理名（6px, 前後に [ ] を含む）のフィット処理
+          const subProdSpan = card.querySelector('.card-subproduct-line');
+          if (subProdSpan) {
+            subProdSpan.removeAttribute('textLength');
+            subProdSpan.removeAttribute('lengthAdjust');
+            const subProdVisualLen = calcVisualLen(subProdSpan.textContent || "");
+            if (subProdVisualLen > 18.0) {
+              subProdSpan.setAttribute('textLength', '111.0');
+              subProdSpan.setAttribute('lengthAdjust', 'spacingAndGlyphs');
+            }
+          }
         }
       });
     }
