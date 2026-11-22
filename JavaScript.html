@@ -1689,13 +1689,13 @@
         return;
       }
 
-      tbody.innerHTML = filtered.map(item => {
+      tbody.innerHTML = filtered.map((item, rowIdx) => {
         const displayName = getMasterDisplayName(item);
         const checkedAttr = selectedMasterNames.includes(displayName) ? 'checked' : '';
         return `
           <tr>
             <td style="text-align:center;">
-              <input type="checkbox" ${checkedAttr} onchange="toggleMasterItemSelection('${escapeHtml(displayName)}', this.checked)">
+              <input type="checkbox" class="master-select-chk" data-row-idx="${rowIdx}" ${checkedAttr}>
             </td>
             <td>${escapeHtml(item.recordNo || '')}</td>
             <td>${escapeHtml(item.internalName || '')}</td>
@@ -1703,6 +1703,15 @@
           </tr>
         `;
       }).join('');
+
+      tbody.querySelectorAll('.master-select-chk').forEach(chk => {
+        chk.addEventListener('change', function() {
+          const idx = parseInt(this.getAttribute('data-row-idx'), 10);
+          const targetItem = filtered[idx];
+          const nameVal = getMasterDisplayName(targetItem);
+          toggleMasterItemSelection(nameVal, this.checked);
+        });
+      });
     }
 
     function applySelectedMasterItemsToLabel() {
