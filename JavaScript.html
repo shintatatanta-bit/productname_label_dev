@@ -1241,11 +1241,16 @@
     function updateControlsUI() {
       if (editingSlotIndex === null) return;
       const data = slotsData[editingSlotIndex];
+      if (!data) return;
       const typo = getEffectiveFontSettings(data);
-      document.getElementById('lblCurrentPt').innerText = `${typo.fontSizePt} pt`;
-      document.getElementById('rangeFontPt').value = typo.fontSizePt;
-      document.getElementById('lblCurrentMargin').innerText = `${typo.marginY} mm`;
-      document.getElementById('rangeMargin').value = typo.marginY;
+      const lblPt = document.getElementById('lblCurrentPt');
+      const rangePt = document.getElementById('rangeFontPt');
+      const lblMargin = document.getElementById('lblCurrentMargin');
+      const rangeMargin = document.getElementById('rangeMargin');
+      if (lblPt) lblPt.innerText = `${typo.fontSizePt} pt`;
+      if (rangePt) rangePt.value = typo.fontSizePt;
+      if (lblMargin) lblMargin.innerText = `${typo.marginY} mm`;
+      if (rangeMargin) rangeMargin.value = typo.marginY;
     }
 
     function highlightChoiceButton(prefix, currentKey) {

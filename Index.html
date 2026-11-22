@@ -313,39 +313,6 @@
           <div class="product-inputs-container" id="productInputsContainer"></div>
         </div>
 
-        <div>
-          <button type="button" class="btn-toggle-font-settings" onclick="toggleFontSettings()">
-            <span>⚙️ フォント・間隔詳細設定</span>
-            <span id="lblFontSummaryBadge" style="font-size:10.5px; color:#1a73e8; background:#e8f0fe; padding:1px 6px; border-radius:4px;">太字 10.0pt / 余白 標準 ▼</span>
-          </button>
-        </div>
-
-        <div class="font-custom-section" id="fontCustomSection">
-          <div>
-            <label style="font-size:11px; font-weight:bold; color:#555; margin-bottom:4px; display:block;">文字の太さ:</label>
-            <div class="choice-group">
-              <button type="button" class="btn-choice active" id="btnWeight_bold" onclick="setFontWeight('700')">太字（標準）</button>
-              <button type="button" class="btn-choice" id="btnWeight_light" onclick="setFontWeight('400')">細字</button>
-            </div>
-          </div>
-
-          <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <label style="font-size:11px; font-weight:bold; color:#555;">文字サイズ:</label>
-              <span id="lblCurrentPt" style="font-size:11px; font-weight:bold; color:#1a73e8; background:#e8f0fe; padding:2px 8px; border-radius:4px;">10.0 pt</span>
-            </div>
-            <div class="choice-group">
-              <button type="button" class="btn-choice active" id="btnScale_normal" onclick="setFontScale('normal')">標準</button>
-              <button type="button" class="btn-choice" id="btnScale_small" onclick="setFontScale('small')">小さめ</button>
-              <button type="button" class="btn-choice" id="btnScale_xsmall" onclick="setFontScale('xsmall')">極小</button>
-            </div>
-            <div class="custom-slider-wrap">
-              <button type="button" class="btn-step" onclick="stepFontSize(-0.2)">－</button>
-              <input type="range" class="custom-range-input" id="rangeFontPt" min="5.0" max="14.0" step="0.1" value="10.0" oninput="onManualFontSizeSlider(this.value)">
-              <button type="button" class="btn-step" onclick="stepFontSize(0.2)">＋</button>
-            </div>
-          </div>
-
           <div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
               <label style="font-size:11px; font-weight:bold; color:#555;">行間:</label>
