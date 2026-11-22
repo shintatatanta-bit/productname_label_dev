@@ -856,9 +856,9 @@
         startY = hasParentDish ? -9.5 : -3.5;
       } else if (lines.length >= 4) {
         if (hasParentDish) {
-          // 4行目（+14.5）の位置を維持したまま、品名1〜4の間を1.0近づける（-9.5 + 3 * 8.0 = +14.5）
+          // 品名1〜4の間隔（lineHeight = 8.0）と親料理名オフセット（subProdOffset = 8.5）を保ったまま、両方を1.0上へ上げる（-9.5 - 1.0 = -10.5）
           lineHeight = 8.0;
-          startY = -9.5;
+          startY = -10.5;
         } else {
           lineHeight = 9.0;
           startY = -7.0;
@@ -879,7 +879,7 @@
         subProdOffset = 8.5;
       }
       const subProdY = (baseMainY + lastLineOffsetY + subProdOffset).toFixed(2);
-      
+
 
       const heatingType = data.heatingType || 'microwave';
       let lineStrokeColor = '#497535';
