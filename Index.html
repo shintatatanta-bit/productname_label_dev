@@ -258,42 +258,43 @@
             transform: translateX(20px);
           }
 
-          /* 保管・解凍方法ボタンのベーススタイル */
+          /* 保管・解凍方法ボタンのベーススタイル（非選択時も文字コントラストを維持） */
           .btn-outer-method {
-            padding: 8px 4px;
+            padding: 8px 6px;
             font-size: 11px;
             font-weight: bold;
-            border-radius: 4px;
+            border-radius: 5px;
             cursor: pointer;
-            border: 2px solid transparent;
-            color: white;
-            transition: all 0.2s ease;
-            opacity: 0.6; /* 非アクティブ時は少し薄くする */
+            border: 1.5px solid #dadce0;
+            color: #ffffff;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+            transition: all 0.15s ease;
+            opacity: 0.85;
           }
-          
+
           /* アクティブ（選択中）の状態 */
           .btn-outer-method.active {
             opacity: 1.0;
             border-color: #1a73e8;
-            box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+            box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.25);
           }
 
           /* 各ボタンの個別カラー定義 */
           .btn-outer-method.method-grad {
-            background: linear-gradient(135deg, #0d47a1 0%, #42a5f5 100%);
+            background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
             border-color: #0d47a1;
           }
           .btn-outer-method.method-darkblue {
-            background-color: #0d47a1;
+            background-color: #1565c0;
             border-color: #0d47a1;
           }
           .btn-outer-method.method-lightblue {
-            background-color: #42a5f5;
-            border-color: #1e88e5;
+            background-color: #0288d1;
+            border-color: #0277bd;
           }
           .btn-outer-method.method-gray {
-            background-color: #757575;
-            border-color: #616161;
+            background-color: #5f6368;
+            border-color: #4a4d50;
           }
         </style>
       </div>
